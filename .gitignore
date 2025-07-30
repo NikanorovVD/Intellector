@@ -70,12 +70,7 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
-Packages/NUnit.3.13.1
-Packages/BoDi.1.5.0
-Packages/Gherkin.27.0.0
-Packages/SpecFlow.3.9.74
-Packages/SpecFlow.Tools.MsBuild.Generation.3.9.74
-Packages/
+/Packages/
 config.bin
 log.txt
 game_info.bin
