@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 public class TreeNode
 {
-    public Move move;
+    public AIMove move;
     public int valuation;
     public int depth;
     public TreeNode parent;
@@ -19,7 +19,7 @@ public class TreeNode
         viewed_children = null;
     }
 
-    public TreeNode(Move move, int valuation, TreeNode parent)
+    public TreeNode(AIMove move, int valuation, TreeNode parent)
     {
         this.move = move;
         this.valuation = valuation;

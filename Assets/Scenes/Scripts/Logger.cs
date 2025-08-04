@@ -8,12 +8,12 @@ public class Logger : MonoBehaviour
 
     void OnEnable()
     {
-        Application.logMessageReceived += HandleLog;
+        //Application.logMessageReceived += HandleLog;
     }
 
     void OnDisable()
     {
-        Application.logMessageReceived -= HandleLog;
+        //Application.logMessageReceived -= HandleLog;
     }
 
     void HandleLog(string condition, string stackTrace, LogType type)

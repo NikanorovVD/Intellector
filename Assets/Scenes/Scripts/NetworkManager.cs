@@ -1,16 +1,11 @@
-using System.Net.Sockets;
 using UnityEngine;
 using System;
-using static LogWriter;
 using System.Threading.Tasks;
-using Assets.Scenes.Scripts.Server;
 
-public class NetworkManager : MonoBehaviour, IServerListenerObserver
+
+public class NetworkManager : MonoBehaviour
 {
     [SerializeField] private Board board;
-    [SerializeField] private GameObject WaitScreen;
-
-    NetworkStream server_stream;
 
     static bool ready_for_rematch = false;
 
@@ -20,38 +15,29 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     public delegate void TimeReceived(int time);
     public event TimeReceived TimeEvent;
-    
+    private int gameId;
+
+    private SignalrConnection connection;
 
     void Start()
     {
         if (Settings.GameMode == GameMode.Network)
         {
-            ServerConnection connection = ServerConnection.GetConnection();
-            server_stream = connection.Client.GetStream();
+            gameId = GameSettings.Load().GameId.Value;
+            connection = ConnectionManager.SignalrConnection;
 
+            connection.OnMoveReceived(OnMoveReceived);
             board.MoveEvent += MoveEventHandler;
-            ServerManager.GetInstance().RegisterObserver(this);
-            new TaskFactory().StartNew(ServerManager.GetInstance().ListenServer, TaskCreationOptions.LongRunning);
+
             GameStartEvent?.Invoke();
         }
     }
 
-    public void ExecuteReceivedMove(Vector2Int start, Vector2Int end, int transform_info)
+    async void MoveEventHandler(Vector2Int start, Vector2Int end, int transform_info)
     {
-        try
-        {
-           board.MovePiece(start, end, true, transform_info);
-        }
-        catch (Exception e)
-        {
-            WriteLog(e.Message);
-        }
-    }
-
-    void MoveEventHandler(Vector2Int start, Vector2Int end, int transform_info)
-    {
-        ServerManager.GetInstance().SendMove(start, end, transform_info);
-        WriteLog($"Отправка хода: {start} ; {end} ; {transform_info}");
+        PieceType? transform = transform_info == 200 ? null : (PieceType)transform_info;
+        await connection.SendMove(gameId, new Move(start.x, start.y, end.x, end.y, transform));
+        Debug.Log($"Отправка хода: {start} ; {end} ; {transform_info}");
     }
 
     public async void AskRematch()
@@ -59,7 +45,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         //ЗАЧЕМ ТАК СЛОЖНО ТО?????
         if (board.NetworkGame)
         {
-            ServerManager.GetInstance().SendRematch();
+            //ServerManager.GetInstance().SendRematch();
             await new TaskFactory().StartNew(() => { while (!ready_for_rematch) { } }, TaskCreationOptions.LongRunning);
 
             MainTasks.AddTask(() => board.Restart());
@@ -74,13 +60,26 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     public void SendExit()
     {
-        ServerManager.GetInstance().SendExit();
+        //ServerManager.GetInstance().SendExit();
     }
 
     public void OnMoveReceived(Vector2Int start, Vector2Int end, int transform_info)
     {
-        WriteLog($"Получен ход: {start} -> {end} : {transform_info} ");
-        MainTasks.AddTask(() => ExecuteReceivedMove(start, end, transform_info));
+        Debug.Log($"Получен ход: {start} -> {end} : {transform_info} ");
+        MainTasks.AddTask(() => board.MovePiece(start, end, true, transform_info));
+    }
+
+    public void OnMoveReceived(MoveResponse response)
+    {
+        if (
+            (board.PlayerTeam == false && response.PlayerColor == PlayerColor.Black) ||
+            (board.PlayerTeam == true && response.PlayerColor == PlayerColor.White)
+            )
+        {
+            Move move = response.Move;
+            int transform = move.Transformation == null ? 200 : (int)move.Transformation;
+            OnMoveReceived(new Vector2Int(move.StartX, move.StartY), new Vector2Int(move.EndX, move.EndY), transform);
+        }
     }
 
     public void OnTimeReceived(int time)
@@ -90,7 +89,8 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     public void OnExitReceived()
     {
-        MainTasks.AddTask(() => {
+        MainTasks.AddTask(() =>
+        {
             board.GameOver(board.PlayerTeam, true);
             ExitEvent?.Invoke();
         });
@@ -100,7 +100,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
     {
         ready_for_rematch = true;
         MainTasks.AddTask(() => RematchEvent?.Invoke());
-;
+        ;
     }
 
     public void OnTimeOutReceived(bool exit_team)

@@ -36,7 +36,7 @@ public class AI : MonoBehaviour
         {
             node = node.parent;
         }
-        Move move = node.move;
+        AIMove move = node.move;
         main_board.MovePiece(new(move.start_x, move.start_y), new(move.end_x, move.end_y), true, (int)move.end_type);
     }
 
@@ -84,8 +84,8 @@ public class AI : MonoBehaviour
         node.viewed_children = new();
         node.unviewed_children = new();
 
-        List<Move> moves = virtual_board.GetAllMoves();
-        foreach (Move move in moves)
+        List<AIMove> moves = virtual_board.GetAllMoves();
+        foreach (AIMove move in moves)
         {
             virtual_board.MakeMove(move);
             node.unviewed_children.Add(new TreeNode(move, virtual_board.Valuation, node));

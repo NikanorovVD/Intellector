@@ -3,8 +3,7 @@
 [Serializable]
 public class Connection
 {
-    public string Password;
-    public string ServerIP;
-    public int Port;
+    public string ServerUrl;
+    public string AccessToken;
 }
 

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class NetworkGameItem : MonoBehaviour
 {
     public NetworkGamesScene NetworkGameScene { get; set; }
-    public GameInfo GameInfo { get; set; }
+    public OpenLobbyDto GameInfo { get; set; }
 
     void Awake()
     {
@@ -15,8 +15,8 @@ public class NetworkGameItem : MonoBehaviour
     public void DisplayGameInfo()
     {
         Text[] texts = GetComponentsInChildren<Text>();
-        texts[0].text = GameInfo.Name;
-        texts[1].text = GameInfo.TimeContol.ToString();
+        texts[0].text = GameInfo.OwnerName;
+        texts[1].text = GameInfo.TimeControl.ToString();
         SetColor();
     }
 
@@ -32,7 +32,7 @@ public class NetworkGameItem : MonoBehaviour
 
     private void SetSelectedNumber()
     {
-        NetworkGameScene.SelectedId = GameInfo.ID;
+        NetworkGameScene.SelectedId = GameInfo.LobbyId;
         NetworkGameScene.SetDefaultColors();
         SetSelectedColor();
     }
@@ -43,7 +43,7 @@ public class NetworkGameItem : MonoBehaviour
         GameObject white = colors.transform.Find("WhiteColor").gameObject;
         GameObject black = colors.transform.Find("BlackColor").gameObject;
         GameObject random = colors.transform.Find("RandomColor").gameObject;
-        switch (GameInfo.Color)
+        switch (GameInfo.ColorChoice)
         {
             case ColorChoice.white: white.SetActive(true); break;
             case ColorChoice.black: black.SetActive(true); break;

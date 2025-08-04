@@ -9,7 +9,7 @@ public class TimeController : MonoBehaviour
     private int white_time;
     private int black_time;
 
-    private TimeContol time_control;
+    private TimeControl time_control;
 
     private bool turn;
     private bool active;
@@ -46,15 +46,15 @@ public class TimeController : MonoBehaviour
 
     public void StartGame()
     {
-        GameInfo gameInfo = GameInfo.Load();
-        time_control = gameInfo.TimeContol;
+        GameSettings gameInfo = GameSettings.Load();
+        time_control = gameInfo.TimeControl ?? new TimeControl(0,0);
         active = time_control.Active;
         if (!active) return;
 
         view.Team = board.PlayerTeam;
         turn = false;
-        WhiteTime = time_control.MaxMilliseconds;
-        BlackTime = time_control.MaxMilliseconds;
+        WhiteTime = time_control.TotalMilliseconds;
+        BlackTime = time_control.TotalMilliseconds;
         view.Activate();
         view.StartRunTime();
     }

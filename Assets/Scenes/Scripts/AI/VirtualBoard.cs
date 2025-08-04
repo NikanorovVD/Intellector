@@ -25,7 +25,7 @@ public class VirtualBoard
         turn = AI.AI_team;
     }
 
-    public void MakeMove(Move move)
+    public void MakeMove(AIMove move)
     {
         IPiece start_piece = pieces[move.start_x][move.start_y];
         IPiece end_piece = pieces[move.end_x][move.end_y];
@@ -55,7 +55,7 @@ public class VirtualBoard
         turn = !turn;
     }
 
-    public void CancelMove(Move move)
+    public void CancelMove(AIMove move)
     {
         IPiece start_piece = pieces[move.start_x][move.start_y];
         IPiece end_piece = pieces[move.end_x][move.end_y];
@@ -85,9 +85,9 @@ public class VirtualBoard
         turn = !turn;
     }
 
-    public List<Move> GetAllMoves()
+    public List<AIMove> GetAllMoves()
     {
-        List<Move> moves = new();
+        List<AIMove> moves = new();
         foreach (IPiece[] row in pieces)
             foreach (IPiece piece in row)
             {
@@ -97,11 +97,11 @@ public class VirtualBoard
                     {
                         if (piece.HasIntellectorNearby())
                         {
-                            moves.AddRange(Move.MoveWithIntellector(piece, coor));
+                            moves.AddRange(AIMove.MoveWithIntellector(piece, coor));
                         }
                         else
                         {
-                            moves.Add(new Move(piece, coor));
+                            moves.Add(new AIMove(piece, coor));
                         }
                     }
                 }
@@ -109,7 +109,7 @@ public class VirtualBoard
         return moves;
     }
 
-    private void SynchronizeCoordinates(Move move)
+    private void SynchronizeCoordinates(AIMove move)
     {
         if (pieces[move.start_x][move.start_y] != null)
         {
@@ -123,13 +123,13 @@ public class VirtualBoard
         }       
     }
 
-    private void DecreaseValuation(Move move)
+    private void DecreaseValuation(AIMove move)
     {
         Valuation -= Evaluator.GetValue(pieces[move.start_x][move.start_y]);
         Valuation -= Evaluator.GetValue(pieces[move.end_x][move.end_y]);
     }
 
-    private void IncreaseValuation(Move move)
+    private void IncreaseValuation(AIMove move)
     {
         Valuation += Evaluator.GetValue(pieces[move.start_x][move.start_y]);
         Valuation += Evaluator.GetValue(pieces[move.end_x][move.end_y]);
