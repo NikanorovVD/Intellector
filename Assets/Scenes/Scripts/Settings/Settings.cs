@@ -5,12 +5,6 @@ public class Settings
     public const int Version = 16;
     private static Connection _serverConnection;
     private static UserConfig _userConfig;
-    public static IServerFactory ServerFactory { get; private set; }
-
-    static Settings()
-    {
-        ServerFactory = new TCPServerFactory();
-    }
 
     public static GameMode GameMode { get; set; }
     public static Connection GetConnection()

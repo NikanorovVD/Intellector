@@ -18,7 +18,7 @@ public class MainTasks : MonoBehaviour
         }
         catch (Exception e) 
         { 
-            LogWriter.WriteLog(e.ToString()); 
+            Debug.LogError(e.ToString()); 
         }
     }
 

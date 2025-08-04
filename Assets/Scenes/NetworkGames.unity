@@ -2351,7 +2351,7 @@ MonoBehaviour:
   - {fileID: 365725171}
   - {fileID: 192246216}
   - {fileID: 1116368086}
-  selected_id: 0
+  SelectedId: 0
 --- !u!4 &745364873
 Transform:
   m_ObjectHideFlags: 0

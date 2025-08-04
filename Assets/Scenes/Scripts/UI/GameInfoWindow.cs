@@ -13,21 +13,26 @@ public class GameInfoWindow : MonoBehaviour
     {
         NameInput.text = Settings.UserName;
         TimeControlDropDown.options = new List<Dropdown.OptionData>();
-        foreach(TimeContol time in TimeControlSelector.time_controls)
+        foreach(TimeControl time in TimeControlSelector.time_controls)
         {
             TimeControlDropDown.options.Add(new Dropdown.OptionData(time.ToString()));
         }
     }
 
-    public GameInfo GetGameInfo()
+    public CreateOpenLobbyRequest GetGameInfo()
     {
         string Name = NameInput.text;
         if(!CheckName()) return null;
 
-        TimeContol timeContol = TimeControlSelector.time_controls[TimeControlDropDown.value];
+        TimeControl timeContol = TimeControlSelector.time_controls[TimeControlDropDown.value];
         ColorChoice color = ColorSelector.Color;
 
-        return new GameInfo { ID = 0, Color = color, Name = Name, TimeContol = timeContol };
+        return new CreateOpenLobbyRequest
+        {
+            ColorChoice = color,
+            Rating = true, // edit
+            TimeControl = new TimeControlDto(timeContol.TotalSeconds, timeContol.AddedSeconds)
+        }; 
     }
 
     public void NameInputChanged()
