@@ -1,8 +1,8 @@
 # Intellector
 ### Приложение для игры в интеллектор в 3D
 ### Скачать последнюю версию приложения
-- [Windows / Linux / Mac](https://disk.yandex.ru/d/ATqLIxmbK2FcJQ)
-- [Android](https://disk.yandex.ru/d/iWQd3ZyGHBlZQw)
+- [Windows](https://github.com/NikanorovVD/Intellector/releases/download/v1.6.5/Intellector_v1.6.5_windows.zip)
+- [Android](https://github.com/NikanorovVD/Intellector/releases/download/v1.6.5/Intellector_v1.6.5_android.apk)
 ### [Официальный сайт игры](https://intellector.info/)
 ### [Правила игры](https://intellector.info/rules)
 
