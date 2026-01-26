@@ -10,7 +10,6 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
     [SerializeField] private Board board;
     [SerializeField] private GameObject WaitScreen;
 
-    NetworkStream server_stream;
 
     static bool ready_for_rematch = false;
 
@@ -27,9 +26,8 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         if (Settings.GameMode == GameMode.Network)
         {
             ServerConnection connection = ServerConnection.GetConnection();
-            server_stream = connection.Client.GetStream();
 
-            board.MoveEvent += MoveEventHandler;
+            board.MoveStartEvent += MoveEventHandler;
             ServerManager.GetInstance().RegisterObserver(this);
             new TaskFactory().StartNew(ServerManager.GetInstance().ListenServer, TaskCreationOptions.LongRunning);
             GameStartEvent?.Invoke();
@@ -40,7 +38,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
     {
         try
         {
-           board.MovePiece(start, end, true, transform_info);
+           board.MovePiece(start, end, transform_info);
         }
         catch (Exception e)
         {
@@ -50,8 +48,11 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     void MoveEventHandler(Vector2Int start, Vector2Int end, int transform_info)
     {
-        ServerManager.GetInstance().SendMove(start, end, transform_info);
-        WriteLog($"Отправка хода: {start} ; {end} ; {transform_info}");
+        if (board.pieces[start.x][start.y].Team == board.PlayerTeam)
+        {
+            ServerManager.GetInstance().SendMove(start, end, transform_info);
+            WriteLog($"Отправка хода: {start} ; {end} ; {transform_info}");
+        }
     }
 
     public async void AskRematch()
@@ -91,7 +92,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
     public void OnExitReceived()
     {
         MainTasks.AddTask(() => {
-            board.GameOver(board.PlayerTeam, true);
+            board.GameOver(board.PlayerTeam, EndGameReason.Exit);
             ExitEvent?.Invoke();
         });
     }
@@ -100,11 +101,10 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
     {
         ready_for_rematch = true;
         MainTasks.AddTask(() => RematchEvent?.Invoke());
-;
     }
 
     public void OnTimeOutReceived(bool exit_team)
     {
-        MainTasks.AddTask(() => board.GameOver(exit_team));
+        MainTasks.AddTask(() => board.GameOver(exit_team, EndGameReason.TimesUp));
     }
 }

@@ -25,7 +25,8 @@ public class Board : MonoBehaviour
     [NonSerialized] public bool PlayerTeam;
 
     public delegate void MoveDelegate(Vector2Int start, Vector2Int end, int transform_info);
-    public event MoveDelegate MoveEvent;
+    public event MoveDelegate MoveStartEvent;
+    public event MoveDelegate MoveEndEvent;
     public event Action RestartEvent;
     public event Action EndGameEvent;
 
@@ -38,7 +39,7 @@ public class Board : MonoBehaviour
 
     private List<Vector2Int> AvaibleMoves;
 
-    private Vector2Int currentHover  = -Vector2Int.one;
+    private Vector2Int currentHover = -Vector2Int.one;
     private Vector2Int currentSelect = -Vector2Int.one;
     private Vector2Int lustMove1 = -Vector2Int.one;
     private Vector2Int lustMove2 = -Vector2Int.one;
@@ -74,12 +75,12 @@ public class Board : MonoBehaviour
                     if (coor == currentHover) layer = "HoverSelected";
                     else layer = "SelectedTile";
                 }
-                else if(AvaibleMoves != null && AvaibleMoves.Contains(coor))
+                else if (AvaibleMoves != null && AvaibleMoves.Contains(coor))
                 {
-                    if (coor == currentHover)   layer = "HoverAvaible";
+                    if (coor == currentHover) layer = "HoverAvaible";
                     else layer = "Avaible";
                 }
-                else if(coor == currentHover)
+                else if (coor == currentHover)
                     layer = "HoverTile";
                 else if (coor == lustMove1 || coor == lustMove2)
                     layer = "SelectedTile";
@@ -97,7 +98,7 @@ public class Board : MonoBehaviour
     public void GenerateAllTiles()
     {
         tiles = new GameObject[9][];
-        for(int i = 0; i < 9; i++)
+        for (int i = 0; i < 9; i++)
         {
             tiles[i] = new GameObject[7 - (i % 2)];
             for (int j = 0; j < tiles[i].Length; j++)
@@ -108,7 +109,7 @@ public class Board : MonoBehaviour
     {
         GameObject tile = Instantiate(tilePrefab, transform);
         tile.name = $"tile {x} {y}";
-        tile.transform.position = TransformCoordinates(x,y);
+        tile.transform.position = TransformCoordinates(x, y);
 
         tile.AddComponent<BoxCollider>();
         return tile;
@@ -128,7 +129,7 @@ public class Board : MonoBehaviour
         pieces[6][0] = GenerateSinglePiece(PieceType.agressor, false, 6, 0);
         pieces[7][0] = GenerateSinglePiece(PieceType.liberator, false, 7, 0);
         pieces[8][0] = GenerateSinglePiece(PieceType.dominator, false, 8, 0);
-        for(int i = 0; i < 9 ; i += 2)
+        for (int i = 0; i < 9; i += 2)
             pieces[i][1] = GenerateSinglePiece(PieceType.progressor, false, i, 1);
 
         pieces[0][6] = GenerateSinglePiece(PieceType.dominator, true, 0, 6);
@@ -144,7 +145,7 @@ public class Board : MonoBehaviour
             pieces[i][5] = GenerateSinglePiece(PieceType.progressor, true, i, 5);
 
     }
-    public IPiece GenerateSinglePiece(PieceType type, bool team, int x , int y)
+    public IPiece GenerateSinglePiece(PieceType type, bool team, int x, int y)
     {
         GameObject gameObject = Instantiate(piecesPrefabs[(int)type], transform);
         IPiece piece = gameObject.GetComponent<IPiece>();
@@ -155,11 +156,11 @@ public class Board : MonoBehaviour
         piece.Y = y;
 
         gameObject.transform.position = TransformCoordinates(x, y);
-        if((type == PieceType.agressor) && (team == true))
+        if ((type == PieceType.agressor) && (team == true))
         {
             gameObject.transform.rotation = Quaternion.Euler(0, 90, 0);
         }
-        gameObject.GetComponent<MeshRenderer>().materials = (team == true) ? new Material[]{ BlackTeamMaterial} : new Material[] { WhiteTeamMaterial };
+        gameObject.GetComponent<MeshRenderer>().materials = (team == true) ? new Material[] { BlackTeamMaterial } : new Material[] { WhiteTeamMaterial };
         return piece;
     }
 
@@ -168,7 +169,7 @@ public class Board : MonoBehaviour
     {
         DeleteAllPieces();
         GenerateAllPieces();
-        
+
         PlayerTeam = !PlayerTeam;
         Turn = false;
         game_over = false;
@@ -199,15 +200,17 @@ public class Board : MonoBehaviour
     {
         for (int i = 0; i < 9; i++)
             for (int j = 0; j < tiles[i].Length; j++)
-                if(tiles[i][j] == hitInfo)
-                    return new Vector2Int(i,j);
+                if (tiles[i][j] == hitInfo)
+                    return new Vector2Int(i, j);
 
         throw new Exception("Не найден тайл на который указывал курсор");
     }
+
     public void HoverTile(Vector2Int coordinates)
     {
         currentHover = coordinates;
     }
+
     public void RemoveHover()
     {
         currentHover = -Vector2Int.one;
@@ -220,7 +223,7 @@ public class Board : MonoBehaviour
 
         //если не выбрана никакая фигура
         if (currentSelect == -Vector2Int.one)
-            if((pieces[coordinates.x][coordinates.y] != null) && (pieces[coordinates.x][coordinates.y].Team == Turn)) //если нажали на фигуру выбираем её
+            if ((pieces[coordinates.x][coordinates.y] != null) && (pieces[coordinates.x][coordinates.y].Team == Turn)) //если нажали на фигуру выбираем её
             {
                 currentSelect = coordinates;
                 AvaibleMoves = pieces[coordinates.x][coordinates.y].GetAvaibleMooves();
@@ -245,8 +248,8 @@ public class Board : MonoBehaviour
                     currentSelect = -Vector2Int.one;
                     AvaibleMoves = null;
 
-                    if(!ChekAndAskForTransformaton(select_buff, coordinates)) //если нет никаких превращений то можно просто пойти
-                        MovePiece(select_buff, coordinates, false);
+                    if (!ChekAndAskForTransformaton(select_buff, coordinates)) //если нет никаких превращений то можно просто пойти
+                        MovePiece(select_buff, coordinates);
                 }
             }
         }
@@ -266,7 +269,7 @@ public class Board : MonoBehaviour
 
         else if (pieces[end.x][end.y] != null && (pieces[end.x][end.y].Team != pieces[start.x][start.y].Team) //если едим вражескую фигуру
             && (pieces[start.x][start.y].HasIntellectorNearby()) //и рядом есть интеллектор
-            && (pieces[start.x][start.y].Type!=PieceType.progressor) //и ходил не прогрессор
+            && (pieces[start.x][start.y].Type != PieceType.progressor) //и ходил не прогрессор
             && (pieces[end.x][end.y].Type != PieceType.intellector)) //и мы съели не интеллектора
         {
             // то можно превратиться в съеденную фигуру
@@ -279,10 +282,13 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    public void MovePiece(Vector2Int start, Vector2Int end, bool received_move, int transform_info = 200)
+    public void MovePiece(Vector2Int start, Vector2Int end, int transform_info = 200)
     {
         //проверка очерёдности хода
         if (pieces[start.x][start.y].Team != Turn) return;
+
+        // событие начала хода
+        MoveStartEvent?.Invoke(start, end, transform_info);
 
         //Переключение очерёдности хода
         Turn = !Turn;
@@ -293,11 +299,11 @@ public class Board : MonoBehaviour
 
         //едим если занято вражеской фигурой
         if (pieces[end.x][end.y] != null && (pieces[end.x][end.y].Team != pieces[start.x][start.y].Team))
-        {         
+        {
             Destroy(piecesObjects[pieces[end.x][end.y]].GetComponent<MeshRenderer>());
-            if(pieces[end.x][end.y].Type == PieceType.intellector)
+            if (pieces[end.x][end.y].Type == PieceType.intellector)
             {
-                GameOver(pieces[start.x][start.y].Team);
+                GameOver(pieces[start.x][start.y].Team, EndGameReason.IntellectorCapture);
             }
         }
 
@@ -327,22 +333,16 @@ public class Board : MonoBehaviour
         }
 
         //превращаемя если надо
-        if(transform_info != 200)
+        if (transform_info != 200)
         {
             Destroy(piecesObjects[pieces[end.x][end.y]].GetComponent<MeshRenderer>());
             pieces[end.x][end.y] = GenerateSinglePiece((PieceType)transform_info, pieces[end.x][end.y].Team, end.x, end.y);
         }
 
-        //вызов события хода
-        if (!received_move)
-        {
-            MoveEvent?.Invoke(start, end, transform_info);
-        }
-
         //"рокировка"
         void Castling()
         {
-            piecesObjects[pieces[end.x][end.y]].transform.position = TransformCoordinates(start.x, start.y); 
+            piecesObjects[pieces[end.x][end.y]].transform.position = TransformCoordinates(start.x, start.y);
             (pieces[start.x][start.y], pieces[end.x][end.y]) = (pieces[end.x][end.y], pieces[start.x][start.y]);
             pieces[start.x][start.y].X = start.x;
             pieces[start.x][start.y].Y = start.y;
@@ -350,6 +350,8 @@ public class Board : MonoBehaviour
             pieces[end.x][end.y].Y = end.y;
         }
 
+        //вызов события хода
+        MoveEndEvent?.Invoke(start, end, transform_info);
     }
 
     //превращения
@@ -362,7 +364,7 @@ public class Board : MonoBehaviour
         Around_Intellector.GetComponent<Around_Intellector>().answer = null;
         wait_for_transformation = false;
     }
-        
+
     IEnumerator WaitForPieceType(Vector2Int start, Vector2Int end)
     {
         yield return new WaitUntil(() => !Progressor_end.activeInHierarchy);
@@ -375,8 +377,8 @@ public class Board : MonoBehaviour
 
     void ProgressorTransformation(Vector2Int start, Vector2Int end)
     {
-       PieceType new_type = (PieceType)Progressor_end.GetComponent<Progressor_end>().answer;
-       MovePiece(start, end, false, (int)new_type);
+        PieceType new_type = (PieceType)Progressor_end.GetComponent<Progressor_end>().answer;
+        MovePiece(start, end, (int)new_type);
     }
 
     void TransformToEaten(Vector2Int start, Vector2Int end)
@@ -384,21 +386,21 @@ public class Board : MonoBehaviour
         if (Around_Intellector.GetComponent<Around_Intellector>().answer == true)
         {
             PieceType new_type = pieces[end.x][end.y].Type;
-            MovePiece(start, end, false, (int)new_type);
+            MovePiece(start, end, (int)new_type);
         }
         else
         {
-            MovePiece(start, end, false);
+            MovePiece(start, end);
         }
     }
 
     //конец игры
-    public void GameOver(bool winner, bool ByExit = false)
+    public void GameOver(bool? winner, EndGameReason reason)
     {
         if (game_over) return;
         game_over = true;
         DeleteAllHighlights();
-        EndGame.DisplayResult(NetworkGame, winner, PlayerTeam, ByExit);
+        EndGame.DisplayResult(NetworkGame, winner, PlayerTeam, reason);
         EndGameEvent?.Invoke();
     }
 }

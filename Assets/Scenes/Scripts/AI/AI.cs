@@ -18,7 +18,7 @@ public class AI : MonoBehaviour
     {
         if (!AI_team) MakeAIMove(new(), new(), 0);
         if (Settings.GameMode == GameMode.AI)
-            main_board.MoveEvent += MakeAIMove;
+            main_board.MoveEndEvent += MakeAIMove;
     }
 
 
@@ -37,7 +37,7 @@ public class AI : MonoBehaviour
             node = node.parent;
         }
         Move move = node.move;
-        main_board.MovePiece(new(move.start_x, move.start_y), new(move.end_x, move.end_y), true, (int)move.end_type);
+        main_board.MovePiece(new(move.start_x, move.start_y), new(move.end_x, move.end_y), (int)move.end_type);
     }
 
     private void MakeTree(int depth)
