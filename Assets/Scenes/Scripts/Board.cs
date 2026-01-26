@@ -350,6 +350,16 @@ public class Board : MonoBehaviour
             pieces[end.x][end.y].Y = end.y;
         }
 
+        //достижение интеллектором базовой линии
+        if ((pieces[end.x][end.y].Type == PieceType.intellector) &&
+            (
+                ((pieces[end.x][end.y].Team == false) && (end.y == 6)) ||
+                ((pieces[end.x][end.y].Team == true) && (end.y == 0) && (end.x % 2 == 0))
+            ))
+        {
+            GameOver(pieces[end.x][end.y].Team, EndGameReason.IntellectorReachLustRank);
+        }
+
         //вызов события хода
         MoveEndEvent?.Invoke(start, end, transform_info);
     }
