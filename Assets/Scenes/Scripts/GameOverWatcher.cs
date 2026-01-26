@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
-public class DrawWatcher : MonoBehaviour
+public class GameOverWatcher : MonoBehaviour
 {
     [SerializeField] public Board Board;
 
@@ -48,6 +49,7 @@ public class DrawWatcher : MonoBehaviour
 
     private void MoveEndHandler(Vector2Int start, Vector2Int end, int transform_info)
     {
+        // position repeat
         if (progressiveMove) positionCounts.Clear();
         string positionHash = GetPositionHash(Board.Turn, Board.pieces);
         if (positionCounts.TryGetValue(positionHash, out int count))
@@ -64,6 +66,32 @@ public class DrawWatcher : MonoBehaviour
         {
             positionCounts.Add(positionHash, 1);
         }
+
+        // blocking 
+        if (IsAllPiecesBlocked())
+        {
+            Board.GameOver(!Board.Turn, EndGameReason.AllPiecesBlocked);
+            return;
+        }      
+    }
+
+    private bool IsAllPiecesBlocked()
+    {
+        bool teamToMove = Board.Turn;
+        foreach (IPiece[] pieces in Board.pieces)
+        {
+            foreach (IPiece piece in pieces)
+            {
+                if (piece != null && piece.Team == teamToMove)
+                {
+                    if (piece.GetAvaibleMooves().Any())
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     private bool IsMoveProgressive(Vector2Int start, Vector2Int end)

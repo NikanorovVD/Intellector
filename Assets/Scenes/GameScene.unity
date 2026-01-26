@@ -357,7 +357,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 86350707}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.09880036, y: -0.000000019338788, z: 0.000000014489819, w: 0.9951073}
+  m_LocalRotation: {x: -0.09880036, y: 0.0000000052776263, z: -0.000000009557429, w: 0.9951073}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1552,7 +1552,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 640117559}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.00000006446916, y: 0.7153281, z: -0.6987887, w: -0.000000617457}
+  m_LocalRotation: {x: 0.00000006106916, y: 0.7153281, z: -0.6987887, w: -0.00000058321257}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2551,8 +2551,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.00000021342152, y: 0.9436283, z: -0.331007, w: -0.0000006084179}
-  m_LocalPosition: {x: 0.000030517578, y: 20, z: 25}
+  m_LocalRotation: {x: 0.331007, y: 0.000000032472855, z: -0.000000011390864, w: 0.9436283}
+  m_LocalPosition: {x: 0, y: 20, z: -25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3779,7 +3779,7 @@ GameObject:
   - component: {fileID: 1459118320}
   - component: {fileID: 1459118319}
   m_Layer: 0
-  m_Name: DrawWatcher
+  m_Name: GameOverWatcher
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
