@@ -6,6 +6,12 @@ public class CameraMove : MonoBehaviour
     [SerializeField]
     private CinemachineFreeLook _currentCamera;
 
+    private void Start()
+    {
+        _currentCamera.m_YAxis.m_MaxSpeed = 0;
+        _currentCamera.m_XAxis.m_MaxSpeed = 0;
+    }
+
     void Update()
     {
         if (!_currentCamera)
