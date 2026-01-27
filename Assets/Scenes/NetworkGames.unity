@@ -2351,7 +2351,7 @@ MonoBehaviour:
   - {fileID: 365725171}
   - {fileID: 192246216}
   - {fileID: 1116368086}
-  selected_id: 0
+  SelectedId: 0
 --- !u!4 &745364873
 Transform:
   m_ObjectHideFlags: 0
@@ -4012,10 +4012,10 @@ RectTransform:
   - {fileID: 1174269175}
   m_Father: {fileID: 1663198800}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 893, y: 472}
-  m_SizeDelta: {x: 110, y: 96.708}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -67, y: -68}
+  m_SizeDelta: {x: 110, y: 96.70801}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1356220859
 MonoBehaviour:
