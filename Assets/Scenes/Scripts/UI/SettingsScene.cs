@@ -1,17 +1,14 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class SettingsScene : MonoBehaviour
 {
-    private Settings settings;
     [SerializeField] private InputField NameInput;
     [SerializeField] private Text ErrorText;
     [SerializeField] private Text MaterialName;
+    [SerializeField] private Text AutoRotateCameraText;
         
     void Start()
     {
@@ -22,6 +19,7 @@ public class SettingsScene : MonoBehaviour
     {
         NameInput.text = Settings.UserName;
         MaterialName.text = MaterialSelector.MaterialName(Settings.PieceMaterials);
+        AutoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
     }
 
     public void InputChanged() => CheckName();
@@ -62,5 +60,11 @@ public class SettingsScene : MonoBehaviour
     public void Exit()
     {
         SceneManager.LoadScene(0);
+    }
+
+    public void SwitchCameraAutoRotation()
+    {
+        Settings.AutoRotateCameraInLocalGame = !Settings.AutoRotateCameraInLocalGame;
+        AutoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
     }
 }

@@ -169,8 +169,10 @@ public class Board : MonoBehaviour
     {
         DeleteAllPieces();
         GenerateAllPieces();
-
-        PlayerTeam = !PlayerTeam;
+        if (Settings.GameMode == GameMode.Network)
+        {
+            PlayerTeam = !PlayerTeam;
+        }
         Turn = false;
         game_over = false;
         EndGame.Hide();

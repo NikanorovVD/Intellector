@@ -50,4 +50,18 @@ public class Settings
             _userConfig.Save();
         }
     }
+
+    public static bool AutoRotateCameraInLocalGame
+    {
+        get
+        {
+            _userConfig ??= UserConfig.Load();
+            return _userConfig.AutoRotateCameraInLocalGame;
+        }
+        set
+        {
+            _userConfig.AutoRotateCameraInLocalGame = value;
+            _userConfig.Save();
+        }
+    }
 }

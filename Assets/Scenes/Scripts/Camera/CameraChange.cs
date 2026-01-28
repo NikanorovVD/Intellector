@@ -1,4 +1,6 @@
 using Cinemachine;
+using System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class CameraChange : MonoBehaviour
@@ -12,12 +14,31 @@ public class CameraChange : MonoBehaviour
     private bool currentTeam;
     private bool topCameraOn;
 
+    private const int cameraAutoRotationDalayMs = 200;
+
     private void Start()
     {
         topCameraOn = false;
         currentTeam = board.PlayerTeam;
 
         SwitchCamera();
+
+        board.RestartEvent += () =>
+        {
+            currentTeam = board.PlayerTeam;
+            SwitchCamera();
+        };
+
+        if(Settings.GameMode == GameMode.Local && Settings.AutoRotateCameraInLocalGame)
+        {
+            board.MoveEndEvent += async (Vector2Int _, Vector2Int _, int _) =>
+            {
+                if(board.game_over) return;
+                await Task.Delay(cameraAutoRotationDalayMs);
+                currentTeam = !currentTeam;
+                SwitchCamera();
+            };
+        }
     }
 
     void Update()
