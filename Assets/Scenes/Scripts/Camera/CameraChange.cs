@@ -29,11 +29,11 @@ public class CameraChange : MonoBehaviour
             SwitchCamera();
         };
 
-        if(Settings.GameMode == GameMode.Local && Settings.AutoRotateCameraInLocalGame)
+        if (Settings.GameMode == GameMode.Local && Settings.AutoRotateCameraInLocalGame)
         {
             board.MoveEndEvent += async (Vector2Int _, Vector2Int _, int _) =>
             {
-                if(board.game_over) return;
+                if (board.game_over) return;
                 await Task.Delay(cameraAutoRotationDalayMs);
                 currentTeam = !currentTeam;
                 SwitchCamera();
@@ -45,16 +45,27 @@ public class CameraChange : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
-            topCameraOn = !topCameraOn;
-            SwitchCamera();
+            SwitchTopCamera();
         }
 
         if (Input.GetKeyDown(KeyCode.R))
         {
-            currentTeam = !currentTeam;
-            SwitchCamera();
+            RotateCamera();
         }
     }
+
+    public void SwitchTopCamera()
+    {
+        topCameraOn = !topCameraOn;
+        SwitchCamera();
+    }
+
+    public void RotateCamera()
+    {
+        currentTeam = !currentTeam;
+        SwitchCamera();
+    }
+
     private void SwitchCamera()
     {
         if (topCameraOn)
