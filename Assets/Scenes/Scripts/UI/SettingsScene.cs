@@ -5,11 +5,21 @@ using UnityEngine.UI;
 
 public class SettingsScene : MonoBehaviour
 {
-    [SerializeField] private InputField NameInput;
-    [SerializeField] private Text ErrorText;
-    [SerializeField] private Text MaterialName;
-    [SerializeField] private Text AutoRotateCameraText;
-        
+    [SerializeField] private GameObject UIContainer;
+
+    private InputField NameInput;
+    private Text ErrorText;
+    private Text MaterialName;
+    private Text AutoRotateCameraText;
+
+    private void Awake()
+    {
+        NameInput = UIContainer.transform.Find("Content/NameInput").GetComponent<InputField>();
+        ErrorText = UIContainer.transform.Find("Content/NameInput/ErrorMessage").GetComponent<Text>();
+        MaterialName = UIContainer.transform.Find("Content/MaterialChoose/CurrentMaterialName").GetComponent<Text>();
+        AutoRotateCameraText = UIContainer.transform.Find("Content/AutorotateChoose/CurrentAutorotate").GetComponent<Text>();
+    }
+
     void Start()
     {
         ShowCurrentSettings();
@@ -41,7 +51,7 @@ public class SettingsScene : MonoBehaviour
         }
     }
 
-    public void CanselButtonClick()
+    public void CancelButtonClick()
     {
         ShowCurrentSettings();
         ErrorText.text = String.Empty;

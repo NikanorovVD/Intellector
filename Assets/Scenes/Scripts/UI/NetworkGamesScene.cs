@@ -55,9 +55,14 @@ public class NetworkGamesScene : MonoBehaviour
         GameObject net_game_obj = Instantiate(NetworkGamePrefab);
         NetworkGameItem net_game = net_game_obj.GetComponent<NetworkGameItem>();
 
+
         net_game.GameInfo = game;
         net_game.NetworkGameScene = this;
         net_game_obj.transform.SetParent(Content.GetComponent<Transform>(), transform);
+
+        RectTransform rect = net_game_obj.GetComponent<RectTransform>();
+        rect.localScale = Vector3.one;
+
         net_game.DisplayGameInfo();
         net_game.SetDefaultColor();
         Items.Add(net_game_obj);
