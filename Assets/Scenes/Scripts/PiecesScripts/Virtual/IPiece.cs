@@ -10,5 +10,5 @@ public interface IPiece
     public IPiece[][] Board {  get; set; }
 
     public bool HasIntellectorNearby();
-    abstract public List<Vector2Int> GetAvaibleMooves();
+    abstract public List<Vector2Int> GetAvailableMooves();
 }

@@ -93,7 +93,7 @@ public class VirtualBoard
             {
                 if (piece != null && piece.Team == turn)
                 {
-                    foreach (Vector2Int coor in piece.GetAvaibleMooves())
+                    foreach (Vector2Int coor in piece.GetAvailableMooves())
                     {
                         if (piece.HasIntellectorNearby())
                         {

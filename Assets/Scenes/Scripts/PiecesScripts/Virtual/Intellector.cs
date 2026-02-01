@@ -4,7 +4,7 @@ using UnityEngine;
 public class Intellector : Piece
 {
     public override PieceType Type => PieceType.intellector;
-    public override List<Vector2Int> GetAvaibleMooves()
+    public override List<Vector2Int> GetAvailableMooves()
     {
         List<Vector2Int> result = new List<Vector2Int>();
 

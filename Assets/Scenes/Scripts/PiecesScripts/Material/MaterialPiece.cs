@@ -33,9 +33,9 @@ public abstract class MaterialPiece : MonoBehaviour, IPiece
     {
         return _piece.HasIntellectorNearby();
     }
-    public List<Vector2Int> GetAvaibleMooves()
+    public List<Vector2Int> GetAvailableMooves()
     {
-        return _piece.GetAvaibleMooves();
+        return _piece.GetAvailableMooves();
     }
 }
 

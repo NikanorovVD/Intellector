@@ -84,7 +84,7 @@ public class GameOverWatcher : MonoBehaviour
             {
                 if (piece != null && piece.Team == teamToMove)
                 {
-                    if (piece.GetAvaibleMooves().Any())
+                    if (piece.GetAvailableMooves().Any())
                     {
                         return false;
                     }

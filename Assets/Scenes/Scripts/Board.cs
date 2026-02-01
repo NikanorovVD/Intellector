@@ -37,7 +37,7 @@ public class Board : MonoBehaviour
     private readonly Dictionary<IPiece, GameObject> piecesObjects = new();
     public GameObject[][] tiles;
 
-    private List<Vector2Int> AvaibleMoves;
+    private List<Vector2Int> AvailableMoves;
 
     private Vector2Int currentHover = -Vector2Int.one;
     private Vector2Int currentSelect = -Vector2Int.one;
@@ -75,10 +75,10 @@ public class Board : MonoBehaviour
                     if (coor == currentHover) layer = "HoverSelected";
                     else layer = "SelectedTile";
                 }
-                else if (AvaibleMoves != null && AvaibleMoves.Contains(coor))
+                else if (AvailableMoves != null && AvailableMoves.Contains(coor))
                 {
-                    if (coor == currentHover) layer = "HoverAvaible";
-                    else layer = "Avaible";
+                    if (coor == currentHover) layer = "HoverAvailable";
+                    else layer = "Available";
                 }
                 else if (coor == currentHover)
                     layer = "HoverTile";
@@ -190,7 +190,7 @@ public class Board : MonoBehaviour
     }
     void DeleteAllHighlights()
     {
-        AvaibleMoves = null;
+        AvailableMoves = null;
         currentHover = -Vector2Int.one;
         currentSelect = -Vector2Int.one;
         lustMove1 = -Vector2Int.one;
@@ -228,7 +228,7 @@ public class Board : MonoBehaviour
             if ((pieces[coordinates.x][coordinates.y] != null) && (pieces[coordinates.x][coordinates.y].Team == Turn)) //если нажали на фигуру выбираем её
             {
                 currentSelect = coordinates;
-                AvaibleMoves = pieces[coordinates.x][coordinates.y].GetAvaibleMooves();
+                AvailableMoves = pieces[coordinates.x][coordinates.y].GetAvailableMooves();
                 return;
             }
             else { return; }
@@ -239,16 +239,16 @@ public class Board : MonoBehaviour
             if (currentSelect == coordinates) //если нажали на ту же фигуру сбрасываем выделение
             {
                 currentSelect = -Vector2Int.one;
-                AvaibleMoves = null;
+                AvailableMoves = null;
             }
             else //а если нажали на другое поле
             {
-                if (AvaibleMoves.Contains(coordinates)) // и туда можно пойти, то идём туда
+                if (AvailableMoves.Contains(coordinates)) // и туда можно пойти, то идём туда
                 {
                     // и сбрасываем выделение
                     var select_buff = currentSelect;
                     currentSelect = -Vector2Int.one;
-                    AvaibleMoves = null;
+                    AvailableMoves = null;
 
                     if (!ChekAndAskForTransformaton(select_buff, coordinates)) //если нет никаких превращений то можно просто пойти
                         MovePiece(select_buff, coordinates);

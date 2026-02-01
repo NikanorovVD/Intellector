@@ -5,7 +5,7 @@ public class MouseController : MonoBehaviour
     [SerializeField] private Board board;
     private Camera _currentCamera;
 
-    private static readonly string[] _layersNames = {"Tile","HoverTile","SelectedTile","Avaible","HoverAvaible","HoverSelected"};
+    private static readonly string[] _layersNames = {"Tile","HoverTile","SelectedTile", "Available", "HoverAvailable", "HoverSelected"};
 
     void Update()
     {

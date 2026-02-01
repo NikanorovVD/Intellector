@@ -14,8 +14,8 @@ TagManager:
   - Tile
   - HoverTile
   - SelectedTile
-  - Avaible
-  - HoverAvaible
+  - Available
+  - HoverAvailable
   - HoverSelected
   - 
   - 

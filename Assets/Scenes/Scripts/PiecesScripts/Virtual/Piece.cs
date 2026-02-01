@@ -34,5 +34,5 @@ public abstract class Piece : IPiece
         return false;
     }
 
-    abstract public List<Vector2Int> GetAvaibleMooves();
+    abstract public List<Vector2Int> GetAvailableMooves();
 }
