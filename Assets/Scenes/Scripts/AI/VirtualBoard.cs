@@ -7,7 +7,7 @@ public class VirtualBoard
 
     private readonly IPiece[][] pieces;
 
-    public int Valuation {  get; private set; }
+    public int Valuation { get; private set; }
 
     public VirtualBoard(IPiece[][] board, int valuation)
     {
@@ -15,7 +15,7 @@ public class VirtualBoard
         for (int i = 0; i < 9; i++)
         {
             pieces[i] = new IPiece[7 - (i % 2)];
-            for(int j = 0; j < pieces[i].Length; j++)
+            for (int j = 0; j < pieces[i].Length; j++)
             {
                 pieces[i][j] = MakeVirtualCopy(board[i][j]);
             }
@@ -36,7 +36,7 @@ public class VirtualBoard
         DecreaseValuation(move);
 
         //���������
-        if(move.castling)
+        if (move.castling)
         {
             (pieces[move.start_x][move.start_y], pieces[move.end_x][move.end_y]) = (pieces[move.end_x][move.end_y], pieces[move.start_x][move.start_y]);
         }
@@ -79,7 +79,7 @@ public class VirtualBoard
 
             pieces[move.end_x][move.end_y] = move.previous_piece;
         }
-              
+
         SynchronizeCoordinates(move);
         IncreaseValuation(move);
         turn = !turn;
@@ -95,7 +95,12 @@ public class VirtualBoard
                 {
                     foreach (Vector2Int coor in piece.GetAvailableMooves())
                     {
-                        if (piece.HasIntellectorNearby())
+                        if (piece.Type == PieceType.progressor &&
+                            ((piece.Team == false && (coor.y == 6)) || (piece.Team == true && (coor.y == 0) && (coor.x % 2 == 0))))
+                        {
+                            moves.AddRange(Move.ProgressorMoveWithTransformation(piece, coor));
+                        }
+                        else if (piece.HasIntellectorNearby())
                         {
                             moves.AddRange(Move.MoveWithIntellector(piece, coor));
                         }
@@ -116,11 +121,11 @@ public class VirtualBoard
             pieces[move.start_x][move.start_y].X = move.start_x;
             pieces[move.start_x][move.start_y].Y = move.start_y;
         }
-        if(pieces[move.end_x][move.end_y] != null)
+        if (pieces[move.end_x][move.end_y] != null)
         {
-            pieces[move.end_x][move.end_y].X = move.end_x; 
+            pieces[move.end_x][move.end_y].X = move.end_x;
             pieces[move.end_x][move.end_y].Y = move.end_y;
-        }       
+        }
     }
 
     private void DecreaseValuation(Move move)
@@ -162,7 +167,7 @@ public class VirtualBoard
 
     private IPiece MakeVirtualCopy(IPiece piece)
     {
-        if(piece == null ) return null;
+        if (piece == null) return null;
         IPiece pieceCopy = MakePiece(piece.Type);
         pieceCopy.X = piece.X;
         pieceCopy.Y = piece.Y;

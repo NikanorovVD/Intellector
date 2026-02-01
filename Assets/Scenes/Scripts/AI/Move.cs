@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Move 
+public class Move
 {
     public int start_x;
     public int start_y;
@@ -49,21 +49,36 @@ public class Move
         return moves;
     }
 
-    public List<Move> ProgressorMoveWithTransform()
+    public static List<Move> ProgressorMoveWithTransformation(IPiece piece, Vector2Int coor)
     {
-        throw new NotImplementedException();
+        List<Move> moves = new();
+
+        if (piece.Type != PieceType.progressor)
+        {
+            throw new InvalidOperationException("Not a progressor");
+        }
+
+        moves.Add(new Move(piece, coor, PieceType.defensor));
+        moves.Add(new Move(piece, coor, PieceType.agressor));
+        moves.Add(new Move(piece, coor, PieceType.dominator));
+        moves.Add(new Move(piece, coor, PieceType.liberator));
+
+        return moves;
     }
 
-    private Move(Move standard, PieceType taken_type)
+    private Move(Move standard, PieceType end_type)
     {
         start_x = standard.start_x;
         start_y = standard.start_y;
         start_type = standard.start_type;
         end_x = standard.end_x;
         end_y = standard.end_y;
-        end_type = taken_type;
+        this.end_type = end_type;
         castling = standard.castling;
         taking = standard.taking;
         previous_piece = standard.previous_piece;
     }
+
+    private Move(IPiece piece, Vector2Int coor, PieceType end_type) : this(new Move(piece, coor), end_type)
+    { }
 }
