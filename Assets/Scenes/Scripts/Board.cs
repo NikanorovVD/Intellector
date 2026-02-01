@@ -272,6 +272,7 @@ public class Board : MonoBehaviour
         else if (pieces[end.x][end.y] != null && (pieces[end.x][end.y].Team != pieces[start.x][start.y].Team) //если едим вражескую фигуру
             && (pieces[start.x][start.y].HasIntellectorNearby()) //и рядом есть интеллектор
             && (pieces[start.x][start.y].Type != PieceType.progressor) //и ходил не прогрессор
+            && (pieces[start.x][start.y].Type != pieces[end.x][end.y].Type) //и тип съеденной фигуры отличается
             && (pieces[end.x][end.y].Type != PieceType.intellector)) //и мы съели не интеллектора
         {
             // то можно превратиться в съеденную фигуру
