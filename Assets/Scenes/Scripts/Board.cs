@@ -253,6 +253,22 @@ public class Board : MonoBehaviour
                     if (!ChekAndAskForTransformaton(select_buff, coordinates)) //если нет никаких превращений то можно просто пойти
                         MovePiece(select_buff, coordinates);
                 }
+                else // а если пойти туда нельзя
+                {
+                    if(pieces[coordinates.x][coordinates.y] != null && (pieces[coordinates.x][coordinates.y].Team == Turn)) // и там есть фигура доступная для выделения
+                    {
+                        //то переключаем выделение на неё
+                        currentSelect = coordinates;
+                        AvailableMoves = pieces[coordinates.x][coordinates.y].GetAvailableMooves();
+                        return;
+                    }
+                    else //если нет фигуры доступной для выделения
+                    {
+                        //сбрасываем выделение
+                        currentSelect = -Vector2Int.one;
+                        AvailableMoves = null;
+                    }
+                }
             }
         }
     }
