@@ -41,7 +41,7 @@ public class Move
         Move standard = new Move(piece, coor);
         moves.Add(standard);
 
-        if (standard.taking)
+        if (standard.taking && piece.Type != PieceType.progressor)
         {
             moves.Add(new Move(standard, piece.Board[coor.x][coor.y].Type));
         }
