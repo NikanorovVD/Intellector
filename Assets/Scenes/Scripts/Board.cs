@@ -52,8 +52,16 @@ public class Board : MonoBehaviour
         x_offset = tileSize / Mathf.Sqrt(3) * 1.51f;
         y_offset = tileSize;
 
-        PlayerTeam = GameInfo.Load().Team;
+        
         NetworkGame = Settings.GameMode == GameMode.Network;
+        if (NetworkGame)
+        {
+            PlayerTeam = GameInfo.Load().Team;
+        }
+        else
+        {
+            PlayerTeam = false;
+        }
         (WhiteTeamMaterial, BlackTeamMaterial) = materialSelector.GetCurrentMaterials(Settings.PieceMaterials);
 
         GenerateAllTiles();
