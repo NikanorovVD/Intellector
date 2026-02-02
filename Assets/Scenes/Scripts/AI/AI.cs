@@ -1,38 +1,46 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 public class AI : MonoBehaviour
 {
-    [SerializeField] Board main_board;
-    TreeNode root;
-    TreeNode current_node;
-    VirtualBoard virtual_board;
+    [SerializeField] private Board main_board;
+    public const int AI_depth = 2;
+    public const int AI_MOVE_DELAY_MS = 200;
 
     public static bool AI_team = true;
-    int AI_depth = 2;
 
-    List<TreeNode> end_points;
+    private TreeNode root;
+    private TreeNode current_node;
+    private VirtualBoard virtual_board;
+    private List<TreeNode> end_points;
 
     private void Start()
     {
-        if (!AI_team) MakeAIMove(new(), new(), 0);
+        if (!AI_team) MakeAIMove();
         if (Settings.GameMode == GameMode.AI)
-            main_board.MoveEndEvent += MakeAIMove;
+        {
+            main_board.MoveEndEvent += async (Vector2Int start, Vector2Int end, int transform_info) =>
+            {
+                await Task.Delay(AI_MOVE_DELAY_MS);
+                MakeAIMove();
+            };
+        }
     }
 
 
-    private void MakeAIMove(Vector2Int start, Vector2Int end, int transform_info)
+    private void MakeAIMove()
     {
         if (main_board.game_over) return;
         MakeTree(AI_depth);
         int best_valution = AI_team ? (end_points.Min(x => x.valuation)) : (end_points.Max(x => x.valuation));
-        List <TreeNode> best_nodes = end_points.FindAll(x => x.valuation == best_valution);
+        List<TreeNode> best_nodes = end_points.FindAll(x => x.valuation == best_valution);
 
         int random = new System.Random().Next(best_nodes.Count);
         TreeNode node = best_nodes[random];
 
-        while(node.depth != 1)
+        while (node.depth != 1)
         {
             node = node.parent;
         }
@@ -54,7 +62,7 @@ public class AI : MonoBehaviour
                 CreateAllChildren(current_node);
             }
 
-            if(current_node.depth == depth-1)
+            if (current_node.depth == depth - 1)
             {
 
                 int best_valuation = (AI_team) ? current_node.unviewed_children.Max(x => x.valuation) : current_node.unviewed_children.Min(x => x.valuation);
@@ -63,8 +71,8 @@ public class AI : MonoBehaviour
                 GoUp();
                 continue;
             }
-            
-            if(current_node.unviewed_children.Count != 0)
+
+            if (current_node.unviewed_children.Count != 0)
             {
                 GoDown();
                 continue;
@@ -75,7 +83,7 @@ public class AI : MonoBehaviour
                 GoUp();
             }
             else return;
-            
+
         }
     }
 
