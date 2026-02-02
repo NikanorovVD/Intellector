@@ -4,7 +4,7 @@ public class UserConfig
 {
     public string UserName { get; set; }
     public PieceMaterials Material { get; set; }
-    public bool AutoRotateCameraInLocalGame { get; set; } = true;
+    public bool AutoRotateCameraInLocalGame { get; set; }
 
     public void Save()
     {
@@ -17,9 +17,9 @@ public class UserConfig
     {
         return new UserConfig
         {
-            UserName = PlayerPrefs.GetString(nameof(UserName)),
-            Material = (PieceMaterials)PlayerPrefs.GetInt(nameof(Material)),
-            AutoRotateCameraInLocalGame = PlayerPrefs.GetInt(nameof(AutoRotateCameraInLocalGame)) == 1 ? true : false
+            UserName = PlayerPrefs.GetString(nameof(UserName), defaultValue: string.Empty),
+            Material = (PieceMaterials)PlayerPrefs.GetInt(nameof(Material), defaultValue: 0),
+            AutoRotateCameraInLocalGame = PlayerPrefs.GetInt(nameof(AutoRotateCameraInLocalGame), defaultValue: 1) == 1 ? true : false
         };
     }
 }
