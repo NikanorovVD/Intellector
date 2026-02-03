@@ -33,14 +33,14 @@ public class ServerConnection
 
     private static void CheckVersion(NetworkStream stream)
     {
-        SendInt(Settings.Version, stream);
+        SendInt(Settings.APP_VERSION, stream);
         int server_version = RecvInt(stream);
-        if (Settings.Version != server_version)
+        if (Settings.APP_VERSION != server_version)
         {
             throw new VersionException(
              $"\"Неподходящая версия\n" +
              $"Версия сервера - {VerToStr(server_version)}\n" +
-             $"Используемая версия клиента - {VerToStr(Settings.Version)}\""
+             $"Используемая версия клиента - {VerToStr(Settings.APP_VERSION)}\""
              );
         }
 

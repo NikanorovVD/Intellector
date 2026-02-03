@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Settings
 {
-    public const int Version = 16;
+    public const int APP_VERSION = 17;
     private static Connection _serverConnection;
     private static UserConfig _userConfig;
     public static IServerFactory ServerFactory { get; private set; }
