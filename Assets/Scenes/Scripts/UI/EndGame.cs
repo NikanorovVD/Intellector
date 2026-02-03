@@ -57,7 +57,7 @@ public class EndGame : MonoBehaviour
             EndGameReason.IntellectorCapture => "Интеллектор был взят",
             EndGameReason.IntellectorReachLustRank => "Интеллектор достиг базовой линии",
             EndGameReason.AllPiecesBlocked => "Блокировка",
-            EndGameReason.TimesUp => (winner == playerTeam) ? "У противник истекло время" : "Время истекло",
+            EndGameReason.TimesUp => (winner == playerTeam) ? "У противника истекло время" : "Время истекло",
             EndGameReason.Exit => "Противник вышел",
             EndGameReason.Resignation => (winner == playerTeam) ? "Противник сдался" : "Вы сдались",
             EndGameReason.DrawByAgreement => "По договоренности",
