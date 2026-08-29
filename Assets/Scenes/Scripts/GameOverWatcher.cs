@@ -96,8 +96,8 @@ public class GameOverWatcher : MonoBehaviour
 
     private bool IsMoveProgressive(Vector2Int start, Vector2Int end)
     {
-        if (Board.pieces[start.x][start.y].Type == PieceType.progressor) return true;   // прогрессор сделал ход
-        if (Board.pieces[end.x][end.y] != null) return true;    // или была взята фигура
+        if (Board.pieces[start.x][start.y].Type == PieceType.progressor) return true;   // РїСЂРѕРіСЂРµСЃСЃРѕСЂ СЃРґРµР»Р°Р» С…РѕРґ
+        if (Board.pieces[end.x][end.y] != null) return true;    // РёР»Рё Р±С‹Р»Р° РІР·СЏС‚Р° С„РёРіСѓСЂР°
         return false;
     }
 

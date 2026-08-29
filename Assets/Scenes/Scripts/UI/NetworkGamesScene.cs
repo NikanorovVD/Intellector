@@ -98,7 +98,7 @@ public class NetworkGamesScene : MonoBehaviour
             if (!connect)
             {
                 ErrorWindow.SetActive(true);
-                ErrorWindow.GetComponentInChildren<Text>().text = "Игра уже не существует";
+                ErrorWindow.GetComponentInChildren<Text>().text = "РРіСЂР° СѓР¶Рµ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚";
                 return;
             }
             gameInfo.Save();

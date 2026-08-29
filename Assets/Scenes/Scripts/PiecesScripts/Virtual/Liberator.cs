@@ -8,46 +8,46 @@ public class Liberator : Piece
     {
         List<Vector2Int> result = new List<Vector2Int>();
 
-        //ближний круг
+        //Р±Р»РёР¶РЅРёР№ РєСЂСѓРі
         for (int i = X - 1; i <= X + 1; i++)
         {
-            if (i < 0) continue;                                                                        //левая граница
-            if (i > 8) continue;                                                                        //правая граница
+            if (i < 0) continue;                                                                        //Р»РµРІР°СЏ РіСЂР°РЅРёС†Р°
+            if (i > 8) continue;                                                                        //РїСЂР°РІР°СЏ РіСЂР°РЅРёС†Р°
 
             for (int j = Y - 1; j <= Y + 1; j++)
             {
-                if (j < 0) continue;                                                                    //нижняя граница
-                if (j >= Board[i].Length) continue;                                              //верхняя граница
+                if (j < 0) continue;                                                                    //РЅРёР¶РЅСЏСЏ РіСЂР°РЅРёС†Р°
+                if (j >= Board[i].Length) continue;                                              //РІРµСЂС…РЅСЏСЏ РіСЂР°РЅРёС†Р°
 
-                if (X == i && Y == j) continue;                                                         //клетка с фигурой
-                if (X % 2 == 0 && Y + 1 == j && X != i) continue;                                       //две лишние клетки сверху
-                if (X % 2 == 1 && Y - 1 == j && X != i) continue;                                       //две лишние клетки снизу
+                if (X == i && Y == j) continue;                                                         //РєР»РµС‚РєР° СЃ С„РёРіСѓСЂРѕР№
+                if (X % 2 == 0 && Y + 1 == j && X != i) continue;                                       //РґРІРµ Р»РёС€РЅРёРµ РєР»РµС‚РєРё СЃРІРµСЂС…Сѓ
+                if (X % 2 == 1 && Y - 1 == j && X != i) continue;                                       //РґРІРµ Р»РёС€РЅРёРµ РєР»РµС‚РєРё СЃРЅРёР·Сѓ
 
-                if (Board[i][j] != null) continue;                                               //есть фигура
+                if (Board[i][j] != null) continue;                                               //РµСЃС‚СЊ С„РёРіСѓСЂР°
 
                 result.Add(new Vector2Int(i, j));
             }
         }
 
-        //дальний круг
-        if(Y + 2 < Board[X].Length)                                                              //вверх
+        //РґР°Р»СЊРЅРёР№ РєСЂСѓРі
+        if(Y + 2 < Board[X].Length)                                                              //РІРІРµСЂС…
             if (Board[X][Y + 2] == null || Board[X][Y + 2].Team != Team)
                 result.Add(new Vector2Int(X, Y + 2));
-        if (Y - 2 >= 0)                                                                                 //вниз
+        if (Y - 2 >= 0)                                                                                 //РІРЅРёР·
             if (Board[X][Y - 2] == null || Board[X][Y - 2].Team != Team)
                 result.Add(new Vector2Int(X, Y - 2));
 
-        if (Y + 1 < Board[X].Length && X + 2 <= 8)                                               //вверх вправо
+        if (Y + 1 < Board[X].Length && X + 2 <= 8)                                               //РІРІРµСЂС… РІРїСЂР°РІРѕ
             if (Board[X + 2][Y + 1] == null || Board[X + 2][Y + 1].Team != Team)
                 result.Add(new Vector2Int(X + 2, Y + 1));
-        if (Y - 1 >= 0 && X + 2 <= 8)                                                                   //вниз вправо
+        if (Y - 1 >= 0 && X + 2 <= 8)                                                                   //РІРЅРёР· РІРїСЂР°РІРѕ
             if (Board[X + 2][Y - 1] == null || Board[X + 2][Y - 1].Team != Team)
                 result.Add(new Vector2Int(X + 2, Y - 1));
 
-        if (Y + 1 < Board[X].Length && X - 2 >= 0)                                               //вверх влево
+        if (Y + 1 < Board[X].Length && X - 2 >= 0)                                               //РІРІРµСЂС… РІР»РµРІРѕ
             if (Board[X - 2][Y + 1] == null || Board[X - 2][Y + 1].Team != Team)
                 result.Add(new Vector2Int(X - 2, Y + 1));
-        if (Y - 1 >= 0 && X - 2 >= 0)                                                                   //вниз влево
+        if (Y - 1 >= 0 && X - 2 >= 0)                                                                   //РІРЅРёР· РІР»РµРІРѕ
             if (Board[X - 2][Y - 1] == null || Board[X - 2][Y - 1].Team != Team)
                 result.Add(new Vector2Int(X - 2, Y - 1));
 

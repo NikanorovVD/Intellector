@@ -29,15 +29,15 @@ public class ScaleableNonCenteredComponent : MonoBehaviour
 
     void Awake()
     {
-        // Запоминаем начальную позицию и масштаб
+        // Р—Р°РїРѕРјРёРЅР°РµРј РЅР°С‡Р°Р»СЊРЅСѓСЋ РїРѕР·РёС†РёСЋ Рё РјР°СЃС€С‚Р°Р±
         initialPosition = transform.localPosition;
         initialScale = transform.localScale;
 
-        // Проверяем, есть ли у родителя RectTransform
+        // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё Сѓ СЂРѕРґРёС‚РµР»СЏ RectTransform
         parentRectTransform = transform.parent?.GetComponent<RectTransform>();
         hasRectTransformParent = parentRectTransform != null;
 
-        // Применяем масштаб
+        // РџСЂРёРјРµРЅСЏРµРј РјР°СЃС€С‚Р°Р±
         Vector3 targetScale = GetTargetScale();
         ApplyScaleWithAnchor(targetScale);
     }
@@ -57,16 +57,16 @@ public class ScaleableNonCenteredComponent : MonoBehaviour
 
     private void ApplyScaleWithAnchor(Vector3 targetScale)
     {
-        // Применяем новый масштаб
+        // РџСЂРёРјРµРЅСЏРµРј РЅРѕРІС‹Р№ РјР°СЃС€С‚Р°Р±
         transform.localScale = targetScale;
 
-        // Вычисляем изменение размера
+        // Р’С‹С‡РёСЃР»СЏРµРј РёР·РјРµРЅРµРЅРёРµ СЂР°Р·РјРµСЂР°
         Vector2 scaleChange = new Vector2(
             targetScale.x / initialScale.x,
             targetScale.y / initialScale.y
         );
 
-        // Корректируем позицию в зависимости от типа привязки
+        // РљРѕСЂСЂРµРєС‚РёСЂСѓРµРј РїРѕР·РёС†РёСЋ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ С‚РёРїР° РїСЂРёРІСЏР·РєРё
         Vector2 newPosition = initialPosition;
 
         switch (anchorType)
@@ -74,7 +74,7 @@ public class ScaleableNonCenteredComponent : MonoBehaviour
             case AnchorType.TopLeft:
                 if (hasRectTransformParent)
                 {
-                    // Для RectTransform учитываем размеры
+                    // Р”Р»СЏ RectTransform СѓС‡РёС‚С‹РІР°РµРј СЂР°Р·РјРµСЂС‹
                     float parentWidth = parentRectTransform.rect.width;
                     float parentHeight = parentRectTransform.rect.height;
                     float offsetX = (initialPosition.x + parentWidth / 2) * (scaleChange.x - 1);
@@ -86,7 +86,7 @@ public class ScaleableNonCenteredComponent : MonoBehaviour
                 }
                 else
                 {
-                    // Без RectTransform - корректировка от центра
+                    // Р‘РµР· RectTransform - РєРѕСЂСЂРµРєС‚РёСЂРѕРІРєР° РѕС‚ С†РµРЅС‚СЂР°
                     newPosition = initialPosition * scaleChange;
                 }
                 break;

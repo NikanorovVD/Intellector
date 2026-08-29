@@ -31,16 +31,16 @@ public class VirtualBoard
         IPiece end_piece = pieces[move.end_x][move.end_y];
 
         if (start_piece == null)
-            throw new System.NullReferenceException("��������� ������ NULL");
+            throw new System.NullReferenceException("Начальная фигура NULL");
 
         DecreaseValuation(move);
 
-        //���������
+        //Рокировка
         if (move.castling)
         {
             (pieces[move.start_x][move.start_y], pieces[move.end_x][move.end_y]) = (pieces[move.end_x][move.end_y], pieces[move.start_x][move.start_y]);
         }
-        //����� ������ ���
+        //Иначе просто ход
         else
         {
             pieces[move.end_x][move.end_y] = start_piece;
@@ -61,16 +61,16 @@ public class VirtualBoard
         IPiece end_piece = pieces[move.end_x][move.end_y];
 
         if (end_piece == null)
-            throw new System.NullReferenceException("�������� ������ NULL");
+            throw new System.NullReferenceException("Конечная фигура NULL");
 
         DecreaseValuation(move);
 
-        //���������
+        //Рокировка
         if (move.castling)
         {
             (pieces[move.start_x][move.start_y], pieces[move.end_x][move.end_y]) = (pieces[move.end_x][move.end_y], pieces[move.start_x][move.start_y]);
         }
-        //����� ������ ���
+        //Иначе просто ход
         else
         {
             pieces[move.start_x][move.start_y] = end_piece;
@@ -150,7 +150,7 @@ public class VirtualBoard
             case PieceType.dominator: return new Dominator();
             case PieceType.agressor: return new Agressor();
             case PieceType.defensor: return new Defensor();
-            default: throw new System.Exception("����������� ��� ������");
+            default: throw new System.Exception("Неизвестный тип фигуры");
         }
     }
 

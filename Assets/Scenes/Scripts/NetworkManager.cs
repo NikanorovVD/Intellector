@@ -51,13 +51,12 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         if (board.pieces[start.x][start.y].Team == board.PlayerTeam)
         {
             ServerManager.GetInstance().SendMove(start, end, transform_info);
-            WriteLog($"Îòïðàâêà õîäà: {start} ; {end} ; {transform_info}");
+            WriteLog($"ÐžÑ‚Ð¿Ñ€Ð°Ð²ÐºÐ° Ñ…Ð¾Ð´Ð°: {start} ; {end} ; {transform_info}");
         }
     }
 
     public async void AskRematch()
     {
-        //ÇÀ×ÅÌ ÒÀÊ ÑËÎÆÍÎ ÒÎ?????
         if (board.NetworkGame)
         {
             ServerManager.GetInstance().SendRematch();
@@ -80,7 +79,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     public void OnMoveReceived(Vector2Int start, Vector2Int end, int transform_info)
     {
-        WriteLog($"Ïîëó÷åí õîä: {start} -> {end} : {transform_info} ");
+        WriteLog($"ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½ Ñ…Ð¾Ð´: {start} -> {end} : {transform_info} ");
         MainTasks.AddTask(() => ExecuteReceivedMove(start, end, transform_info));
     }
 

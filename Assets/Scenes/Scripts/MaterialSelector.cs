@@ -14,9 +14,9 @@ public class MaterialSelector : MonoBehaviour
     [SerializeField] private Material[] BlackMaterials;
 
     private static readonly Dictionary<PieceMaterials, string> _materialNames = new Dictionary<PieceMaterials, string> {
-        { PieceMaterials.Standard, "Ñòàíäàðò" } ,
-        { PieceMaterials.Mramor, "Ìðàìîð" },
-        { PieceMaterials.New, "Íîâûé" }
+        { PieceMaterials.Standard, "Ð¡Ñ‚Ð°Ð½Ð´Ð°Ñ€Ñ‚" } ,
+        { PieceMaterials.Mramor, "ÐœÑ€Ð°Ð¼Ð¾Ñ€" },
+        { PieceMaterials.New, "ÐÐ¾Ð²Ñ‹Ð¹" }
     };
 
     public static string MaterialName(PieceMaterials material) => _materialNames[material];

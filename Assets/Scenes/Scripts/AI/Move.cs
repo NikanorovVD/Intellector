@@ -12,7 +12,7 @@ public class Move
     public int end_y;
     public PieceType end_type;
 
-    public IPiece previous_piece;//опасно!
+    public IPiece previous_piece;//РѕРїР°СЃРЅРѕ!
     public bool castling;
     public bool taking;
 

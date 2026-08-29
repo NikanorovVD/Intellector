@@ -29,7 +29,7 @@ public class SettingsScene : MonoBehaviour
     {
         NameInput.text = Settings.UserName;
         MaterialName.text = MaterialSelector.MaterialName(Settings.PieceMaterials);
-        AutoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
+        AutoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Р”Р°" : "РќРµС‚";
     }
 
     public void InputChanged() => CheckName();
@@ -75,6 +75,6 @@ public class SettingsScene : MonoBehaviour
     public void SwitchCameraAutoRotation()
     {
         Settings.AutoRotateCameraInLocalGame = !Settings.AutoRotateCameraInLocalGame;
-        AutoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
+        AutoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Р”Р°" : "РќРµС‚";
     }
 }

@@ -38,9 +38,9 @@ public class ServerConnection
         if (Settings.APP_VERSION != server_version)
         {
             throw new VersionException(
-             $"\"Неподходящая версия\n" +
-             $"Версия сервера - {VerToStr(server_version)}\n" +
-             $"Используемая версия клиента - {VerToStr(Settings.APP_VERSION)}\""
+             $"\"РќРµРїРѕРґС…РѕРґСЏС‰Р°СЏ РІРµСЂСЃРёСЏ\n" +
+             $"Р’РµСЂСЃРёСЏ СЃРµСЂРІРµСЂР° - {VerToStr(server_version)}\n" +
+             $"РСЃРїРѕР»СЊР·СѓРµРјР°СЏ РІРµСЂСЃРёСЏ РєР»РёРµРЅС‚Р° - {VerToStr(Settings.APP_VERSION)}\""
              );
         }
 

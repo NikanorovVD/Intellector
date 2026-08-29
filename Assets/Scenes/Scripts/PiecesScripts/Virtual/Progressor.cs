@@ -10,28 +10,28 @@ public class Progressor : Piece
 
         for(int i = X - 1; i <= X + 1; i++)
         {
-            if (i < 0) continue;                                                                        //левая граница
-            if (i > 8) continue;                                                                        //правая граница
+            if (i < 0) continue;                                                                        //Р»РµРІР°СЏ РіСЂР°РЅРёС†Р°
+            if (i > 8) continue;                                                                        //РїСЂР°РІР°СЏ РіСЂР°РЅРёС†Р°
 
             for (int j = Y - 1; j <= Y + 1; j++)
             {
-                if (j < 0) continue;                                                                    //нижняя граница
-                if (j >= Board[i].Length) continue;                                              //верхняя граница
+                if (j < 0) continue;                                                                    //РЅРёР¶РЅСЏСЏ РіСЂР°РЅРёС†Р°
+                if (j >= Board[i].Length) continue;                                              //РІРµСЂС…РЅСЏСЏ РіСЂР°РЅРёС†Р°
 
-                if (X == i && Y == j) continue;                                                         //клетка с фигурой
-                if (X % 2 == 0 && Y + 1 == j && X != i) continue;                                       //две лишние клетки сверху
-                if (X % 2 == 1 && Y - 1 == j && X != i) continue;                                       //две лишние клетки снизу
+                if (X == i && Y == j) continue;                                                         //РєР»РµС‚РєР° СЃ С„РёРіСѓСЂРѕР№
+                if (X % 2 == 0 && Y + 1 == j && X != i) continue;                                       //РґРІРµ Р»РёС€РЅРёРµ РєР»РµС‚РєРё СЃРІРµСЂС…Сѓ
+                if (X % 2 == 1 && Y - 1 == j && X != i) continue;                                       //РґРІРµ Р»РёС€РЅРёРµ РєР»РµС‚РєРё СЃРЅРёР·Сѓ
 
-                if (Board[i][j] != null && Board[i][j].Team == Team) continue;            //есть фигура и она союзная
+                if (Board[i][j] != null && Board[i][j].Team == Team) continue;            //РµСЃС‚СЊ С„РёРіСѓСЂР° Рё РѕРЅР° СЃРѕСЋР·РЅР°СЏ
 
 
-                //перемещение чёрных
+                //РїРµСЂРµРјРµС‰РµРЅРёРµ С‡С‘СЂРЅС‹С…
                 if (!Team)
                 {
                     if (X % 2 == 0 && Y - 1 == j) continue;
                     if (X % 2 == 1 && Y + 1 != j) continue;
                 }
-                //перемещение белых
+                //РїРµСЂРµРјРµС‰РµРЅРёРµ Р±РµР»С‹С…
                 if (Team)
                 {
                     if (X % 2 == 0 && Y - 1 != j) continue;

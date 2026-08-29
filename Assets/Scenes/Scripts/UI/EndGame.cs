@@ -39,30 +39,30 @@ public class EndGame : MonoBehaviour
         {
             top_text.text = winner switch
             {
-                false => (winner == playerTeam) ? "ВЫ ВЫИГРАЛИ" : "ВЫ ПРОИГРАЛИ",
-                true => (winner == playerTeam) ? "ВЫ ВЫИГРАЛИ" : "ВЫ ПРОИГРАЛИ",
-                null => "НИЧЬЯ"
+                false => (winner == playerTeam) ? "Р’Р« Р’Р«РР“Р РђР›Р" : "Р’Р« РџР РћРР“Р РђР›Р",
+                true => (winner == playerTeam) ? "Р’Р« Р’Р«РР“Р РђР›Р" : "Р’Р« РџР РћРР“Р РђР›Р",
+                null => "РќРР§Р¬РЇ"
             };
         }
 
         else top_text.text = winner switch
         {
-            false => "ПОБЕДИЛИ БЕЛЫЕ",
-            true => "ПОБЕДИЛИ ЧЕРНЫЕ",
-            null => "НИЧЬЯ"
+            false => "РџРћР‘Р•Р”РР›Р Р‘Р•Р›Р«Р•",
+            true => "РџРћР‘Р•Р”РР›Р Р§Р•Р РќР«Р•",
+            null => "РќРР§Р¬РЇ"
         };
 
         low_text.text = reason switch
         {
-            EndGameReason.IntellectorCapture => "Интеллектор был взят",
-            EndGameReason.IntellectorReachLustRank => "Интеллектор достиг базовой линии",
-            EndGameReason.AllPiecesBlocked => "Блокировка",
-            EndGameReason.TimesUp => (winner == playerTeam) ? "У противника истекло время" : "Время истекло",
-            EndGameReason.Exit => "Противник вышел",
-            EndGameReason.Resignation => (winner == playerTeam) ? "Противник сдался" : "Вы сдались",
-            EndGameReason.DrawByAgreement => "По договоренности",
-            EndGameReason.DrawByRepeatingPosition => "Троекратное повторение позиции",
-            EndGameReason.DrawBy30MovesRule => "По правилу 30 ходов",
+            EndGameReason.IntellectorCapture => "РРЅС‚РµР»Р»РµРєС‚РѕСЂ Р±С‹Р» РІР·СЏС‚",
+            EndGameReason.IntellectorReachLustRank => "РРЅС‚РµР»Р»РµРєС‚РѕСЂ РґРѕСЃС‚РёРі Р±Р°Р·РѕРІРѕР№ Р»РёРЅРёРё",
+            EndGameReason.AllPiecesBlocked => "Р‘Р»РѕРєРёСЂРѕРІРєР°",
+            EndGameReason.TimesUp => (winner == playerTeam) ? "РЈ РїСЂРѕС‚РёРІРЅРёРєР° РёСЃС‚РµРєР»Рѕ РІСЂРµРјСЏ" : "Р’СЂРµРјСЏ РёСЃС‚РµРєР»Рѕ",
+            EndGameReason.Exit => "РџСЂРѕС‚РёРІРЅРёРє РІС‹С€РµР»",
+            EndGameReason.Resignation => (winner == playerTeam) ? "РџСЂРѕС‚РёРІРЅРёРє СЃРґР°Р»СЃСЏ" : "Р’С‹ СЃРґР°Р»РёСЃСЊ",
+            EndGameReason.DrawByAgreement => "РџРѕ РґРѕРіРѕРІРѕСЂРµРЅРЅРѕСЃС‚Рё",
+            EndGameReason.DrawByRepeatingPosition => "РўСЂРѕРµРєСЂР°С‚РЅРѕРµ РїРѕРІС‚РѕСЂРµРЅРёРµ РїРѕР·РёС†РёРё",
+            EndGameReason.DrawBy30MovesRule => "РџРѕ РїСЂР°РІРёР»Сѓ 30 С…РѕРґРѕРІ",
             _ => string.Empty
         };
     }
@@ -74,7 +74,7 @@ public class EndGame : MonoBehaviour
 
     private void DisplayRematchRequest()
     {
-        low_text.text = "ПРОТИВНИК ПРЕДЛАГАЕТ РЕВАНШ";
+        low_text.text = "РџР РћРўРР’РќРРљ РџР Р•Р”Р›РђР“РђР•Рў Р Р•Р’РђРќРЁ";
     }
 
     private void RematchSetActive(bool active)

@@ -9,7 +9,7 @@ public class TreeNode
     public List<TreeNode> unviewed_children;
     public List<TreeNode> viewed_children;
 
-    public TreeNode() //для корня
+    public TreeNode() //РґР»СЏ РєРѕСЂРЅСЏ
     {
         move = null;
         valuation = 0;
