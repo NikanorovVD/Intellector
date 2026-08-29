@@ -101,6 +101,7 @@ public class GameOverWatcher : MonoBehaviour
         return false;
     }
 
+    // FIXME: не место для сериализации состояния игры, она может быть нужна не только для проверки на повторение позиции
     private string GetPositionHash(bool turn, IPiece[][] pieces)
     {
         var hashBuilder = new StringBuilder();
@@ -118,6 +119,7 @@ public class GameOverWatcher : MonoBehaviour
                     ProgressorPiece => piece.Team ? 'p' : 'P',
                     LiberatorPiece => piece.Team ? 'l' : 'L',
                     IntellectorPiece => piece.Team ? 'i' : 'I',
+                    // FIXME: Defensor и Dominator одинаковые
                     DefensorPiece => piece.Team ? 'd' : 'D',
                 };
                 hashBuilder.Append(pieceHash);

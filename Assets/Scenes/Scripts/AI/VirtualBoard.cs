@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/* FIXME: дублирование логики Board.cs; смешение игровой логики с оценкой позиции;
+   По сути это попытка как раз сделать Board, но без UI
+*/
 public class VirtualBoard
 {
     private bool turn;

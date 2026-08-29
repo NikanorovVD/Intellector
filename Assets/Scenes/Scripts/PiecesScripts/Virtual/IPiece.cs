@@ -10,5 +10,7 @@ public interface IPiece
     public IPiece[][] Board {  get; set; }
 
     public bool HasIntellectorNearby();
+    // FIXME: методы интерфейса всегда абстрактные
+    // FIXME: возврат List<Vector2Int> - неправильно, должен быть List<Move> с полной информацией о ходе
     abstract public List<Vector2Int> GetAvailableMooves();
 }

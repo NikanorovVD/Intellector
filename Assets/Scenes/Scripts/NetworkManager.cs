@@ -60,6 +60,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         if (board.NetworkGame)
         {
             ServerManager.GetInstance().SendRematch();
+            // FIXME: переусложненная логика, можно было этот код повесить OnRematchReceived
             await new TaskFactory().StartNew(() => { while (!ready_for_rematch) { } }, TaskCreationOptions.LongRunning);
 
             MainTasks.AddTask(() => board.Restart());

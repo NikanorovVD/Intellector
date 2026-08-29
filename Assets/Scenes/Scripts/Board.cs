@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// FIXME: смешение главной логики игры и UI
 public class Board : MonoBehaviour
 {
     [Header("Prefabs")]
@@ -49,6 +50,7 @@ public class Board : MonoBehaviour
 
     public void Awake()
     {
+        // FIXME: не поддается понимаю почему 1.51, а не 1.5
         x_offset = tileSize / Mathf.Sqrt(3) * 1.51f;
         y_offset = tileSize;
 
@@ -166,6 +168,7 @@ public class Board : MonoBehaviour
         gameObject.transform.position = TransformCoordinates(x, y);
         if ((type == PieceType.agressor) && (team == true))
         {
+            // FIXME: можно нормально повернутый префаб агрессора, пожалуйста?
             gameObject.transform.rotation = Quaternion.Euler(0, 90, 0);
         }
         gameObject.GetComponent<MeshRenderer>().materials = (team == true) ? new Material[] { BlackTeamMaterial } : new Material[] { WhiteTeamMaterial };

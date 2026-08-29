@@ -6,9 +6,12 @@ public class TimeContol
     private int max_time;
     private int added_time;
 
+    // FIXME: неочевидный флаг, что в игре есть контроль времени
     public bool Active { get => max_time != 0; }
     public int MaxMilliseconds { get => max_time; }
     public int AddMilliseconds { get => added_time; }
+
+    // FIXME: неудобные свойства, макс. время нельзя задать точнее минут
     public int MaxMinutes { 
         get { return max_time / 60000; }
         set { max_time = value * 60000; }

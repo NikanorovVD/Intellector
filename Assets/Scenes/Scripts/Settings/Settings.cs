@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Settings
 {
+    // FIXME: сомнительно держать версию в коде
     public const int APP_VERSION = 17;
     private static Connection _serverConnection;
     private static UserConfig _userConfig;

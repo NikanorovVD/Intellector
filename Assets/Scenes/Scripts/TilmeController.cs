@@ -11,7 +11,10 @@ public class TimeController : MonoBehaviour
 
     private TimeContol time_control;
 
+    // FIXME: дублирование состояния board.Turn
     private bool turn;
+
+    // FIXME: дублирование состояния time_control.Active
     private bool active;
     
     private int WhiteTime

@@ -2,6 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 
+// FIXME: хочется плакать, надеюсь я когда-нибудь переделаю сетевую игру
 public static class Networking 
 {
     static public void SendCode(byte mes, NetworkStream stream)

@@ -12,7 +12,10 @@ public class Move
     public int end_y;
     public PieceType end_type;
 
-    public IPiece previous_piece;//опасно!
+    /* FIXME: костыльный механизм чтобы откатывать ходы, этого поля быть не должно, ход должен содержать всю
+       необходимую информацию, чтобы его можно было выполнить в обе стороны без каких либо ссылок на другие объекты 
+    */
+    public IPiece previous_piece;
     public bool castling;
     public bool taking;
 
@@ -35,6 +38,7 @@ public class Move
         else previous_piece = null;
     }
 
+    // FIXME: эти два метода - костыли, чтобы закрыть проблему с тем, что скрипты фигур возвращают ходы без информации о превращении
     public static List<Move> MoveWithIntellector(IPiece piece, Vector2Int coor)
     {
         List<Move> moves = new();
