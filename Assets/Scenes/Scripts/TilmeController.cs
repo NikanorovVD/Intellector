@@ -43,7 +43,7 @@ public class TimeController : MonoBehaviour
             network_manager.TimeEvent += TimeReceived;
             network_manager.GameStartEvent += StartGame;
             board.RestartEvent += StartGame;
-            board.EndGameEvent += EndGame;
+            board.EndGameEvent += (_, __) => EndGame();
         }
     }
 

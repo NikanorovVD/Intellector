@@ -26,10 +26,11 @@ public class Board : MonoBehaviour
     [NonSerialized] public bool PlayerTeam;
 
     public delegate void MoveDelegate(Vector2Int start, Vector2Int end, int transform_info);
+    public delegate void EndGameDelegate(bool? winner, EndGameReason reason);
     public event MoveDelegate MoveStartEvent;
     public event MoveDelegate MoveEndEvent;
     public event Action RestartEvent;
-    public event Action EndGameEvent;
+    public event EndGameDelegate EndGameEvent;
 
     [NonSerialized] public bool Turn;
     [NonSerialized] public bool game_over;
@@ -441,6 +442,6 @@ public class Board : MonoBehaviour
         game_over = true;
         DeleteAllHighlights();
         EndGame.DisplayResult(NetworkGame, winner, PlayerTeam, reason);
-        EndGameEvent?.Invoke();
+        EndGameEvent?.Invoke(winner, reason);
     }
 }
