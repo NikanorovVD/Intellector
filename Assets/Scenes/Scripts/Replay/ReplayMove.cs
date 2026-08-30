@@ -12,4 +12,5 @@ public class ReplayMove
     public TileState? ToBefore;
     public TileState? FromAfter;
     public TileState? ToAfter;
+    public string Notation;
 }

@@ -9,14 +9,16 @@ public static class ReplayExpander
         if (record?.Moves == null)
             return moves;
 
-        foreach (RecordedMove move in record.Moves)
+        for (int i = 0; i < record.Moves.Count; i++)
         {
+            RecordedMove move = record.Moves[i];
             var replayMove = new ReplayMove
             {
                 From = move.From,
                 To = move.To,
                 FromBefore = board.Get(move.From),
-                ToBefore = board.Get(move.To)
+                ToBefore = board.Get(move.To),
+                Notation = IpgnFormatter.FormatMove(move)
             };
             board.Apply(move);
             replayMove.FromAfter = board.Get(move.From);

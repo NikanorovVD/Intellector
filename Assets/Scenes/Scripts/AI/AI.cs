@@ -10,7 +10,7 @@ public class AI : MonoBehaviour
     public const int AI_MOVE_DELAY_MS = 200;
 
     public static bool AI_team = true;
-    public static string DisplayName => $"AI minmax {AI_depth}";
+    public static string DisplayName => $"minmax<{AI_depth}>";
 
     private TreeNode root;
     private TreeNode current_node;
