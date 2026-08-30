@@ -176,6 +176,38 @@ public class Board : MonoBehaviour
         return piece;
     }
 
+    public void SetTiles(Vector2Int from, TileState? fromState, Vector2Int to, TileState? toState)
+    {
+        ClearTile(from);
+        ClearTile(to);
+        SetTileState(from, fromState);
+        SetTileState(to, toState);
+    }
+
+    public void HighlightLastMove(Vector2Int from, Vector2Int to)
+    {
+        lustMove1 = from;
+        lustMove2 = to;
+    }
+
+    void ClearTile(Vector2Int pos)
+    {
+        IPiece piece = pieces[pos.x][pos.y];
+        if (piece == null) return;
+        if (piecesObjects.TryGetValue(piece, out GameObject gameObject))
+        {
+            piecesObjects.Remove(piece);
+            Destroy(gameObject);
+        }
+        pieces[pos.x][pos.y] = null;
+    }
+
+    void SetTileState(Vector2Int pos, TileState? state)
+    {
+        if (state == null) return;
+        pieces[pos.x][pos.y] = GenerateSinglePiece(state.Type, state.Team, pos.x, pos.y);
+    }
+
     //очистка
     public void Restart()
     {

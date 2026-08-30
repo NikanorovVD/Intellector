@@ -59,6 +59,33 @@ public static class IpgnFormatter
         return $"{file}{rank}";
     }
 
+    public static PieceType PieceFromLetter(char letter)
+    {
+        return char.ToUpperInvariant(letter) switch
+        {
+            'P' => PieceType.progressor,
+            'L' => PieceType.liberator,
+            'I' => PieceType.intellector,
+            'D' => PieceType.dominator,
+            'F' => PieceType.defensor,
+            'A' => PieceType.agressor,
+            _ => throw new ArgumentOutOfRangeException(nameof(letter), letter, "Неизвестная буква фигуры")
+        };
+    }
+
+    public static Vector2Int ParseTile(string text)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length < 2)
+            throw new FormatException($"Некорректная клетка: {text}");
+        char file = char.ToLowerInvariant(text[0]);
+        int x = file - 'a';
+        if (x < 0 || x > 8)
+            throw new FormatException($"Некорректная клетка: {text}");
+        if (!int.TryParse(text.Substring(1), out int rank) || rank < 1 || rank > 7)
+            throw new FormatException($"Некорректная клетка: {text}");
+        return new Vector2Int(x, rank - 1);
+    }
+
     public static char PieceLetter(PieceType type)
     {
         return type switch

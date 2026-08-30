@@ -20,6 +20,11 @@ public class Scenes: MonoBehaviour
         ChangeScenes(1);
     }
 
+    public void ShowHistory()
+    {
+        GetComponent<HistoryMenu>().Open();
+    }
+
     public void Exit()
     {
         Application.Quit();

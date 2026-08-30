@@ -13,6 +13,7 @@ public class GameRecorder : MonoBehaviour
 
     void Start()
     {
+        if (Settings.GameMode == GameMode.Replay) return;
         Board.MoveStartEvent += MoveStartHandler;
         Board.EndGameEvent += EndGameHandler;
         Board.RestartEvent += BeginNewGame;
@@ -102,10 +103,9 @@ public class GameRecorder : MonoBehaviour
 
         if (mode == GameMode.AI)
         {
-            string aiName = $"AI minmax {AI.AI_depth}";
             if (AI.AI_team)
-                return (userName, aiName);
-            return (aiName, userName);
+                return (userName, AI.DisplayName);
+            return (AI.DisplayName, userName);
         }
 
         if (mode == GameMode.Network)
@@ -145,9 +145,9 @@ public class GameRecorder : MonoBehaviour
 
     private static string CreateFilePath(GameMode mode)
     {
-        string directory = Path.Combine(Application.persistentDataPath, "Games");
-        Directory.CreateDirectory(directory);
-
-        return Path.Combine(directory, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{mode}.ipgn");
+        Directory.CreateDirectory(GamesDirectory);
+        return Path.Combine(GamesDirectory, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{mode}.ipgn");
     }
+
+    public static string GamesDirectory => Path.Combine(Application.persistentDataPath, "Games");
 }

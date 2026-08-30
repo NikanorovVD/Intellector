@@ -1,1 +1,1 @@
-﻿public enum GameMode { Local, Network, AI }
+﻿public enum GameMode { Local, Network, AI, Replay }

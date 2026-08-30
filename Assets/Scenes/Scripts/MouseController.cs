@@ -9,6 +9,7 @@ public class MouseController : MonoBehaviour
 
     void Update()
     {
+        if (Settings.GameMode == GameMode.Replay) return;
         if (board.game_over || board.wait_for_transformation) return;
         if (!_currentCamera)
         {

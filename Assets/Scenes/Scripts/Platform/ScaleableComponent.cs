@@ -12,6 +12,7 @@ public class ScaleableComponent : MonoBehaviour
 
     void Awake()
     {
+        // TODO: вынести флаг того что у нас Android в переменную
 #if UNITY_EDITOR
         transform.localScale = AndroidSimulationMenu.IsAndroidSimulationOn() ? 
             new Vector3(AndroidScale, AndroidScale, 1) :

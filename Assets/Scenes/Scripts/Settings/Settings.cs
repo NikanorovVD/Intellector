@@ -14,6 +14,7 @@ public class Settings
     }
 
     public static GameMode GameMode { get; set; }
+    public static string ReplayFilePath { get; set; }
     public static Connection GetConnection()
     {
         if (_serverConnection == null)
