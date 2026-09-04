@@ -208,6 +208,17 @@ public class Board : MonoBehaviour
         pieces[pos.x][pos.y] = GenerateSinglePiece(state.Type, state.Team, pos.x, pos.y);
     }
 
+    public void LoadPosition(RecordedPosition position)
+    {
+        for (int x = 0; x < pieces.Length; x++)
+            for (int y = 0; y < pieces[x].Length; y++)
+                ClearTile(new Vector2Int(x, y));
+        for (int x = 0; x < pieces.Length; x++)
+            for (int y = 0; y < pieces[x].Length; y++)
+                SetTileState(new Vector2Int(x, y), position.Pieces[x][y]);
+        Turn = position.BlackToMove;
+    }
+
     //очистка
     public void Restart()
     {

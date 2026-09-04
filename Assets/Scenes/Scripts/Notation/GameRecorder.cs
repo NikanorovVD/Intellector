@@ -83,7 +83,7 @@ public class GameRecorder : MonoBehaviour
     private void EndGameHandler(bool? winner, EndGameReason reason)
     {
         record.Result = IpgnFormatter.FormatResult(winner);
-        record.Termination = reason.ToString();
+        record.Termination = IpgnFormatter.FormatTermination(reason);
         WriteRecord(record);
     }
 
@@ -137,10 +137,7 @@ public class GameRecorder : MonoBehaviour
 
     private static string ResolveTimeControl()
     {
-        TimeContol timeControl = GameInfo.Load().TimeContol;
-        if (timeControl == null || !timeControl.Active)
-            return "-";
-        return timeControl.ToString();
+        return IpgnFormatter.FormatTimeControl(GameInfo.Load().TimeContol);
     }
 
     private static string CreateFilePath(GameMode mode)

@@ -36,6 +36,15 @@ public static class IpgnParser
             ParseMovetextLine(record, line);
         }
 
+        if (record.SetUp == "1")
+        {
+            if (string.IsNullOrEmpty(record.Ifen))
+                throw new FormatException("При SetUp \"1\" обязателен тег IFEN.");
+            IfenParser.Parse(record.Ifen);
+        }
+        else if (!string.IsNullOrEmpty(record.SetUp) && record.SetUp != "0")
+            throw new FormatException($"Некорректное значение SetUp: {record.SetUp}");
+
         return record;
     }
 
@@ -60,6 +69,8 @@ public static class IpgnParser
             case "GameMode": record.GameMode = value; break;
             case "AppVersion": record.AppVersion = value; break;
             case "Termination": record.Termination = value; break;
+            case "SetUp": record.SetUp = value; break;
+            case "IFEN": record.Ifen = value; break;
         }
     }
 
@@ -72,7 +83,7 @@ public static class IpgnParser
                 record.Result = token;
                 continue;
             }
-            if (IsMoveNumber(token))
+            if (IsMoveNumber(token) || token == "...")
                 continue;
             record.Moves.Add(ParseMove(token));
         }

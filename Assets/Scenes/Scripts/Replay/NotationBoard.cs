@@ -12,6 +12,17 @@ public class NotationBoard
         PlaceInitial();
     }
 
+    public NotationBoard(RecordedPosition position)
+    {
+        tiles = new TileState?[9][];
+        for (int i = 0; i < 9; i++)
+        {
+            tiles[i] = new TileState?[7 - (i % 2)];
+            for (int j = 0; j < tiles[i].Length; j++)
+                tiles[i][j] = Copy(position.Pieces[i][j]);
+        }
+    }
+
     public TileState? Get(Vector2Int pos) => Copy(tiles[pos.x][pos.y]);
 
     public void Apply(RecordedMove move)

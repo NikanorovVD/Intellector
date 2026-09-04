@@ -25,6 +25,8 @@ public class ReplayController : MonoBehaviour
     private List<ReplayMove> moves;
     private readonly List<Image> rows = new();
     private int index;
+    private int firstPly;
+    private int firstFullmove;
 
     void Start()
     {
@@ -37,7 +39,10 @@ public class ReplayController : MonoBehaviour
 
         string text = File.ReadAllText(Settings.ReplayFilePath);
         GameRecord record = IpgnParser.Parse(text);
+        if (record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen))
+            Board.LoadPosition(IfenParser.Parse(record.Ifen));
         moves = ReplayExpander.Expand(record);
+        IpgnFormatter.GetMovetextOrigin(record, out firstPly, out firstFullmove);
         index = 0;
         Board.HighlightLastMove(-Vector2Int.one, -Vector2Int.one);
         meta.text = FormatMeta(record);
@@ -173,21 +178,11 @@ public class ReplayController : MonoBehaviour
 
     private static string FormatTermination(string value)
     {
-        if (string.IsNullOrEmpty(value) || !Enum.TryParse(value, out EndGameReason reason))
+        if (string.IsNullOrEmpty(value))
             return null;
-        return reason switch
-        {
-            EndGameReason.IntellectorCapture => "Интеллектор был взят",
-            EndGameReason.IntellectorReachLustRank => "Интеллектор достиг базовой линии",
-            EndGameReason.AllPiecesBlocked => "Блокировка",
-            EndGameReason.TimesUp => "Время истекло",
-            EndGameReason.Exit => "Выход из партии",
-            EndGameReason.Resignation => "Сдача",
-            EndGameReason.DrawByAgreement => "Ничья по договоренности",
-            EndGameReason.DrawByRepeatingPosition => "Ничья повторением позиции",
-            EndGameReason.DrawBy30MovesRule => "Ничья по правилу 30 ходов",
-            _ => null
-        };
+        if (Enum.TryParse(value, out EndGameReason reason))
+            return IpgnFormatter.FormatTermination(reason);
+        return value;
     }
 
     private static void AppendMetaLine(StringBuilder builder, string value)
@@ -257,10 +252,19 @@ public class ReplayController : MonoBehaviour
 
     private void FillList()
     {
-        for (int i = 0; i < moves.Count; i += 2)
+        int i = 0;
+        int number = firstFullmove;
+        if (firstPly == 1 && moves.Count > 0)
+        {
+            AddTurnRow(number, null, 0, moves[0].Notation, 1);
+            i = 1;
+            number++;
+        }
+        for (; i < moves.Count; i += 2)
         {
             string black = i + 1 < moves.Count ? moves[i + 1].Notation : null;
-            AddTurnRow(i / 2 + 1, moves[i].Notation, i + 1, black, i + 2);
+            AddTurnRow(number, moves[i].Notation, i + 1, black, i + 2);
+            number++;
         }
     }
 
@@ -268,7 +272,14 @@ public class ReplayController : MonoBehaviour
     {
         GameObject item = SpawnRow();
         item.transform.Find("Number").GetComponent<Text>().text = number + ".";
-        BindCell(item.transform.Find("White"), white, whiteTarget);
+        Transform whiteCell = item.transform.Find("White");
+        if (white == null)
+        {
+            whiteCell.GetComponent<Button>().interactable = false;
+            whiteCell.GetComponentInChildren<Text>().text = "";
+        }
+        else
+            BindCell(whiteCell, white, whiteTarget);
         Transform blackCell = item.transform.Find("Black");
         if (black == null)
         {

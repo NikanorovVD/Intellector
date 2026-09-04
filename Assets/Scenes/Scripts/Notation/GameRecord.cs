@@ -15,6 +15,8 @@ public class GameRecord
     public string GameMode;
     public string AppVersion;
     public string Termination;
+    public string SetUp;
+    public string Ifen;
     public List<RecordedMove> Moves = new();
 
     public bool IsFinished => Result != UnfinishedResult;

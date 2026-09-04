@@ -4,7 +4,9 @@ public static class ReplayExpander
 {
     public static List<ReplayMove> Expand(GameRecord record)
     {
-        var board = new NotationBoard();
+        var board = record != null && record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen)
+            ? new NotationBoard(IfenParser.Parse(record.Ifen))
+            : new NotationBoard();
         var moves = new List<ReplayMove>();
         if (record?.Moves == null)
             return moves;

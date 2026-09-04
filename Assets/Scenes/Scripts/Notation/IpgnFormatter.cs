@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text;
 using UnityEngine;
 
@@ -27,6 +28,11 @@ public static class IpgnFormatter
         AppendTag(builder, "TimeControl", record.TimeControl);
         AppendTag(builder, "GameMode", record.GameMode);
         AppendTag(builder, "AppVersion", record.AppVersion);
+        if (record.SetUp == "1")
+        {
+            AppendTag(builder, "SetUp", "1");
+            AppendTag(builder, "IFEN", record.Ifen);
+        }
         if (!string.IsNullOrEmpty(record.Termination))
             AppendTag(builder, "Termination", record.Termination);
 
@@ -36,13 +42,25 @@ public static class IpgnFormatter
 
     public static string FormatMovetextEntry(RecordedMove move, int index)
     {
+        return FormatMovetextEntry(move, index, 0, 1);
+    }
+
+    public static string FormatMovetextEntry(RecordedMove move, int index, int firstPly, int firstFullmove)
+    {
+        int ply = firstPly + index;
+        int fullmove = firstFullmove + ply / 2;
         var builder = new StringBuilder();
-        if (index % 2 == 0)
+        if (ply % 2 == 0)
         {
             if (index > 0)
                 builder.AppendLine();
-            builder.Append(index / 2 + 1);
+            builder.Append(fullmove);
             builder.Append(". ");
+        }
+        else if (index == 0)
+        {
+            builder.Append(fullmove);
+            builder.Append(". ... ");
         }
         else
         {
@@ -119,6 +137,33 @@ public static class IpgnFormatter
         };
     }
 
+    public static string FormatTimeControl(TimeContol timeControl)
+    {
+        if (timeControl == null || !timeControl.Active)
+            return "-";
+        string baseSeconds = (timeControl.MaxMilliseconds / 1000).ToString(CultureInfo.InvariantCulture);
+        if (timeControl.AddedSeconds <= 0)
+            return baseSeconds;
+        return baseSeconds + "+" + timeControl.AddedSeconds.ToString(CultureInfo.InvariantCulture);
+    }
+
+    public static string FormatTermination(EndGameReason reason)
+    {
+        return reason switch
+        {
+            EndGameReason.IntellectorCapture => "Интеллектор был взят",
+            EndGameReason.IntellectorReachLustRank => "Интеллектор достиг базовой линии",
+            EndGameReason.AllPiecesBlocked => "Блокировка",
+            EndGameReason.TimesUp => "Время истекло",
+            EndGameReason.Exit => "Выход из партии",
+            EndGameReason.Resignation => "Сдача",
+            EndGameReason.DrawByAgreement => "Ничья по договоренности",
+            EndGameReason.DrawByRepeatingPosition => "Ничья повторением позиции",
+            EndGameReason.DrawBy30MovesRule => "Ничья по правилу 30 ходов",
+            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Неизвестная причина окончания")
+        };
+    }
+
     private static void AppendTag(StringBuilder builder, string name, string value)
     {
         builder.Append('[');
@@ -140,8 +185,20 @@ public static class IpgnFormatter
         if (record.Moves == null || record.Moves.Count == 0)
             return;
 
+        GetMovetextOrigin(record, out int firstPly, out int firstFullmove);
         for (int i = 0; i < record.Moves.Count; i++)
-            builder.Append(FormatMovetextEntry(record.Moves[i], i));
+            builder.Append(FormatMovetextEntry(record.Moves[i], i, firstPly, firstFullmove));
         builder.AppendLine();
+    }
+
+    public static void GetMovetextOrigin(GameRecord record, out int firstPly, out int firstFullmove)
+    {
+        firstPly = 0;
+        firstFullmove = 1;
+        if (record == null || record.SetUp != "1" || string.IsNullOrEmpty(record.Ifen))
+            return;
+        RecordedPosition position = IfenParser.Parse(record.Ifen);
+        firstPly = position.BlackToMove ? 1 : 0;
+        firstFullmove = position.FullmoveNumber;
     }
 }
