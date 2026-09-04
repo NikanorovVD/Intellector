@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,7 @@ public class GameOverWatcher : MonoBehaviour
     public const int MAX_MOVES_WITHOUT_PROGRESS = 60;
     public const int MAX_POSITION_REPEATS = 3;
 
-    private int currentMovesWithoutProgressCount; 
+    private int currentMovesWithoutProgressCount;
     private Dictionary<string, int> positionCounts = new();
     private bool progressiveMove;
 
@@ -30,7 +29,7 @@ public class GameOverWatcher : MonoBehaviour
 
     private void MoveStartHandler(Vector2Int start, Vector2Int end, int transform_info)
     {
-        if (IsMoveProgressive(start, end))
+        if (IsProgressiveMove(start, end))
         {
             currentMovesWithoutProgressCount = 0;
             progressiveMove = true;
@@ -49,13 +48,12 @@ public class GameOverWatcher : MonoBehaviour
 
     private void MoveEndHandler(Vector2Int start, Vector2Int end, int transform_info)
     {
-        // position repeat
         if (progressiveMove) positionCounts.Clear();
         string positionHash = GetPositionHash(Board.Turn, Board.pieces);
         if (positionCounts.TryGetValue(positionHash, out int count))
         {
             count++;
-            if(count >= MAX_POSITION_REPEATS)
+            if (count >= MAX_POSITION_REPEATS)
             {
                 Board.GameOver(null, EndGameReason.DrawByRepeatingPosition);
                 return;
@@ -67,12 +65,11 @@ public class GameOverWatcher : MonoBehaviour
             positionCounts.Add(positionHash, 1);
         }
 
-        // blocking 
         if (IsAllPiecesBlocked())
         {
             Board.GameOver(!Board.Turn, EndGameReason.AllPiecesBlocked);
             return;
-        }      
+        }
     }
 
     private bool IsAllPiecesBlocked()
@@ -94,10 +91,10 @@ public class GameOverWatcher : MonoBehaviour
         return true;
     }
 
-    private bool IsMoveProgressive(Vector2Int start, Vector2Int end)
+    private bool IsProgressiveMove(Vector2Int start, Vector2Int end)
     {
-        if (Board.pieces[start.x][start.y].Type == PieceType.progressor) return true;   // прогрессор сделал ход
-        if (Board.pieces[end.x][end.y] != null) return true;    // или была взята фигура
+        if (Board.pieces[start.x][start.y].Type == PieceType.progressor) return true;
+        if (Board.pieces[end.x][end.y] != null) return true;
         return false;
     }
 
@@ -119,8 +116,7 @@ public class GameOverWatcher : MonoBehaviour
                     ProgressorPiece => piece.Team ? 'p' : 'P',
                     LiberatorPiece => piece.Team ? 'l' : 'L',
                     IntellectorPiece => piece.Team ? 'i' : 'I',
-                    // FIXME: Defensor и Dominator одинаковые
-                    DefensorPiece => piece.Team ? 'd' : 'D',
+                    DefensorPiece => piece.Team ? 'f' : 'F',
                 };
                 hashBuilder.Append(pieceHash);
             }
