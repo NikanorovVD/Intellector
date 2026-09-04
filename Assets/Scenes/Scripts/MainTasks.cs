@@ -5,17 +5,20 @@ using UnityEngine;
 // FIXME: костыльный инструмент маршализации, хочется верить что в Unity есть встроенные средства для этого
 public class MainTasks : MonoBehaviour
 {
+    private static readonly object tasksLock = new();
     private static Queue<Action> tasks  = new Queue<Action>();
 
     private void Update()
     {
         try
         {
-            if (tasks.Count != 0)
+            Action task = null;
+            lock (tasksLock)
             {
-                Action task = tasks.Dequeue();
-                task();
+                if (tasks.Count != 0)
+                    task = tasks.Dequeue();
             }
+            task?.Invoke();
         }
         catch (Exception e) 
         { 
@@ -25,6 +28,7 @@ public class MainTasks : MonoBehaviour
 
     public static void AddTask(Action task)
     {
-        tasks.Enqueue(task);
+        lock (tasksLock)
+            tasks.Enqueue(task);
     }
 }
