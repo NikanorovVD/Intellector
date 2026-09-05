@@ -45,6 +45,8 @@ public class Board : MonoBehaviour
     private Vector2Int currentSelect = -Vector2Int.one;
     private Vector2Int lustMove1 = -Vector2Int.one;
     private Vector2Int lustMove2 = -Vector2Int.one;
+    private Vector2Int hintMove1 = -Vector2Int.one;
+    private Vector2Int hintMove2 = -Vector2Int.one;
 
     private static float x_offset;
     private static float y_offset;
@@ -90,6 +92,11 @@ public class Board : MonoBehaviour
                 {
                     if (coor == currentHover) layer = "HoverAvailable";
                     else layer = "Available";
+                }
+                else if (coor == hintMove1 || coor == hintMove2)
+                {
+                    if (coor == currentHover) layer = "HoverHint";
+                    else layer = "Hint";
                 }
                 else if (coor == currentHover)
                     layer = "HoverTile";
@@ -190,6 +197,25 @@ public class Board : MonoBehaviour
         lustMove2 = to;
     }
 
+    public void HighlightHint(Vector2Int from, Vector2Int to)
+    {
+        hintMove1 = from;
+        hintMove2 = to;
+    }
+
+    public void ClearSelection()
+    {
+        AvailableMoves = null;
+        currentSelect = -Vector2Int.one;
+    }
+
+    public TileState? GetTileState(Vector2Int pos)
+    {
+        IPiece piece = pieces[pos.x][pos.y];
+        if (piece == null) return null;
+        return new TileState { Type = piece.Type, Team = piece.Team };
+    }
+
     void ClearTile(Vector2Int pos)
     {
         IPiece piece = pieces[pos.x][pos.y];
@@ -250,6 +276,8 @@ public class Board : MonoBehaviour
         currentSelect = -Vector2Int.one;
         lustMove1 = -Vector2Int.one;
         lustMove2 = -Vector2Int.one;
+        hintMove1 = -Vector2Int.one;
+        hintMove2 = -Vector2Int.one;
     }
 
     //операции с полями и слоями
@@ -481,6 +509,7 @@ public class Board : MonoBehaviour
     //конец игры
     public void GameOver(bool? winner, EndGameReason reason)
     {
+        if (Settings.GameMode == GameMode.Replay) return;
         if (game_over) return;
         game_over = true;
         DeleteAllHighlights();

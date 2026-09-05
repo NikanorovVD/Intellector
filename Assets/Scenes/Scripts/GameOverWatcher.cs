@@ -16,6 +16,8 @@ public class GameOverWatcher : MonoBehaviour
 
     void Start()
     {
+        if (Settings.GameMode == GameMode.Replay) return;
+
         currentMovesWithoutProgressCount = 0;
 
         Board.MoveStartEvent += MoveStartHandler;

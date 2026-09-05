@@ -1,38 +1,28 @@
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Text;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ReplayController : MonoBehaviour
 {
-    static readonly Color RowColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
-    static readonly Color SelectedRowColor = new Color(0.45f, 0.4f, 0.15f, 1f);
-
-    private const float NumberWidth = 22f;
-    private const float CellWidth = 110f;
-    private const float RowSpacing = 4f;
-    private const float RowWidth = NumberWidth + CellWidth * 2 + RowSpacing * 2;
-
     [SerializeField] public Board Board;
-    [SerializeField] GameObject panel;
-    [SerializeField] GameObject content;
-    [SerializeField] GameObject itemPrefab;
-    [SerializeField] Text meta;
+    [SerializeField] ReplayView view;
 
     private List<ReplayMove> moves;
-    private readonly List<Image> rows = new();
-    private int index;
+    private readonly List<ReplayMove> variation = new();
+    private int mainIndex;
+    private int variationFrom;
+    private int varIndex;
+    private bool onVariation;
     private int firstPly;
     private int firstFullmove;
+    private ReplayMove pendingMove;
+    private ReplayAnalysis analysis;
 
     void Start()
     {
         if (Settings.GameMode != GameMode.Replay)
         {
-            panel.SetActive(false);
+            view.SetPanelActive(false);
             enabled = false;
             return;
         }
@@ -43,327 +33,311 @@ public class ReplayController : MonoBehaviour
             Board.LoadPosition(IfenParser.Parse(record.Ifen));
         moves = ReplayExpander.Expand(record);
         IpgnFormatter.GetMovetextOrigin(record, out firstPly, out firstFullmove);
-        index = 0;
+        mainIndex = 0;
         Board.HighlightLastMove(-Vector2Int.one, -Vector2Int.one);
-        meta.text = FormatMeta(record);
-        panel.SetActive(true);
-        FillList();
-        FitPanelWidth();
-        HighlightList();
+        Board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
+        view.SetPanelActive(true);
+        view.SetMeta(record);
+        view.SetEngineVisible(false);
+        view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
+        view.MoveClicked += OnMoveClicked;
+        view.EngineToggled += OnEngineToggled;
+        Board.MoveStartEvent += MoveStartHandler;
+        Board.MoveEndEvent += MoveEndHandler;
+        analysis = new ReplayAnalysis();
+        analysis.Updated += OnAnalysisUpdated;
+        AfterStep(false);
     }
 
-    private static string FormatMeta(GameRecord record)
+    void OnDestroy()
     {
-        var builder = new StringBuilder();
-        builder.Append("<size=18>");
-        builder.Append(Headline(record));
-        builder.Append("</size>");
-
-        string when = FormatWhen(record.Date, record.UTCTime);
-        if (when != null)
+        if (view != null)
         {
-            builder.Append('\n');
-            builder.Append(when);
+            view.MoveClicked -= OnMoveClicked;
+            view.EngineToggled -= OnEngineToggled;
         }
-
-        string details = FormatDetails(record);
-        if (details != null)
+        if (Board != null)
         {
-            builder.Append('\n');
-            builder.Append(details);
+            Board.MoveStartEvent -= MoveStartHandler;
+            Board.MoveEndEvent -= MoveEndHandler;
         }
-
-        string termination = FormatTermination(record.Termination);
-        if (termination != null)
+        if (analysis != null)
         {
-            builder.Append('\n');
-            builder.Append(termination);
+            analysis.Updated -= OnAnalysisUpdated;
+            analysis.Stop();
         }
-
-        return builder.ToString();
-    }
-
-    private static string Headline(GameRecord record)
-    {
-        string white = DisplayPlayerName(record.White);
-        string black = DisplayPlayerName(record.Black);
-        string names;
-        if (!string.IsNullOrEmpty(white) && !string.IsNullOrEmpty(black))
-            names = white + " — " + black;
-        else if (!string.IsNullOrEmpty(white))
-            names = white;
-        else
-            names = black ?? string.Empty;
-
-        string result = record.Result;
-        if (result == GameRecord.UnfinishedResult)
-            result = null;
-
-        if (string.IsNullOrEmpty(names))
-            return result ?? string.Empty;
-        if (string.IsNullOrEmpty(result))
-            return names;
-        return names + "\n" + result;
-    }
-
-    private static string DisplayPlayerName(string name)
-    {
-        if (string.IsNullOrEmpty(name))
-            return name;
-        return AllowWrap(name);
-    }
-
-    private static string AllowWrap(string value)
-    {
-        if (value.Length < 2)
-            return value;
-        var builder = new StringBuilder(value.Length * 2 - 1);
-        builder.Append(value[0]);
-        for (int i = 1; i < value.Length; i++)
-        {
-            builder.Append('\u200B');
-            builder.Append(value[i]);
-        }
-        return builder.ToString();
-    }
-
-    private static string FormatWhen(string date, string time)
-    {
-        string day = date;
-        if (DateTime.TryParseExact(date, "yyyy.MM.dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsed))
-            day = parsed.ToString("dd.MM.yyyy");
-        string clock = time;
-        if (!string.IsNullOrEmpty(time) && time.Length >= 5)
-            clock = time.Substring(0, 5);
-        if (string.IsNullOrEmpty(day))
-            return string.IsNullOrEmpty(clock) ? null : clock;
-        if (string.IsNullOrEmpty(clock))
-            return day;
-        return day + ", " + clock;
-    }
-
-    private static string FormatDetails(GameRecord record)
-    {
-        var parts = new List<string>();
-        string mode = FormatGameMode(record.GameMode);
-        if (mode != null)
-            parts.Add(mode);
-        if (!string.IsNullOrEmpty(record.Event) && record.Event != record.GameMode)
-            parts.Add(record.Event);
-        string clock = FormatTimeControl(record.TimeControl);
-        if (clock != null)
-            parts.Add(clock);
-        return parts.Count == 0 ? null : string.Join(" · ", parts);
-    }
-
-    private static string FormatGameMode(string value)
-    {
-        if (!Enum.TryParse(value, out GameMode mode))
-            return string.IsNullOrEmpty(value) ? null : value;
-        return mode switch
-        {
-            GameMode.Local => "Локальная игра",
-            GameMode.Network => "Сетевая игра",
-            GameMode.AI => "Игра против ИИ",
-            _ => null
-        };
-    }
-
-    private static string FormatTimeControl(string value)
-    {
-        if (string.IsNullOrEmpty(value) || value == "-" || value == "Unlimit")
-            return null;
-        return value;
-    }
-
-    private static string FormatTermination(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-            return null;
-        if (Enum.TryParse(value, out EndGameReason reason))
-            return IpgnFormatter.FormatTermination(reason);
-        return value;
-    }
-
-    private static void AppendMetaLine(StringBuilder builder, string value)
-    {
-        if (!string.IsNullOrEmpty(value))
-            builder.AppendLine(value);
     }
 
     void Update()
     {
+        if (Board.wait_for_transformation) return;
         if (Input.GetKeyDown(KeyCode.RightArrow))
             Forward();
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
             Back();
     }
 
+    private void OnMoveClicked(int ply, bool isVariation)
+    {
+        if (isVariation) JumpToVariation(ply);
+        else JumpToMain(ply);
+    }
+
     private void Forward()
     {
-        if (ApplyForward())
+        if (Board.wait_for_transformation) return;
+        bool moved = onVariation ? ApplyVariationForward() : ApplyMainForward();
+        if (moved)
             AfterStep();
     }
 
     private void Back()
     {
-        if (ApplyBack())
+        if (Board.wait_for_transformation) return;
+        bool moved = onVariation ? ApplyVariationBack() : ApplyMainBack();
+        if (moved)
             AfterStep();
     }
 
-    private void JumpTo(int target)
+    private void JumpToMain(int target)
     {
-        if (moves == null) return;
-        target = Mathf.Clamp(target, 0, moves.Count);
-        while (index < target && ApplyForward()) { }
-        while (index > target && ApplyBack()) { }
+        if (Board.wait_for_transformation) return;
+        GoToMain(target);
         AfterStep();
     }
 
-    private bool ApplyForward()
+    private void JumpToVariation(int target)
     {
-        if (moves == null || index >= moves.Count) return false;
-        ReplayMove move = moves[index];
+        if (Board.wait_for_transformation) return;
+        if (variation.Count == 0) return;
+        target = Mathf.Clamp(target, 0, variation.Count);
+        GoToMain(variationFrom);
+        onVariation = target > 0;
+        varIndex = 0;
+        while (varIndex < target && ApplyVariationForward()) { }
+        AfterStep();
+    }
+
+    private void GoToMain(int target)
+    {
+        if (moves == null) return;
+        target = Mathf.Clamp(target, 0, moves.Count);
+        if (onVariation)
+        {
+            while (varIndex > 0 && ApplyVariationBack()) { }
+            onVariation = false;
+            mainIndex = variationFrom;
+        }
+        while (mainIndex < target && ApplyMainForward()) { }
+        while (mainIndex > target && ApplyMainBack()) { }
+    }
+
+    private bool ApplyMainForward()
+    {
+        if (moves == null || mainIndex >= moves.Count) return false;
+        ReplayMove move = moves[mainIndex];
         Board.SetTiles(move.From, move.FromAfter, move.To, move.ToAfter);
-        index++;
+        mainIndex++;
         return true;
     }
 
-    private bool ApplyBack()
+    private bool ApplyMainBack()
     {
-        if (moves == null || index <= 0) return false;
-        index--;
-        ReplayMove move = moves[index];
+        if (moves == null || mainIndex <= 0) return false;
+        mainIndex--;
+        ReplayMove move = moves[mainIndex];
         Board.SetTiles(move.From, move.FromBefore, move.To, move.ToBefore);
         return true;
     }
 
-    private void AfterStep()
+    private bool ApplyVariationForward()
     {
-        if (index == 0)
+        if (varIndex >= variation.Count) return false;
+        ReplayMove move = variation[varIndex];
+        Board.SetTiles(move.From, move.FromAfter, move.To, move.ToAfter);
+        varIndex++;
+        return true;
+    }
+
+    private bool ApplyVariationBack()
+    {
+        if (varIndex <= 0)
+        {
+            if (!onVariation) return false;
+            onVariation = false;
+            mainIndex = variationFrom;
+            return true;
+        }
+        varIndex--;
+        ReplayMove move = variation[varIndex];
+        Board.SetTiles(move.From, move.FromBefore, move.To, move.ToBefore);
+        if (varIndex == 0)
+        {
+            onVariation = false;
+            mainIndex = variationFrom;
+        }
+        return true;
+    }
+
+    private void AfterStep(bool restartEngine = true)
+    {
+        Board.ClearSelection();
+        SyncTurn();
+        ReplayMove last = CurrentLastMove();
+        if (last == null)
             Board.HighlightLastMove(-Vector2Int.one, -Vector2Int.one);
         else
+            Board.HighlightLastMove(last.From, last.To);
+        view.Highlight(mainIndex, varIndex, onVariation);
+        if (restartEngine && analysis != null && analysis.Enabled)
         {
-            ReplayMove move = moves[index - 1];
-            Board.HighlightLastMove(move.From, move.To);
-        }
-        HighlightList();
-    }
-
-    private void FillList()
-    {
-        int i = 0;
-        int number = firstFullmove;
-        if (firstPly == 1 && moves.Count > 0)
-        {
-            AddTurnRow(number, null, 0, moves[0].Notation, 1);
-            i = 1;
-            number++;
-        }
-        for (; i < moves.Count; i += 2)
-        {
-            string black = i + 1 < moves.Count ? moves[i + 1].Notation : null;
-            AddTurnRow(number, moves[i].Notation, i + 1, black, i + 2);
-            number++;
+            ClearEngineBoard();
+            view.ClearEngine();
+            analysis.Analyze(Board);
         }
     }
 
-    private void AddTurnRow(int number, string white, int whiteTarget, string black, int blackTarget)
+    private ReplayMove CurrentLastMove()
     {
-        GameObject item = SpawnRow();
-        item.transform.Find("Number").GetComponent<Text>().text = number + ".";
-        Transform whiteCell = item.transform.Find("White");
-        if (white == null)
+        if (onVariation)
+            return varIndex > 0 ? variation[varIndex - 1] : null;
+        return mainIndex > 0 ? moves[mainIndex - 1] : null;
+    }
+
+    private void SyncTurn()
+    {
+        int ply = onVariation ? variationFrom + varIndex : mainIndex;
+        Board.Turn = (firstPly + ply) % 2 == 1;
+    }
+
+    private void MoveStartHandler(Vector2Int start, Vector2Int end, int transform_info)
+    {
+        IPiece moving = Board.pieces[start.x][start.y];
+        if (moving == null) return;
+        IPiece target = Board.pieces[end.x][end.y];
+        bool castling = target != null && target.Team == moving.Team;
+        bool capture = target != null && target.Team != moving.Team;
+        PieceType? transformation = null;
+        if (transform_info != GameRecorder.NoTransformInfo && transform_info != (int)moving.Type)
+            transformation = (PieceType)transform_info;
+        var recorded = new RecordedMove
         {
-            whiteCell.GetComponent<Button>().interactable = false;
-            whiteCell.GetComponentInChildren<Text>().text = "";
+            Piece = moving.Type,
+            From = start,
+            To = end,
+            Capture = capture,
+            Castling = castling,
+            Transformation = transformation
+        };
+        pendingMove = new ReplayMove
+        {
+            From = start,
+            To = end,
+            FromBefore = Board.GetTileState(start),
+            ToBefore = Board.GetTileState(end),
+            Notation = IpgnFormatter.FormatMove(recorded)
+        };
+    }
+
+    private void MoveEndHandler(Vector2Int start, Vector2Int end, int transform_info)
+    {
+        if (pendingMove == null) return;
+        pendingMove.FromAfter = Board.GetTileState(start);
+        pendingMove.ToAfter = Board.GetTileState(end);
+        AcceptUserMove(pendingMove);
+        pendingMove = null;
+    }
+
+    private void AcceptUserMove(ReplayMove move)
+    {
+        if (!onVariation)
+        {
+            if (mainIndex < moves.Count && SameMove(move, moves[mainIndex]))
+            {
+                mainIndex++;
+                AfterStep();
+                return;
+            }
+            variationFrom = mainIndex;
+            variation.Clear();
+            variation.Add(move);
+            onVariation = true;
+            varIndex = 1;
+            view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
+            AfterStep();
+            return;
+        }
+
+        if (varIndex < variation.Count && SameMove(move, variation[varIndex]))
+        {
+            varIndex++;
+            AfterStep();
+            return;
+        }
+        if (varIndex < variation.Count)
+            variation.RemoveRange(varIndex, variation.Count - varIndex);
+        variation.Add(move);
+        varIndex = variation.Count;
+        view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
+        AfterStep();
+    }
+
+    private static bool SameMove(ReplayMove a, ReplayMove b)
+    {
+        return a.From == b.From && a.To == b.To
+            && SameTile(a.FromAfter, b.FromAfter) && SameTile(a.ToAfter, b.ToAfter);
+    }
+
+    private static bool SameTile(TileState? a, TileState? b)
+    {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        return a.Type == b.Type && a.Team == b.Team;
+    }
+
+    private void OnEngineToggled(bool on)
+    {
+        if (on)
+        {
+            ClearEngineBoard();
+            analysis.SetEnabled(true, Board);
         }
         else
-            BindCell(whiteCell, white, whiteTarget);
-        Transform blackCell = item.transform.Find("Black");
-        if (black == null)
         {
-            blackCell.GetComponent<Button>().interactable = false;
-            blackCell.GetComponentInChildren<Text>().text = "";
+            analysis.SetEnabled(false, Board);
+            ClearEngineBoard();
+        }
+    }
+
+    private void ClearEngineBoard()
+    {
+        Board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
+    }
+
+    private void OnAnalysisUpdated(MoveResult result)
+    {
+        if (!view.EngineUiVisible)
+        {
+            view.ClearEngine();
+            ClearEngineBoard();
+            return;
+        }
+        if (!result.Move.HasValue && result.Depth == 0 && result.Mark == 0)
+        {
+            view.ClearEngine();
+            ClearEngineBoard();
+            return;
+        }
+        string eval = ReplayAnalysis.FormatMark(result.Mark) + "  глубина " + result.Depth;
+        if (result.Move.HasValue)
+        {
+            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), ReplayAnalysis.FormatBestMove(result.Move.Value, Board));
+            ReplayAnalysis.HintMove(result.Move.Value, Board);
         }
         else
-            BindCell(blackCell, black, blackTarget);
-    }
-
-    private GameObject SpawnRow()
-    {
-        GameObject item = Instantiate(itemPrefab);
-        item.transform.SetParent(content.transform, false);
-        item.SetActive(true);
-        item.transform.localScale = Vector3.one;
-
-        var hlg = item.GetComponent<HorizontalLayoutGroup>();
-        hlg.childForceExpandWidth = false;
-        hlg.childControlWidth = true;
-        hlg.childAlignment = TextAnchor.MiddleLeft;
-        hlg.spacing = RowSpacing;
-        hlg.padding = new RectOffset(0, 0, 0, 0);
-
-        Transform number = item.transform.Find("Number");
-        number.GetComponent<Text>().alignment = TextAnchor.MiddleLeft;
-        SetColumnWidth(number, NumberWidth, 0);
-        SetColumnWidth(item.transform.Find("White"), CellWidth, 0);
-        SetColumnWidth(item.transform.Find("Black"), CellWidth, 0);
-        item.transform.Find("White").GetComponentInChildren<Text>().alignment = TextAnchor.MiddleCenter;
-        item.transform.Find("Black").GetComponentInChildren<Text>().alignment = TextAnchor.MiddleCenter;
-        return item;
-    }
-
-    private static void SetColumnWidth(Transform column, float width, float flexible)
-    {
-        LayoutElement element = column.GetComponent<LayoutElement>();
-        element.minWidth = width;
-        element.preferredWidth = width;
-        element.flexibleWidth = flexible;
-        Text label = column.GetComponentInChildren<Text>();
-        label.horizontalOverflow = HorizontalWrapMode.Overflow;
-    }
-
-    private void FitPanelWidth()
-    {
-        var contentRect = content.GetComponent<RectTransform>();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
-        float width = RowWidth;
-        for (int i = 0; i < content.transform.childCount; i++)
         {
-            var child = content.transform.GetChild(i) as RectTransform;
-            if (child != null)
-                width = Mathf.Max(width, LayoutUtility.GetPreferredWidth(child));
+            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), string.Empty);
+            ClearEngineBoard();
         }
-        var padding = content.GetComponent<HorizontalOrVerticalLayoutGroup>().padding;
-        width += padding.left + padding.right;
-        var panelPadding = panel.GetComponent<HorizontalOrVerticalLayoutGroup>().padding;
-        width += panelPadding.left + panelPadding.right;
-
-        float inner = width - panelPadding.left - panelPadding.right;
-        meta.horizontalOverflow = HorizontalWrapMode.Wrap;
-        var metaLayout = meta.GetComponent<LayoutElement>();
-        metaLayout.minWidth = inner;
-        metaLayout.preferredWidth = inner;
-
-        var rt = panel.GetComponent<RectTransform>();
-        float scaleY = Mathf.Max(rt.localScale.y, 0.01f);
-        var parent = (RectTransform)rt.parent;
-        rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
-        rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, parent.rect.height / scaleY);
-        LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
-    }
-
-    private void BindCell(Transform cell, string text, int target)
-    {
-        cell.GetComponentInChildren<Text>().text = text;
-        cell.GetComponent<Button>().onClick.AddListener(() => JumpTo(target));
-        rows.Add(cell.GetComponent<Image>());
-    }
-
-    private void HighlightList()
-    {
-        for (int i = 0; i < rows.Count; i++)
-            rows[i].color = i == index - 1 ? SelectedRowColor : RowColor;
     }
 }

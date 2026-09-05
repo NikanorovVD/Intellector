@@ -28,6 +28,7 @@ public class Engine
     private double[] variabilityArray = new double[0];
     private int currentLine = 0;
     private long finishMs = 0;
+    private volatile bool abortRequested;
     private int countLimit = 0;
     private int count = 0;
     private MoveResult bestMoveInfo;
@@ -982,9 +983,21 @@ public class Engine
         UpdateHashBoundsAtRoot = false, ReportRootProgress = true, UseMoveIndexForVariability = false
     };
 
+    public void RequestStop()
+    {
+        abortRequested = true;
+        finishMs = 0;
+    }
+
     private AlphaBetaResult AlphaBeta(double alpha, double beta,
         int depth, double extension, int maxDepth, int? pos, SearchContext ctx, bool firstDepth = false)
     {
+        if (abortRequested)
+        {
+            double abort = (sideToMove == EngineColor.White) ? double.PositiveInfinity : double.NegativeInfinity;
+            return new AlphaBetaResult { Move = null, Mark = abort, Line = ctx.TrackLine ? new List<EngineMove>() : null };
+        }
+
         if (depth > 0 && maxDepth > 1)
         {
             if (ctx.AbortMode == SearchAbortMode.Time &&
@@ -1461,6 +1474,7 @@ public class Engine
     // Поиск на заданную глубину.
     public MoveResult BestMoveByDepth(int depth)
     {
+        abortRequested = false;
         AdoptPlayedHistoryForSearch();
         hash = new Dictionary<int, List<HashRecord>>();
         InitializeHistory();
@@ -1472,7 +1486,6 @@ public class Engine
         if (bestMoveInfo.Move.HasValue)
         {
             var mv = bestMoveInfo.Move.Value;
-            UnityEngine.Debug.Log($"{U.FigureToChar(mv.Figure)} {U.IndexToTileName(mv.From)} {U.IndexToTileName(mv.To)} {bestMoveInfo.Mark}");
         }
         return bestMoveInfo;
     }
@@ -1480,6 +1493,7 @@ public class Engine
     // Поиск на заданное время (мс).
     public MoveResult BestMoveByTime(double timeMs)
     {
+        abortRequested = false;
         AdoptPlayedHistoryForSearch();
         InitializeVariability(GetMoves().Count);
         hash = new Dictionary<int, List<HashRecord>>();
@@ -1491,10 +1505,11 @@ public class Engine
 
         RunAspirationSearch(
             startDepth: 1,
-            shouldContinue: _ => Stopwatch.GetTimestamp() * 1000L / Stopwatch.Frequency < finishMs,
+            shouldContinue: _ => !abortRequested && Stopwatch.GetTimestamp() * 1000L / Stopwatch.Frequency < finishMs,
             searchAtDepth: (i, a, b, _, firstDepth) => ABByTime(a, b, i, 0, i, pos, firstDepth),
             onComplete: (i, move, mark, line) =>
             {
+                if (abortRequested) return;
                 long nowMs = Stopwatch.GetTimestamp() * 1000L / Stopwatch.Frequency;
                 if (nowMs < finishMs || i == 1)
                 {
@@ -1510,10 +1525,6 @@ public class Engine
                 if (bestMoveInfo.Move.HasValue)
                 {
                     var mv = bestMoveInfo.Move.Value;
-                    UnityEngine.Debug.Log(
-                        $"{i}) {bestMoveInfo.Progress}/{GetMoves().Count} " +
-                        $"{U.FigureToChar(mv.Figure)} {U.IndexToTileName(mv.From)} {U.IndexToTileName(mv.To)} {bestMoveInfo.Mark}");
-                    UnityEngine.Debug.Log($"Позиций: {count}");
                 }
             });
 
@@ -1523,6 +1534,7 @@ public class Engine
     // Поиск до лимита позиций.
     private MoveResult BestMoveByCount(int limit)
     {
+        abortRequested = false;
         AdoptPlayedHistoryForSearch();
         InitializeVariability(GetMoves().Count);
         hash = new Dictionary<int, List<HashRecord>>();
@@ -1554,9 +1566,6 @@ public class Engine
                 if (bestMoveInfo.Move.HasValue)
                 {
                     var mv = bestMoveInfo.Move.Value;
-                    UnityEngine.Debug.Log(
-                        $"{i}) {bestMoveInfo.Progress}/{GetMoves().Count} " +
-                        $"{U.FigureToChar(mv.Figure)} {U.IndexToTileName(mv.From)} {U.IndexToTileName(mv.To)} {bestMoveInfo.Mark}");
                 }
             });
 

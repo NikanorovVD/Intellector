@@ -5,11 +5,10 @@ public class MouseController : MonoBehaviour
     [SerializeField] private Board board;
     private Camera _currentCamera;
 
-    private static readonly string[] _layersNames = {"Tile","HoverTile","SelectedTile", "Available", "HoverAvailable", "HoverSelected"};
+    private static readonly string[] _layersNames = {"Tile","HoverTile","SelectedTile", "Available", "HoverAvailable", "HoverSelected", "Hint", "HoverHint"};
 
     void Update()
     {
-        if (Settings.GameMode == GameMode.Replay) return;
         if (board.game_over || board.wait_for_transformation) return;
         if (!_currentCamera)
         {
