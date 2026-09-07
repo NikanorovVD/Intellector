@@ -66,4 +66,19 @@ public class Settings
             _userConfig.Save();
         }
     }
+
+    public static AISettings AI
+    {
+        get
+        {
+            _userConfig ??= UserConfig.Load();
+            return _userConfig.AI.Clamped();
+        }
+        set
+        {
+            _userConfig ??= UserConfig.Load();
+            _userConfig.AI = value.Clamped();
+            _userConfig.Save();
+        }
+    }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
@@ -5,11 +6,9 @@ using System.Threading.Tasks;
 public class AI : MonoBehaviour
 {
     [SerializeField] private Board main_board;
-    public const int AI_depth = 8;
     public const int AI_MOVE_DELAY_MS = 0;
 
     public static bool AI_team = true;
-    public static string DisplayName => $"minmax<{AI_depth}>";
 
     private bool lastMoveWasProgressive;
 
@@ -60,7 +59,7 @@ public class AI : MonoBehaviour
     private async Task MakeAIMove()
     {
         var engine = BoardToEngine.CreateEngine(main_board);
-        var result = await Task.Run(() => engine.BestMoveByDepth(AI_depth));
+        var result = await Task.Run(() => Search(engine));
         if (result.Move == null)
         {
             Debug.LogError("Engine вернул null");
@@ -77,5 +76,17 @@ public class AI : MonoBehaviour
             new Vector2Int(toX, toY),
             endType
         );
+    }
+
+    private static MoveResult Search(Engine engine)
+    {
+        var ai = Settings.AI;
+        return ai.Mode switch
+        {
+            AISearchMode.Time => engine.BestMoveByTime(ai.SearchTimeMs),
+            AISearchMode.Level => engine.BestMoveByLevel(ai.Level),
+            AISearchMode.Depth => engine.BestMoveByDepth(ai.Depth),
+            _ => throw new ArgumentOutOfRangeException(nameof(ai.Mode), ai.Mode, null)
+        };
     }
 }

@@ -104,8 +104,8 @@ public class GameRecorder : MonoBehaviour
         if (mode == GameMode.AI)
         {
             if (AI.AI_team)
-                return (userName, AI.DisplayName);
-            return (AI.DisplayName, userName);
+                return (userName, Settings.AI.DisplayName);
+            return (Settings.AI.DisplayName, userName);
         }
 
         if (mode == GameMode.Network)

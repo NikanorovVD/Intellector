@@ -16,8 +16,7 @@ public class Scenes: MonoBehaviour
 
     public void AIGame()
     {
-        Settings.GameMode = GameMode.AI;
-        ChangeScenes(1);
+        GetComponent<AISetupMenu>().Open();
     }
 
     public void ShowHistory()
