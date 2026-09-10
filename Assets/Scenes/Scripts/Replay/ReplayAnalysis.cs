@@ -37,6 +37,13 @@ public class ReplayAnalysis
 
         int gen = generation;
         Engine engine = BoardToEngine.CreateEngine(board);
+        if (engine.TryGetTerminalResult(out MoveResult terminal))
+        {
+            running = null;
+            Updated?.Invoke(terminal);
+            return;
+        }
+
         running = engine;
         engine.OnProgress += result =>
         {

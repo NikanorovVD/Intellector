@@ -760,6 +760,28 @@ public class Engine
         return null;
     }
 
+    public bool TryGetTerminalResult(out MoveResult result)
+    {
+        double? win = WinMark();
+        if (win.HasValue)
+        {
+            result = new MoveResult { Mark = win.Value };
+            return true;
+        }
+        if (GetMoves().Count == 0)
+        {
+            result = new MoveResult
+            {
+                Mark = sideToMove == EngineColor.White
+                    ? T.MarkOf(EngineFigure.BlackIntellector)
+                    : T.MarkOf(EngineFigure.WhiteIntellector)
+            };
+            return true;
+        }
+        result = default;
+        return false;
+    }
+
     private static bool IsImmediateWin(double mark)
     {
         return mark >= T.MarkOf(EngineFigure.WhiteIntellector) - 1
@@ -1218,6 +1240,8 @@ public class Engine
                     }
                 }
             }
+            if (len > 0 && !bestMove.HasValue)
+                bestMove = moves[0];
             result = value;
         }
         else
@@ -1354,6 +1378,8 @@ public class Engine
                     }
                 }
             }
+            if (len > 0 && !bestMove.HasValue)
+                bestMove = moves[0];
             result = value;
         }
 
@@ -1426,6 +1452,8 @@ public class Engine
 
             onComplete(i, res.move, res.mark, res.line);
             if (res.move.HasValue && IsImmediateWin(res.mark))
+                break;
+            if (!res.move.HasValue && TryGetTerminalResult(out _))
                 break;
             i++;
         }
