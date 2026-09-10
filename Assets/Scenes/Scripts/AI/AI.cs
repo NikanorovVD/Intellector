@@ -48,6 +48,7 @@ public class AI : MonoBehaviour
 
         main_board.MoveEndEvent += async (_, _, _) =>
         {
+            if (main_board.game_over) return;
             if (main_board.Turn)
             {
                 await Task.Delay(AI_MOVE_DELAY_MS);
@@ -58,7 +59,9 @@ public class AI : MonoBehaviour
 
     private async Task MakeAIMove()
     {
+        if (main_board.game_over) return;
         var engine = BoardToEngine.CreateEngine(main_board);
+        if (engine.TryGetTerminalResult(out _)) return;
         var result = await Task.Run(() => Search(engine));
         if (result.Move == null)
         {
