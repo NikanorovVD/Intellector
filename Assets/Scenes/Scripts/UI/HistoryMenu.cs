@@ -142,6 +142,7 @@ public class HistoryMenu : MonoBehaviour
     {
         Settings.GameMode = GameMode.Replay;
         Settings.ReplayFilePath = path;
+        Settings.ClearStartPosition();
         SceneManager.LoadScene(1);
     }
 }

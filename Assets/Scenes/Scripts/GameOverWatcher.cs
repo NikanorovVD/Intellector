@@ -18,13 +18,13 @@ public class GameOverWatcher : MonoBehaviour
     {
         if (Settings.GameMode == GameMode.Replay) return;
 
-        currentMovesWithoutProgressCount = 0;
+        currentMovesWithoutProgressCount = Settings.StartPosition?.HalfmoveClock ?? 0;
 
         Board.MoveStartEvent += MoveStartHandler;
         Board.MoveEndEvent += MoveEndHandler;
         Board.RestartEvent += () =>
         {
-            currentMovesWithoutProgressCount = 0;
+            currentMovesWithoutProgressCount = Settings.StartPosition?.HalfmoveClock ?? 0;
             positionCounts.Clear();
         };
     }

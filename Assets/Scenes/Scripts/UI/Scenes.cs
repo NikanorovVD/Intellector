@@ -10,13 +10,12 @@ public class Scenes: MonoBehaviour
 
     public void LocalGame()
     {
-        Settings.GameMode = GameMode.Local;
-        ChangeScenes(1);
+        GetComponent<AISetupMenu>().Open(GameMode.Local);
     }
 
     public void AIGame()
     {
-        GetComponent<AISetupMenu>().Open();
+        GetComponent<AISetupMenu>().Open(GameMode.AI);
     }
 
     public void ShowHistory()

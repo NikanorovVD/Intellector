@@ -124,6 +124,7 @@ public class NetworkGamesScene : MonoBehaviour
     private void GoToGameScene()
     {
         Settings.GameMode = GameMode.Network;
+        Settings.ClearStartPosition();
         SceneManager.LoadScene(1);
     }
 

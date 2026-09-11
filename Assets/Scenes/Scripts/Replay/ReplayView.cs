@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -18,6 +19,8 @@ public class ReplayView : MonoBehaviour
     private const int VariationIndent = 16;
     private const float EngineUiOffHeight = 28f;
     private const float EngineUiOnHeight = 90f;
+    private const string CopyIfenLabel = "Копировать IFEN";
+    private const string CopyIfenDoneLabel = "Скопировано";
 
     [SerializeField] GameObject panel;
     [SerializeField] GameObject content;
@@ -29,12 +32,17 @@ public class ReplayView : MonoBehaviour
     [SerializeField] LayoutElement engineLayout;
     [SerializeField] GameObject evalBar;
     [SerializeField] RectTransform evalBarFill;
+    [SerializeField] Button copyIfenButton;
+    [SerializeField] Text copyIfenText;
+    [SerializeField] LayoutElement copyIfenLayout;
 
     public event Action<bool> EngineToggled;
     public event Action<int, bool> MoveClicked;
+    public event Action CopyIfenClicked;
 
     private readonly List<ListCell> cells = new();
     private bool engineUiVisible;
+    private Coroutine copyIfenFeedback;
 
     public bool EngineUiVisible => engineUiVisible;
 
@@ -49,18 +57,37 @@ public class ReplayView : MonoBehaviour
     {
         if (engineToggle != null)
             engineToggle.onValueChanged.AddListener(OnEngineToggled);
+        if (copyIfenButton != null)
+            copyIfenButton.onClick.AddListener(OnCopyIfenClicked);
     }
 
     void OnDisable()
     {
         if (engineToggle != null)
             engineToggle.onValueChanged.RemoveListener(OnEngineToggled);
+        if (copyIfenButton != null)
+            copyIfenButton.onClick.RemoveListener(OnCopyIfenClicked);
+        if (copyIfenFeedback != null)
+        {
+            StopCoroutine(copyIfenFeedback);
+            copyIfenFeedback = null;
+            if (copyIfenText != null)
+                copyIfenText.text = CopyIfenLabel;
+        }
     }
 
     public void SetPanelActive(bool on)
     {
         if (panel != null)
             panel.SetActive(on);
+    }
+
+    public void ShowCopyIfenCopied()
+    {
+        if (copyIfenText == null) return;
+        if (copyIfenFeedback != null)
+            StopCoroutine(copyIfenFeedback);
+        copyIfenFeedback = StartCoroutine(CopyIfenFeedback());
     }
 
     public void SetMeta(GameRecord record)
@@ -294,6 +321,11 @@ public class ReplayView : MonoBehaviour
             engineLayout.minWidth = inner;
             engineLayout.preferredWidth = inner;
         }
+        if (copyIfenLayout != null)
+        {
+            copyIfenLayout.minWidth = inner;
+            copyIfenLayout.preferredWidth = inner;
+        }
 
         var rt = panel.GetComponent<RectTransform>();
         float scaleY = Mathf.Max(rt.localScale.y, 0.01f);
@@ -301,6 +333,19 @@ public class ReplayView : MonoBehaviour
         rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
         rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, parent.rect.height / scaleY);
         LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
+    }
+
+    private void OnCopyIfenClicked()
+    {
+        CopyIfenClicked?.Invoke();
+    }
+
+    private IEnumerator CopyIfenFeedback()
+    {
+        copyIfenText.text = CopyIfenDoneLabel;
+        yield return new WaitForSeconds(1.2f);
+        copyIfenText.text = CopyIfenLabel;
+        copyIfenFeedback = null;
     }
 
     private void BindCell(Transform cell, string text, bool isVariation, int ply)

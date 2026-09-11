@@ -11,6 +11,9 @@ public class GameRecorder : MonoBehaviour
     private GameRecord record;
     private string filePath;
 
+    private int firstPly;
+    private int firstFullmove;
+
     void Start()
     {
         if (Settings.GameMode == GameMode.Replay) return;
@@ -47,6 +50,12 @@ public class GameRecorder : MonoBehaviour
             GameMode = mode.ToString(),
             AppVersion = Settings.APP_VERSION.ToString()
         };
+        if (!string.IsNullOrEmpty(Settings.StartIfen))
+        {
+            record.SetUp = "1";
+            record.Ifen = Settings.StartIfen;
+        }
+        IpgnFormatter.GetMovetextOrigin(record, out firstPly, out firstFullmove);
 
         filePath = CreateFilePath(mode);
         WriteRecord(record);
@@ -89,7 +98,7 @@ public class GameRecorder : MonoBehaviour
 
     private void AppendMove(RecordedMove move)
     {
-        File.AppendAllText(filePath, IpgnFormatter.FormatMovetextEntry(move, record.Moves.Count - 1));
+        File.AppendAllText(filePath, IpgnFormatter.FormatMovetextEntry(move, record.Moves.Count - 1, firstPly, firstFullmove));
     }
 
     private void WriteRecord(GameRecord gameRecord)

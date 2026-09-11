@@ -8,13 +8,19 @@ using UnityEngine.UI;
 public class AISetupMenu : MonoBehaviour
 {
     [SerializeField] GameObject panel;
+    [SerializeField] Text title;
     [SerializeField] Text modeName;
     [SerializeField] Text valueLabel;
     [SerializeField] InputField valueInput;
+    [SerializeField] InputField ifenInput;
+    [SerializeField] Toggle customStartToggle;
+    [SerializeField] GameObject[] ifenControls;
     [SerializeField] Text errorText;
+    [SerializeField] GameObject[] aiControls;
 
     private AISettings ai;
     private bool refreshing;
+    private GameMode pendingMode = GameMode.AI;
 
     private void Awake()
     {
@@ -29,7 +35,14 @@ public class AISetupMenu : MonoBehaviour
 
     public void Open()
     {
-        ai = Settings.AI;
+        Open(GameMode.AI);
+    }
+
+    public void Open(GameMode mode)
+    {
+        pendingMode = mode;
+        if (mode == GameMode.AI)
+            ai = Settings.AI;
         Refresh();
         panel.SetActive(true);
         panel.transform.SetAsLastSibling();
@@ -42,6 +55,7 @@ public class AISetupMenu : MonoBehaviour
 
     public void SwitchMode(int direction)
     {
+        if (pendingMode != GameMode.AI) return;
         int count = Enum.GetNames(typeof(AISearchMode)).Length;
         int next = ((int)ai.Mode + direction) % count;
         if (next < 0)
@@ -52,6 +66,7 @@ public class AISetupMenu : MonoBehaviour
 
     public void ChangeValue(int delta)
     {
+        if (pendingMode != GameMode.AI) return;
         if (!TryReadInput(out _))
         {
             Refresh();
@@ -96,25 +111,52 @@ public class AISetupMenu : MonoBehaviour
 
     public void StartGame()
     {
-        if (!TryReadInput(out _))
+        if (pendingMode == GameMode.AI && !TryReadInput(out _))
+            return;
+        if (!TryReadIfen(out _))
             return;
 
-        Settings.AI = ai;
-        Settings.GameMode = GameMode.AI;
+        if (pendingMode == GameMode.AI)
+            Settings.AI = ai;
+        Settings.GameMode = pendingMode;
         SceneManager.LoadScene(1);
     }
 
     private void Refresh()
     {
         refreshing = true;
-        modeName.text = ModeTitle(ai.Mode);
-        valueLabel.text = ValueTitle(ai.Mode);
-        valueInput.keyboardType = ai.Mode == AISearchMode.Time
-            ? TouchScreenKeyboardType.DecimalPad
-            : TouchScreenKeyboardType.NumberPad;
-        valueInput.text = FormatInputValue();
+        title.text = pendingMode == GameMode.Local ? "Локальная игра" : "Игра против ИИ";
+        bool aiUi = pendingMode == GameMode.AI;
+        for (int i = 0; i < aiControls.Length; i++)
+            aiControls[i].SetActive(aiUi);
+        if (aiUi)
+        {
+            modeName.text = ModeTitle(ai.Mode);
+            valueLabel.text = ValueTitle(ai.Mode);
+            valueInput.keyboardType = ai.Mode == AISearchMode.Time
+                ? TouchScreenKeyboardType.DecimalPad
+                : TouchScreenKeyboardType.NumberPad;
+            valueInput.text = FormatInputValue();
+        }
+        ifenInput.text = Settings.StartIfen ?? string.Empty;
+        bool custom = !string.IsNullOrEmpty(Settings.StartIfen);
+        customStartToggle.SetIsOnWithoutNotify(custom);
+        SetIfenVisible(custom);
         errorText.text = string.Empty;
         refreshing = false;
+    }
+
+    public void CustomStartChanged(bool on)
+    {
+        if (refreshing) return;
+        SetIfenVisible(on);
+        errorText.text = string.Empty;
+    }
+
+    private void SetIfenVisible(bool on)
+    {
+        for (int i = 0; i < ifenControls.Length; i++)
+            ifenControls[i].SetActive(on);
     }
 
     private char ValidateChar(string text, int charIndex, char addedChar)
@@ -206,6 +248,34 @@ public class AISetupMenu : MonoBehaviour
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(ai.Mode), ai.Mode, null);
+        }
+
+        error = null;
+        errorText.text = string.Empty;
+        return true;
+    }
+
+    private bool TryReadIfen(out string error)
+    {
+        if (!customStartToggle.isOn)
+        {
+            Settings.ClearStartPosition();
+            error = null;
+            errorText.text = string.Empty;
+            return true;
+        }
+
+        string raw = (ifenInput.text ?? string.Empty).Trim();
+        if (raw.Length == 0)
+        {
+            error = "Введите IFEN";
+            errorText.text = error;
+            return false;
+        }
+        if (!Settings.TrySetStartIfen(raw, out error))
+        {
+            errorText.text = error;
+            return false;
         }
 
         error = null;

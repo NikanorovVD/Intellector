@@ -15,6 +15,7 @@ public class ReplayController : MonoBehaviour
     private bool onVariation;
     private int firstPly;
     private int firstFullmove;
+    private int firstHalfmove;
     private ReplayMove pendingMove;
     private ReplayAnalysis analysis;
 
@@ -30,7 +31,11 @@ public class ReplayController : MonoBehaviour
         string text = File.ReadAllText(Settings.ReplayFilePath);
         GameRecord record = IpgnParser.Parse(text);
         if (record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen))
-            Board.LoadPosition(IfenParser.Parse(record.Ifen));
+        {
+            RecordedPosition start = IfenParser.Parse(record.Ifen);
+            Board.LoadPosition(start);
+            firstHalfmove = start.HalfmoveClock;
+        }
         moves = ReplayExpander.Expand(record);
         IpgnFormatter.GetMovetextOrigin(record, out firstPly, out firstFullmove);
         mainIndex = 0;
@@ -42,6 +47,7 @@ public class ReplayController : MonoBehaviour
         view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
         view.MoveClicked += OnMoveClicked;
         view.EngineToggled += OnEngineToggled;
+        view.CopyIfenClicked += OnCopyIfenClicked;
         Board.MoveStartEvent += MoveStartHandler;
         Board.MoveEndEvent += MoveEndHandler;
         analysis = new ReplayAnalysis();
@@ -55,6 +61,7 @@ public class ReplayController : MonoBehaviour
         {
             view.MoveClicked -= OnMoveClicked;
             view.EngineToggled -= OnEngineToggled;
+            view.CopyIfenClicked -= OnCopyIfenClicked;
         }
         if (Board != null)
         {
@@ -293,6 +300,45 @@ public class ReplayController : MonoBehaviour
         if (a == null && b == null) return true;
         if (a == null || b == null) return false;
         return a.Type == b.Type && a.Team == b.Team;
+    }
+
+    private void OnCopyIfenClicked()
+    {
+        RecordedPosition position = Board.ToRecordedPosition(CurrentHalfmoveClock(), CurrentFullmoveNumber());
+        GUIUtility.systemCopyBuffer = IfenFormatter.Format(position);
+        view.ShowCopyIfenCopied();
+    }
+
+    private int CurrentFullmoveNumber()
+    {
+        int ply = onVariation ? variationFrom + varIndex : mainIndex;
+        return firstFullmove + (firstPly + ply) / 2;
+    }
+
+    private int CurrentHalfmoveClock()
+    {
+        int clock = firstHalfmove;
+        int mainApplied = onVariation ? variationFrom : mainIndex;
+        for (int i = 0; i < mainApplied; i++)
+            clock = AdvanceHalfmove(clock, moves[i]);
+        if (onVariation)
+        {
+            for (int i = 0; i < varIndex; i++)
+                clock = AdvanceHalfmove(clock, variation[i]);
+        }
+        return clock;
+    }
+
+    private static int AdvanceHalfmove(int clock, ReplayMove move)
+    {
+        return ResetsHalfmove(move) ? 0 : clock + 1;
+    }
+
+    private static bool ResetsHalfmove(ReplayMove move)
+    {
+        if (move.FromBefore != null && move.FromBefore.Type == PieceType.progressor)
+            return true;
+        return move.FromBefore != null && move.ToBefore != null && move.FromBefore.Team != move.ToBefore.Team;
     }
 
     private void OnEngineToggled(bool on)

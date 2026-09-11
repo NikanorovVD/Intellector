@@ -19,6 +19,22 @@ public static class IfenParser
         return position;
     }
 
+    public static bool TryParse(string text, out RecordedPosition position, out string error)
+    {
+        try
+        {
+            position = Parse(text);
+            error = null;
+            return true;
+        }
+        catch (Exception e) when (e is FormatException || e is ArgumentNullException)
+        {
+            position = null;
+            error = e.Message;
+            return false;
+        }
+    }
+
     private static void ParsePlacement(TileState?[][] pieces, string placement)
     {
         string[] ranks = placement.Split('/');

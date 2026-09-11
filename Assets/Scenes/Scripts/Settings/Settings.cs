@@ -15,6 +15,33 @@ public class Settings
 
     public static GameMode GameMode { get; set; }
     public static string ReplayFilePath { get; set; }
+    public static string StartIfen { get; private set; }
+    public static RecordedPosition StartPosition { get; private set; }
+
+    public static bool TrySetStartIfen(string raw, out string error)
+    {
+        raw = (raw ?? string.Empty).Trim();
+        if (raw.Length == 0)
+        {
+            ClearStartPosition();
+            error = null;
+            return true;
+        }
+
+        if (!IfenParser.TryParse(raw, out RecordedPosition position, out error))
+            return false;
+
+        StartPosition = position;
+        StartIfen = IfenFormatter.Format(position);
+        return true;
+    }
+
+    public static void ClearStartPosition()
+    {
+        StartIfen = null;
+        StartPosition = null;
+    }
+
     public static Connection GetConnection()
     {
         if (_serverConnection == null)

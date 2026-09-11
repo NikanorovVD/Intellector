@@ -74,6 +74,7 @@ public class Board : MonoBehaviour
 
         Turn = false;
         game_over = false;
+        ApplyConfiguredStart();
     }
 
     void Update()
@@ -245,16 +246,45 @@ public class Board : MonoBehaviour
         Turn = position.BlackToMove;
     }
 
+    public RecordedPosition ToRecordedPosition(int halfmoveClock, int fullmoveNumber)
+    {
+        var position = new RecordedPosition
+        {
+            BlackToMove = Turn,
+            HalfmoveClock = halfmoveClock,
+            FullmoveNumber = fullmoveNumber
+        };
+        for (int x = 0; x < pieces.Length; x++)
+            for (int y = 0; y < pieces[x].Length; y++)
+                position.Pieces[x][y] = GetTileState(new Vector2Int(x, y));
+        return position;
+    }
+
+    public void ApplyConfiguredStart()
+    {
+        if (Settings.StartPosition == null) return;
+        if (Settings.GameMode != GameMode.Local && Settings.GameMode != GameMode.AI) return;
+        LoadPosition(Settings.StartPosition);
+    }
+
     //очистка
     public void Restart()
     {
-        DeleteAllPieces();
-        GenerateAllPieces();
+        if (Settings.StartPosition != null
+            && (Settings.GameMode == GameMode.Local || Settings.GameMode == GameMode.AI))
+        {
+            LoadPosition(Settings.StartPosition);
+        }
+        else
+        {
+            DeleteAllPieces();
+            GenerateAllPieces();
+            Turn = false;
+        }
         if (Settings.GameMode == GameMode.Network)
         {
             PlayerTeam = !PlayerTeam;
         }
-        Turn = false;
         game_over = false;
         EndGame.Hide();
         RestartEvent?.Invoke();
