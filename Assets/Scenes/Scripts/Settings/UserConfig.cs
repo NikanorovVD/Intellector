@@ -16,6 +16,7 @@ public class UserConfig
         PlayerPrefs.SetInt("AIDepth", AI.Depth);
         PlayerPrefs.SetInt("AISearchTimeMs", AI.SearchTimeMs);
         PlayerPrefs.SetInt("AILevel", AI.Level);
+        PlayerPrefs.SetInt("AIColor", (int)AI.Color);
     }
 
     public static UserConfig Load()
@@ -30,7 +31,8 @@ public class UserConfig
                 Mode = (AISearchMode)PlayerPrefs.GetInt(nameof(AISearchMode), defaultValue: (int)AISearchMode.Depth),
                 Depth = PlayerPrefs.GetInt("AIDepth", defaultValue: AISettings.DefaultDepth),
                 SearchTimeMs = PlayerPrefs.GetInt("AISearchTimeMs", defaultValue: AISettings.DefaultSearchTimeMs),
-                Level = PlayerPrefs.GetInt("AILevel", defaultValue: AISettings.DefaultLevel)
+                Level = PlayerPrefs.GetInt("AILevel", defaultValue: AISettings.DefaultLevel),
+                Color = (ColorChoice)PlayerPrefs.GetInt("AIColor", defaultValue: (int)ColorChoice.random)
             }
         };
     }

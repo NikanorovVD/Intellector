@@ -17,6 +17,7 @@ public class AISetupMenu : MonoBehaviour
     [SerializeField] GameObject[] ifenControls;
     [SerializeField] Text errorText;
     [SerializeField] GameObject[] aiControls;
+    [SerializeField] ColorSelector colorSelector;
 
     private AISettings ai;
     private bool refreshing;
@@ -25,6 +26,18 @@ public class AISetupMenu : MonoBehaviour
     private void Awake()
     {
         valueInput.onValidateInput += ValidateChar;
+        EnsureColorSelector();
+    }
+
+    private void OnValidate()
+    {
+        EnsureColorSelector();
+    }
+
+    private void EnsureColorSelector()
+    {
+        if (colorSelector == null && panel != null)
+            colorSelector = panel.GetComponentInChildren<ColorSelector>(true);
     }
 
     private void OnDestroy()
@@ -46,6 +59,12 @@ public class AISetupMenu : MonoBehaviour
         Refresh();
         panel.SetActive(true);
         panel.transform.SetAsLastSibling();
+        if (mode == GameMode.AI)
+        {
+            EnsureColorSelector();
+            if (colorSelector != null)
+                colorSelector.SetColor(ai.Color);
+        }
     }
 
     public void Close()
@@ -117,7 +136,17 @@ public class AISetupMenu : MonoBehaviour
             return;
 
         if (pendingMode == GameMode.AI)
+        {
+            EnsureColorSelector();
+            if (colorSelector != null)
+                ai.Color = colorSelector.Color;
             Settings.AI = ai;
+            Settings.PlayerTeam = ColorSelector.ResolveTeam(ai.Color);
+        }
+        else
+        {
+            Settings.PlayerTeam = false;
+        }
         Settings.GameMode = pendingMode;
         SceneManager.LoadScene(1);
     }

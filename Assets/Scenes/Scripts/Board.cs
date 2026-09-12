@@ -63,6 +63,10 @@ public class Board : MonoBehaviour
         {
             PlayerTeam = GameInfo.Load().Team;
         }
+        else if (Settings.GameMode == GameMode.AI)
+        {
+            PlayerTeam = Settings.PlayerTeam;
+        }
         else
         {
             PlayerTeam = false;

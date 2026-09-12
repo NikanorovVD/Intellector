@@ -13,13 +13,15 @@ public struct AISettings
     public int Depth;
     public int SearchTimeMs;
     public int Level;
+    public ColorChoice Color;
 
     public static AISettings Default => new AISettings
     {
         Mode = AISearchMode.Depth,
         Depth = DefaultDepth,
         SearchTimeMs = DefaultSearchTimeMs,
-        Level = DefaultLevel
+        Level = DefaultLevel,
+        Color = ColorChoice.random
     };
 
     public AISettings Clamped()
@@ -29,7 +31,8 @@ public struct AISettings
             Mode = Mode,
             Depth = Mathf.Max(1, Depth),
             SearchTimeMs = Mathf.Max(1, SearchTimeMs),
-            Level = Mathf.Clamp(Level, MinLevel, MaxLevel)
+            Level = Mathf.Clamp(Level, MinLevel, MaxLevel),
+            Color = Enum.IsDefined(typeof(ColorChoice), (int)Color) ? Color : ColorChoice.random
         };
     }
 

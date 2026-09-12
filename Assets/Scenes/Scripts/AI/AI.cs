@@ -8,7 +8,7 @@ public class AI : MonoBehaviour
     [SerializeField] private Board main_board;
     public const int AI_MOVE_DELAY_MS = 0;
 
-    public static bool AI_team = true;
+    private bool AiTeam => !main_board.PlayerTeam;
 
     private bool lastMoveWasProgressive;
 
@@ -45,16 +45,16 @@ public class AI : MonoBehaviour
         main_board.RestartEvent += () =>
         {
             Engine.ClearPlayedHistory();
-            if (main_board.Turn == AI_team)
+            if (main_board.Turn == AiTeam)
                 _ = MakeAIMove();
         };
 
-        if (main_board.Turn == AI_team) await MakeAIMove();
+        if (main_board.Turn == AiTeam) await MakeAIMove();
 
         main_board.MoveEndEvent += async (_, _, _) =>
         {
             if (main_board.game_over) return;
-            if (main_board.Turn == AI_team)
+            if (main_board.Turn == AiTeam)
             {
                 await Task.Delay(AI_MOVE_DELAY_MS);
                 await MakeAIMove();
