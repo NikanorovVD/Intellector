@@ -338,7 +338,7 @@ public class Board : MonoBehaviour
     //перемещение фигур
     public void SelectTile(Vector2Int coordinates)
     {
-        if (NetworkGame && (PlayerTeam != Turn)) return; //не трогаем чужие фигуры
+        if ((NetworkGame || Settings.GameMode == GameMode.AI) && PlayerTeam != Turn) return; //не трогаем чужие фигуры
 
         //если не выбрана никакая фигура
         if (currentSelect == -Vector2Int.one)
