@@ -46,6 +46,12 @@ public class NotationBoard
         };
     }
 
+    public void Apply(ReplayMove move)
+    {
+        tiles[move.From.x][move.From.y] = Copy(move.FromAfter);
+        tiles[move.To.x][move.To.y] = Copy(move.ToAfter);
+    }
+
     private void PlaceInitial()
     {
         Place(0, 0, PieceType.dominator, false);

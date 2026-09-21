@@ -2,11 +2,16 @@ using System.Collections.Generic;
 
 public static class ReplayExpander
 {
-    public static List<ReplayMove> Expand(GameRecord record)
+    public static NotationBoard CreateStartBoard(GameRecord record)
     {
-        var board = record != null && record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen)
+        return record != null && record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen)
             ? new NotationBoard(IfenParser.Parse(record.Ifen))
             : new NotationBoard();
+    }
+
+    public static List<ReplayMove> Expand(GameRecord record)
+    {
+        var board = CreateStartBoard(record);
         var moves = new List<ReplayMove>();
         if (record?.Moves == null)
             return moves;

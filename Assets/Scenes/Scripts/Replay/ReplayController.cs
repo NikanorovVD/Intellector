@@ -18,6 +18,7 @@ public class ReplayController : MonoBehaviour
     private int firstHalfmove;
     private ReplayMove pendingMove;
     private ReplayAnalysis analysis;
+    private GameRecord record;
 
     void Start()
     {
@@ -29,7 +30,7 @@ public class ReplayController : MonoBehaviour
         }
 
         string text = File.ReadAllText(Settings.ReplayFilePath);
-        GameRecord record = IpgnParser.Parse(text);
+        record = IpgnParser.Parse(text);
         if (record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen))
         {
             RecordedPosition start = IfenParser.Parse(record.Ifen);
@@ -44,14 +45,18 @@ public class ReplayController : MonoBehaviour
         view.SetPanelActive(true);
         view.SetMeta(record);
         view.SetEngineVisible(false);
+        view.SetPreAnalyzeRunning(false);
         view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
         view.MoveClicked += OnMoveClicked;
         view.EngineToggled += OnEngineToggled;
         view.CopyIfenClicked += OnCopyIfenClicked;
+        view.PreAnalyzeClicked += OnPreAnalyzeClicked;
         Board.MoveStartEvent += MoveStartHandler;
         Board.MoveEndEvent += MoveEndHandler;
         analysis = new ReplayAnalysis();
         analysis.Updated += OnAnalysisUpdated;
+        analysis.PreProgress += OnPreProgress;
+        analysis.PreFinished += OnPreFinished;
         AfterStep(false);
     }
 
@@ -62,6 +67,7 @@ public class ReplayController : MonoBehaviour
             view.MoveClicked -= OnMoveClicked;
             view.EngineToggled -= OnEngineToggled;
             view.CopyIfenClicked -= OnCopyIfenClicked;
+            view.PreAnalyzeClicked -= OnPreAnalyzeClicked;
         }
         if (Board != null)
         {
@@ -71,6 +77,8 @@ public class ReplayController : MonoBehaviour
         if (analysis != null)
         {
             analysis.Updated -= OnAnalysisUpdated;
+            analysis.PreProgress -= OnPreProgress;
+            analysis.PreFinished -= OnPreFinished;
             analysis.Stop();
         }
     }
@@ -196,12 +204,8 @@ public class ReplayController : MonoBehaviour
         else
             Board.HighlightLastMove(last.From, last.To);
         view.Highlight(mainIndex, varIndex, onVariation);
-        if (restartEngine && analysis != null && analysis.Enabled)
-        {
-            ClearEngineBoard();
-            view.ClearEngine();
-            analysis.Analyze(Board);
-        }
+        if (restartEngine)
+            RefreshEngine();
     }
 
     private ReplayMove CurrentLastMove()
@@ -343,16 +347,81 @@ public class ReplayController : MonoBehaviour
 
     private void OnEngineToggled(bool on)
     {
+        analysis.SetEnabled(on);
         if (on)
-        {
-            ClearEngineBoard();
-            analysis.SetEnabled(true, Board);
-        }
+            RefreshEngine();
         else
-        {
-            analysis.SetEnabled(false, Board);
             ClearEngineBoard();
+    }
+
+    private void OnPreAnalyzeClicked()
+    {
+        if (analysis.IsPreAnalyzing)
+        {
+            analysis.CancelPreAnalyze();
+            return;
         }
+
+        int depth = view.GetDepth();
+        int total = (moves?.Count ?? 0) + 1;
+        view.SetMoveQualities(null);
+        view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
+        view.Highlight(mainIndex, varIndex, onVariation);
+        view.SetPreAnalyzeRunning(true);
+        view.SetPreAnalyzeProgress(0, total);
+        analysis.StartPreAnalyze(moves, ReplayExpander.CreateStartBoard(record), firstPly, depth);
+        if (!view.EngineUiVisible)
+            view.SetEngineOn(true);
+        else
+            RefreshEngine();
+    }
+
+    private void OnPreProgress(int done, int total)
+    {
+        view.SetPreAnalyzeProgress(done, total);
+        RefreshEngine();
+    }
+
+    private void OnPreFinished()
+    {
+        view.SetPreAnalyzeRunning(false);
+        RefreshMoveQualities();
+        RefreshEngine();
+    }
+
+    private void RefreshMoveQualities()
+    {
+        if (analysis != null && analysis.TryGetMoveQuality(out GameMoveQuality quality))
+            view.SetMoveQualities(quality.Moves);
+        else
+            view.SetMoveQualities(null);
+        view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
+        view.Highlight(mainIndex, varIndex, onVariation);
+    }
+
+    private void RefreshEngine()
+    {
+        if (analysis == null || !analysis.Enabled)
+            return;
+
+        if (!onVariation && analysis.TryGetMain(mainIndex, out MoveResult cached))
+        {
+            analysis.StopLive();
+            OnAnalysisUpdated(cached);
+            return;
+        }
+
+        if (analysis.IsPreAnalyzing)
+        {
+            analysis.StopLive();
+            view.ClearEngine();
+            ClearEngineBoard();
+            return;
+        }
+
+        ClearEngineBoard();
+        view.ClearEngine();
+        analysis.Analyze(Board);
     }
 
     private void ClearEngineBoard()
@@ -375,14 +444,21 @@ public class ReplayController : MonoBehaviour
             return;
         }
         string eval = ReplayAnalysis.FormatMark(result.Mark) + "  глубина " + result.Depth;
+        double? whiteAccuracy = null;
+        double? blackAccuracy = null;
+        if (analysis.TryGetMoveQuality(out GameMoveQuality quality))
+        {
+            whiteAccuracy = quality.WhiteAccuracy;
+            blackAccuracy = quality.BlackAccuracy;
+        }
         if (result.Move.HasValue)
         {
-            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), ReplayAnalysis.FormatBestMove(result.Move.Value, Board));
+            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), ReplayAnalysis.FormatBestMove(result.Move.Value, Board), whiteAccuracy, blackAccuracy);
             ReplayAnalysis.HintMove(result.Move.Value, Board);
         }
         else
         {
-            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), string.Empty);
+            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), string.Empty, whiteAccuracy, blackAccuracy);
             ClearEngineBoard();
         }
     }

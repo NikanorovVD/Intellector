@@ -10,7 +10,11 @@ public class ReplayView : MonoBehaviour
 {
     static readonly Color RowColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
     static readonly Color VariationRowColor = new Color(0.28f, 0.18f, 0.32f, 0.9f);
-    static readonly Color SelectedRowColor = new Color(0.45f, 0.4f, 0.15f, 1f);
+    static readonly Color SelectedFrameColor = new Color(1f, 0.88f, 0.35f, 1f);
+    static readonly Color ExcellentColor = new Color(0.11f, 0.30f, 0.16f, 0.9f);
+    static readonly Color InaccuracyColor = new Color(0.33f, 0.30f, 0.10f, 0.9f);
+    static readonly Color MistakeColor = new Color(0.37f, 0.22f, 0.07f, 0.9f);
+    static readonly Color BlunderColor = new Color(0.37f, 0.11f, 0.11f, 0.9f);
 
     private const float NumberWidth = 22f;
     private const float CellWidth = 110f;
@@ -19,8 +23,14 @@ public class ReplayView : MonoBehaviour
     private const int VariationIndent = 16;
     private const float EngineUiOffHeight = 28f;
     private const float EngineUiOnHeight = 90f;
+    private const float EngineUiAccuracyExtra = 22f;
     private const string CopyIfenLabel = "Копировать IFEN";
     private const string CopyIfenDoneLabel = "Скопировано";
+    private const string PreAnalyzeLabel = "Анализ партии";
+    private const string PreAnalyzeCancelLabel = "Отмена";
+    public const int DefaultPreAnalyzeDepth = 8;
+    private const float PreAnalyzeIdleHeight = 24f;
+    private const float PreAnalyzeRunningHeight = 36f;
 
     [SerializeField] GameObject panel;
     [SerializeField] GameObject content;
@@ -29,19 +39,33 @@ public class ReplayView : MonoBehaviour
     [SerializeField] Toggle engineToggle;
     [SerializeField] Text evalText;
     [SerializeField] Text bestMoveText;
+    [SerializeField] GameObject accuracyRow;
+    [SerializeField] GameObject whiteAccuracyGroup;
+    [SerializeField] GameObject blackAccuracyGroup;
+    [SerializeField] Text whiteAccuracyText;
+    [SerializeField] Text blackAccuracyText;
     [SerializeField] LayoutElement engineLayout;
     [SerializeField] GameObject evalBar;
     [SerializeField] RectTransform evalBarFill;
     [SerializeField] Button copyIfenButton;
     [SerializeField] Text copyIfenText;
     [SerializeField] LayoutElement copyIfenLayout;
+    [SerializeField] Button preAnalyzeButton;
+    [SerializeField] Text preAnalyzeButtonText;
+    [SerializeField] LayoutElement preAnalyzeLayout;
+    [SerializeField] InputField depthInput;
+    [SerializeField] GameObject preAnalyzeProgress;
+    [SerializeField] RectTransform preAnalyzeProgressFill;
 
     public event Action<bool> EngineToggled;
     public event Action<int, bool> MoveClicked;
     public event Action CopyIfenClicked;
+    public event Action PreAnalyzeClicked;
 
     private readonly List<ListCell> cells = new();
+    private IReadOnlyList<MoveQuality> mainQualities;
     private bool engineUiVisible;
+    private bool engineHasAccuracy;
     private Coroutine copyIfenFeedback;
 
     public bool EngineUiVisible => engineUiVisible;
@@ -49,8 +73,10 @@ public class ReplayView : MonoBehaviour
     private struct ListCell
     {
         public Image Image;
+        public Image Frame;
         public bool Variation;
         public int Ply;
+        public Color Idle;
     }
 
     void OnEnable()
@@ -59,6 +85,14 @@ public class ReplayView : MonoBehaviour
             engineToggle.onValueChanged.AddListener(OnEngineToggled);
         if (copyIfenButton != null)
             copyIfenButton.onClick.AddListener(OnCopyIfenClicked);
+        if (preAnalyzeButton != null)
+            preAnalyzeButton.onClick.AddListener(OnPreAnalyzeClicked);
+        if (depthInput != null)
+        {
+            depthInput.onEndEdit.AddListener(OnDepthEndEdit);
+            if (string.IsNullOrEmpty(depthInput.text))
+                depthInput.text = DefaultPreAnalyzeDepth.ToString();
+        }
     }
 
     void OnDisable()
@@ -67,6 +101,10 @@ public class ReplayView : MonoBehaviour
             engineToggle.onValueChanged.RemoveListener(OnEngineToggled);
         if (copyIfenButton != null)
             copyIfenButton.onClick.RemoveListener(OnCopyIfenClicked);
+        if (preAnalyzeButton != null)
+            preAnalyzeButton.onClick.RemoveListener(OnPreAnalyzeClicked);
+        if (depthInput != null)
+            depthInput.onEndEdit.RemoveListener(OnDepthEndEdit);
         if (copyIfenFeedback != null)
         {
             StopCoroutine(copyIfenFeedback);
@@ -95,6 +133,11 @@ public class ReplayView : MonoBehaviour
         meta.text = FormatMeta(record);
     }
 
+    public void SetMoveQualities(IReadOnlyList<MoveQuality> qualities)
+    {
+        mainQualities = qualities;
+    }
+
     public void RebuildList(
         IReadOnlyList<ReplayMove> moves,
         IReadOnlyList<ReplayMove> variation,
@@ -116,8 +159,9 @@ public class ReplayView : MonoBehaviour
             bool selected = cell.Variation
                 ? onVariation && cell.Ply == varIndex
                 : !onVariation && cell.Ply == mainIndex;
-            Color idle = cell.Variation ? VariationRowColor : RowColor;
-            cell.Image.color = selected ? SelectedRowColor : idle;
+            cell.Image.color = cell.Idle;
+            if (cell.Frame != null)
+                cell.Frame.enabled = selected;
         }
     }
 
@@ -130,13 +174,63 @@ public class ReplayView : MonoBehaviour
             bestMoveText.gameObject.SetActive(on);
         if (evalBar != null)
             evalBar.SetActive(on);
+        if (!on)
+            SetAccuracy(null, null);
         if (engineLayout != null)
         {
-            engineLayout.minHeight = on ? EngineUiOnHeight : EngineUiOffHeight;
-            engineLayout.preferredHeight = on ? EngineUiOnHeight : EngineUiOffHeight;
+            engineLayout.minHeight = EngineHeight(on);
+            engineLayout.preferredHeight = EngineHeight(on);
         }
         if (!on)
             SetEvalBar(0.5f);
+    }
+
+    public void SetEngineOn(bool on)
+    {
+        if (engineToggle != null)
+        {
+            if (engineToggle.isOn != on)
+                engineToggle.isOn = on;
+            else if (engineUiVisible != on)
+                OnEngineToggled(on);
+            return;
+        }
+        if (engineUiVisible != on)
+            OnEngineToggled(on);
+    }
+
+    public int GetDepth()
+    {
+        if (depthInput == null || !int.TryParse(depthInput.text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth))
+            return DefaultPreAnalyzeDepth;
+        return Mathf.Max(1, depth);
+    }
+
+    public void SetPreAnalyzeRunning(bool running)
+    {
+        if (preAnalyzeButtonText != null)
+            preAnalyzeButtonText.text = running ? PreAnalyzeCancelLabel : PreAnalyzeLabel;
+        if (depthInput != null)
+            depthInput.interactable = !running;
+        if (preAnalyzeProgress != null)
+            preAnalyzeProgress.SetActive(running);
+        if (preAnalyzeLayout != null)
+        {
+            float height = running ? PreAnalyzeRunningHeight : PreAnalyzeIdleHeight;
+            preAnalyzeLayout.minHeight = height;
+            preAnalyzeLayout.preferredHeight = height;
+        }
+        if (!running)
+            SetPreAnalyzeProgress(0, 1);
+    }
+
+    public void SetPreAnalyzeProgress(int done, int total)
+    {
+        if (preAnalyzeProgressFill == null) return;
+        float ratio = total <= 0 ? 0f : (float)done / total;
+        preAnalyzeProgressFill.anchorMax = new Vector2(Mathf.Clamp01(ratio), 1f);
+        preAnalyzeProgressFill.offsetMin = Vector2.zero;
+        preAnalyzeProgressFill.offsetMax = Vector2.zero;
     }
 
     public void ClearEngine()
@@ -145,16 +239,49 @@ public class ReplayView : MonoBehaviour
             evalText.text = engineUiVisible ? "..." : string.Empty;
         if (bestMoveText != null)
             bestMoveText.text = string.Empty;
+        SetAccuracy(null, null);
         SetEvalBar(0.5f);
+        ApplyEngineHeight();
     }
 
-    public void ShowEngine(string eval, float barRatio, string bestMove)
+    public void ShowEngine(string eval, float barRatio, string bestMove, double? whiteAccuracy = null, double? blackAccuracy = null)
     {
         if (evalText != null)
             evalText.text = eval;
         SetEvalBar(barRatio);
         if (bestMoveText != null)
             bestMoveText.text = bestMove ?? string.Empty;
+        SetAccuracy(whiteAccuracy, blackAccuracy);
+        ApplyEngineHeight();
+    }
+
+    private void SetAccuracy(double? white, double? black)
+    {
+        engineHasAccuracy = engineUiVisible && (white != null || black != null);
+        if (whiteAccuracyText != null)
+            whiteAccuracyText.text = white != null ? MoveAccuracy.FormatPercent(white.Value) : string.Empty;
+        if (blackAccuracyText != null)
+            blackAccuracyText.text = black != null ? MoveAccuracy.FormatPercent(black.Value) : string.Empty;
+        if (whiteAccuracyGroup != null)
+            whiteAccuracyGroup.SetActive(white != null);
+        if (blackAccuracyGroup != null)
+            blackAccuracyGroup.SetActive(black != null);
+        if (accuracyRow != null)
+            accuracyRow.SetActive(engineHasAccuracy);
+    }
+
+    private void ApplyEngineHeight()
+    {
+        if (engineLayout == null || !engineUiVisible) return;
+        float height = EngineHeight(true);
+        engineLayout.minHeight = height;
+        engineLayout.preferredHeight = height;
+    }
+
+    private float EngineHeight(bool on)
+    {
+        if (!on) return EngineUiOffHeight;
+        return engineHasAccuracy ? EngineUiOnHeight + EngineUiAccuracyExtra : EngineUiOnHeight;
     }
 
     private void OnEngineToggled(bool on)
@@ -191,7 +318,7 @@ public class ReplayView : MonoBehaviour
         int number = firstFullmove;
         if (firstPly == 1 && moves.Count > 0)
         {
-            AddTurnRow(number, null, 0, false, moves[0].Notation, 1, false, false);
+            AddTurnRow(number, null, 0, false, MainNotation(moves, 0), 1, false, false);
             if (!variationPlaced && variationFrom <= 1)
             {
                 FillVariation(variation, firstPly, firstFullmove, variationFrom);
@@ -202,9 +329,9 @@ public class ReplayView : MonoBehaviour
         }
         for (; i < moves.Count; i += 2)
         {
-            string black = i + 1 < moves.Count ? moves[i + 1].Notation : null;
+            string black = i + 1 < moves.Count ? MainNotation(moves, i + 1) : null;
             int lastPly = black != null ? i + 2 : i + 1;
-            AddTurnRow(number, moves[i].Notation, i + 1, false, black, black != null ? i + 2 : 0, false, false);
+            AddTurnRow(number, MainNotation(moves, i), i + 1, false, black, black != null ? i + 2 : 0, false, false);
             if (!variationPlaced && variationFrom <= lastPly)
             {
                 FillVariation(variation, firstPly, firstFullmove, variationFrom);
@@ -259,6 +386,38 @@ public class ReplayView : MonoBehaviour
         }
         else
             BindCell(blackCell, black, blackVar, blackPly);
+    }
+
+    private Color IdleColorFor(bool isVariation, int ply)
+    {
+        if (isVariation)
+            return VariationRowColor;
+        if (mainQualities == null || ply <= 0)
+            return RowColor;
+        int index = ply - 1;
+        if (index >= mainQualities.Count)
+            return RowColor;
+        return ColorFor(mainQualities[index].Judgement);
+    }
+
+    private static Color ColorFor(MoveJudgement judgement)
+    {
+        return judgement switch
+        {
+            MoveJudgement.Inaccuracy => InaccuracyColor,
+            MoveJudgement.Mistake => MistakeColor,
+            MoveJudgement.Blunder => BlunderColor,
+            _ => ExcellentColor
+        };
+    }
+
+    private string MainNotation(IReadOnlyList<ReplayMove> moves, int index)
+    {
+        string text = moves[index].Notation;
+        if (mainQualities == null || index < 0 || index >= mainQualities.Count)
+            return text;
+        string glyph = MoveAccuracy.Glyph(mainQualities[index].Judgement);
+        return glyph.Length == 0 ? text : text + glyph;
     }
 
     private GameObject SpawnRow(bool indent)
@@ -326,6 +485,11 @@ public class ReplayView : MonoBehaviour
             copyIfenLayout.minWidth = inner;
             copyIfenLayout.preferredWidth = inner;
         }
+        if (preAnalyzeLayout != null)
+        {
+            preAnalyzeLayout.minWidth = inner;
+            preAnalyzeLayout.preferredWidth = inner;
+        }
 
         var rt = panel.GetComponent<RectTransform>();
         float scaleY = Mathf.Max(rt.localScale.y, 0.01f);
@@ -340,6 +504,17 @@ public class ReplayView : MonoBehaviour
         CopyIfenClicked?.Invoke();
     }
 
+    private void OnPreAnalyzeClicked()
+    {
+        PreAnalyzeClicked?.Invoke();
+    }
+
+    private void OnDepthEndEdit(string _)
+    {
+        if (depthInput == null) return;
+        depthInput.text = GetDepth().ToString(CultureInfo.InvariantCulture);
+    }
+
     private IEnumerator CopyIfenFeedback()
     {
         copyIfenText.text = CopyIfenDoneLabel;
@@ -352,12 +527,38 @@ public class ReplayView : MonoBehaviour
     {
         cell.GetComponentInChildren<Text>().text = text;
         cell.GetComponent<Button>().onClick.AddListener(() => MoveClicked?.Invoke(ply, isVariation));
+        Color idle = IdleColorFor(isVariation, ply);
+        var image = cell.GetComponent<Image>();
+        image.color = idle;
         cells.Add(new ListCell
         {
-            Image = cell.GetComponent<Image>(),
+            Image = image,
+            Frame = CreateFrame(cell, image),
             Variation = isVariation,
-            Ply = ply
+            Ply = ply,
+            Idle = idle
         });
+    }
+
+    private static Image CreateFrame(Transform cell, Image background)
+    {
+        var go = new GameObject("Frame");
+        go.transform.SetParent(cell, false);
+        var rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        go.transform.SetAsFirstSibling();
+        var frame = go.AddComponent<Image>();
+        frame.sprite = background.sprite;
+        frame.type = Image.Type.Sliced;
+        frame.fillCenter = false;
+        frame.pixelsPerUnitMultiplier = 1.2f;
+        frame.color = SelectedFrameColor;
+        frame.raycastTarget = false;
+        frame.enabled = false;
+        return frame;
     }
 
     private static string FormatMeta(GameRecord record)
