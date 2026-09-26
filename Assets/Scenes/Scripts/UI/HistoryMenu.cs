@@ -16,8 +16,21 @@ public class HistoryMenu : MonoBehaviour
     [SerializeField] InputField renameInput;
     [SerializeField] Text renameError;
 
+    static readonly Color CurrentRowColor = new Color(0.62f, 0.46f, 0.14f, 1f);
+
     private readonly List<GameObject> items = new();
     private string renamePath;
+
+    public bool IsOpen => panel != null && panel.activeSelf;
+
+    public event Action<string> OpenReplayRenamed;
+    public event Action OpenReplayRemoved;
+
+    public static HistoryMenu FindInScene()
+    {
+        HistoryMenu[] found = FindObjectsOfType<HistoryMenu>(true);
+        return found.Length > 0 ? found[0] : null;
+    }
 
     public void Open()
     {
@@ -34,14 +47,17 @@ public class HistoryMenu : MonoBehaviour
 
     public void ConfirmRename()
     {
-        string dest = ReplayPathFromName(renamePath, renameInput.text, out string error);
-        if (error != null)
+        string previous = renamePath;
+        if (!ReplayFile.TryRename(previous, renameInput.text, out string dest, out string error))
         {
             renameError.text = error;
             return;
         }
-        if (!string.Equals(Path.GetFullPath(dest), Path.GetFullPath(renamePath), StringComparison.OrdinalIgnoreCase))
-            File.Move(renamePath, dest);
+        if (IsOpenReplay(previous))
+        {
+            Settings.ReplayFilePath = dest;
+            OpenReplayRenamed?.Invoke(dest);
+        }
         renamePanel.SetActive(false);
         Refresh();
     }
@@ -76,6 +92,9 @@ public class HistoryMenu : MonoBehaviour
             item.transform.localScale = Vector3.one;
             string captured = path;
             item.transform.Find("Name").GetComponent<Text>().text = Path.GetFileNameWithoutExtension(path);
+            Image row = item.GetComponent<Image>();
+            if (row != null && IsOpenReplay(path))
+                row.color = CurrentRowColor;
             item.GetComponent<Button>().onClick.AddListener(() => OpenReplay(captured));
             item.transform.Find("Rename").GetComponent<Button>().onClick.AddListener(() => BeginRename(captured));
             item.transform.Find("Delete").GetComponent<Button>().onClick.AddListener(() => DeleteReplay(captured));
@@ -94,35 +113,28 @@ public class HistoryMenu : MonoBehaviour
 
     private void DeleteReplay(string path)
     {
+        bool current = IsOpenReplay(path);
+        if (renamePath == path)
+            renamePanel.SetActive(false);
         File.Delete(path);
+        if (current)
+        {
+            Settings.ReplayFilePath = null;
+            OpenReplayRemoved?.Invoke();
+        }
         Refresh();
     }
 
-    private static string ReplayPathFromName(string currentPath, string rawName, out string error)
+    private static bool IsOpenReplay(string path)
     {
-        error = null;
-        string name = (rawName ?? string.Empty).Trim();
-        if (name.EndsWith(".ipgn", StringComparison.OrdinalIgnoreCase))
-            name = Path.GetFileNameWithoutExtension(name);
-        if (name.Length == 0)
-        {
-            error = "Введите имя файла";
-            return null;
-        }
-        if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-        {
-            error = "Некорректное имя файла";
-            return null;
-        }
+        return Settings.GameMode == GameMode.Replay && SamePath(path, Settings.ReplayFilePath);
+    }
 
-        string dest = Path.Combine(Path.GetDirectoryName(currentPath), name + ".ipgn");
-        if (File.Exists(dest)
-            && !string.Equals(Path.GetFullPath(dest), Path.GetFullPath(currentPath), StringComparison.OrdinalIgnoreCase))
-        {
-            error = "Файл с таким именем уже существует";
-            return null;
-        }
-        return dest;
+    private static bool SamePath(string a, string b)
+    {
+        if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b))
+            return false;
+        return string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
     }
 
     private static DateTime GameTime(string path)
@@ -138,8 +150,13 @@ public class HistoryMenu : MonoBehaviour
         return File.GetLastWriteTimeUtc(path);
     }
 
-    private static void OpenReplay(string path)
+    private void OpenReplay(string path)
     {
+        if (IsOpenReplay(path))
+        {
+            Close();
+            return;
+        }
         Settings.GameMode = GameMode.Replay;
         Settings.ReplayFilePath = path;
         Settings.ClearStartPosition();

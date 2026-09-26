@@ -20,7 +20,9 @@ public class Scenes: MonoBehaviour
 
     public void ShowHistory()
     {
-        GetComponent<HistoryMenu>().Open();
+        HistoryMenu menu = HistoryMenu.FindInScene();
+        if (menu != null)
+            menu.Open();
     }
 
     public void Exit()

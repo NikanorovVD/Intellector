@@ -16,21 +16,9 @@ public class ReplayView : MonoBehaviour
     static readonly Color MistakeColor = new Color(0.37f, 0.22f, 0.07f, 0.9f);
     static readonly Color BlunderColor = new Color(0.37f, 0.11f, 0.11f, 0.9f);
 
-    private const float NumberWidth = 22f;
-    private const float CellWidth = 110f;
-    private const float RowSpacing = 4f;
-    private const float RowWidth = NumberWidth + CellWidth * 2 + RowSpacing * 2;
-    private const int VariationIndent = 16;
-    private const float EngineUiOffHeight = 28f;
-    private const float EngineUiOnHeight = 90f;
-    private const float EngineUiAccuracyExtra = 22f;
-    private const string CopyIfenLabel = "Копировать IFEN";
-    private const string CopyIfenDoneLabel = "Скопировано";
-    private const string PreAnalyzeLabel = "Анализ партии";
-    private const string PreAnalyzeCancelLabel = "Отмена";
-    public const int DefaultPreAnalyzeDepth = 8;
-    private const float PreAnalyzeIdleHeight = 24f;
-    private const float PreAnalyzeRunningHeight = 36f;
+    [SerializeField] int variationIndent = 16;
+    [SerializeField] string copyIfenDoneLabel = "Скопировано";
+    [SerializeField] string preAnalyzeCancelLabel = "Отмена";
 
     [SerializeField] GameObject panel;
     [SerializeField] GameObject content;
@@ -56,17 +44,29 @@ public class ReplayView : MonoBehaviour
     [SerializeField] InputField depthInput;
     [SerializeField] GameObject preAnalyzeProgress;
     [SerializeField] RectTransform preAnalyzeProgressFill;
+    [SerializeField] LayoutElement fileNameLayout;
+    [SerializeField] GameObject renameRow;
+    [SerializeField] InputField renameInput;
+    [SerializeField] Button renameCheck;
+    [SerializeField] Text renameError;
+    [SerializeField] Text fileDeleted;
+
+    private string copyIfenIdleLabel = string.Empty;
+    private string preAnalyzeIdleLabel = string.Empty;
+    private int defaultDepth = 1;
 
     public event Action<bool> EngineToggled;
     public event Action<int, bool> MoveClicked;
     public event Action CopyIfenClicked;
     public event Action PreAnalyzeClicked;
+    public event Action<string> RenameConfirmed;
 
     private readonly List<ListCell> cells = new();
     private IReadOnlyList<MoveQuality> mainQualities;
     private bool engineUiVisible;
     private bool engineHasAccuracy;
     private Coroutine copyIfenFeedback;
+    private string currentFileName;
 
     public bool EngineUiVisible => engineUiVisible;
 
@@ -77,6 +77,16 @@ public class ReplayView : MonoBehaviour
         public bool Variation;
         public int Ply;
         public Color Idle;
+    }
+
+    void Awake()
+    {
+        if (copyIfenText != null)
+            copyIfenIdleLabel = copyIfenText.text;
+        if (preAnalyzeButtonText != null)
+            preAnalyzeIdleLabel = preAnalyzeButtonText.text;
+        if (depthInput != null && int.TryParse(depthInput.text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth))
+            defaultDepth = Mathf.Max(1, depth);
     }
 
     void OnEnable()
@@ -91,8 +101,15 @@ public class ReplayView : MonoBehaviour
         {
             depthInput.onEndEdit.AddListener(OnDepthEndEdit);
             if (string.IsNullOrEmpty(depthInput.text))
-                depthInput.text = DefaultPreAnalyzeDepth.ToString();
+                depthInput.text = defaultDepth.ToString(CultureInfo.InvariantCulture);
         }
+        if (renameInput != null)
+        {
+            renameInput.onValueChanged.AddListener(OnRenameEdited);
+            renameInput.onSubmit.AddListener(OnRenameSubmitted);
+        }
+        if (renameCheck != null)
+            renameCheck.onClick.AddListener(OnRenameSaveClicked);
     }
 
     void OnDisable()
@@ -105,19 +122,86 @@ public class ReplayView : MonoBehaviour
             preAnalyzeButton.onClick.RemoveListener(OnPreAnalyzeClicked);
         if (depthInput != null)
             depthInput.onEndEdit.RemoveListener(OnDepthEndEdit);
+        if (renameInput != null)
+        {
+            renameInput.onValueChanged.RemoveListener(OnRenameEdited);
+            renameInput.onSubmit.RemoveListener(OnRenameSubmitted);
+        }
+        if (renameCheck != null)
+            renameCheck.onClick.RemoveListener(OnRenameSaveClicked);
         if (copyIfenFeedback != null)
         {
             StopCoroutine(copyIfenFeedback);
             copyIfenFeedback = null;
             if (copyIfenText != null)
-                copyIfenText.text = CopyIfenLabel;
+                copyIfenText.text = copyIfenIdleLabel;
         }
+        CloseRename();
     }
 
     public void SetPanelActive(bool on)
     {
         if (panel != null)
             panel.SetActive(on);
+        if (!on)
+            CloseRename();
+    }
+
+    private bool fileMissing;
+
+    public bool IsRenaming => renameInput != null && renameInput.isFocused && !fileMissing;
+
+    public void SetFileName(string name)
+    {
+        fileMissing = false;
+        currentFileName = name ?? string.Empty;
+        if (fileNameLayout != null && !fileNameLayout.gameObject.activeSelf)
+            fileNameLayout.gameObject.SetActive(true);
+        if (renameRow != null)
+            renameRow.SetActive(true);
+        if (fileDeleted != null)
+            fileDeleted.gameObject.SetActive(false);
+        if (renameInput != null && renameInput.text != currentFileName)
+            renameInput.text = currentFileName;
+        RefreshRenameCheck();
+    }
+
+    public void ClearFileName()
+    {
+        fileMissing = true;
+        currentFileName = string.Empty;
+        if (renameInput != null)
+            renameInput.DeactivateInputField();
+        if (renameRow != null)
+            renameRow.SetActive(false);
+        if (fileDeleted != null)
+            fileDeleted.gameObject.SetActive(true);
+        SetRenameError(string.Empty);
+        RefreshRenameCheck();
+    }
+
+    public void CloseRename()
+    {
+        if (renameInput != null)
+        {
+            if (renameInput.text != currentFileName)
+                renameInput.text = currentFileName ?? string.Empty;
+            renameInput.DeactivateInputField();
+        }
+        SetRenameError(string.Empty);
+        RefreshRenameCheck();
+    }
+
+    public void SetRenameError(string error)
+    {
+        if (renameError == null) return;
+        string text = error ?? string.Empty;
+        bool show = text.Length > 0;
+        if (renameError.text == text && renameError.gameObject.activeSelf == show)
+            return;
+        renameError.text = text;
+        renameError.gameObject.SetActive(show);
+        RebuildPanelLayout();
     }
 
     public void ShowCopyIfenCopied()
@@ -176,13 +260,9 @@ public class ReplayView : MonoBehaviour
             evalBar.SetActive(on);
         if (!on)
             SetAccuracy(null, null);
-        if (engineLayout != null)
-        {
-            engineLayout.minHeight = EngineHeight(on);
-            engineLayout.preferredHeight = EngineHeight(on);
-        }
         if (!on)
             SetEvalBar(0.5f);
+        RebuildPanelLayout();
     }
 
     public void SetEngineOn(bool on)
@@ -202,26 +282,21 @@ public class ReplayView : MonoBehaviour
     public int GetDepth()
     {
         if (depthInput == null || !int.TryParse(depthInput.text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth))
-            return DefaultPreAnalyzeDepth;
+            return defaultDepth;
         return Mathf.Max(1, depth);
     }
 
     public void SetPreAnalyzeRunning(bool running)
     {
         if (preAnalyzeButtonText != null)
-            preAnalyzeButtonText.text = running ? PreAnalyzeCancelLabel : PreAnalyzeLabel;
+            preAnalyzeButtonText.text = running ? preAnalyzeCancelLabel : preAnalyzeIdleLabel;
         if (depthInput != null)
             depthInput.interactable = !running;
         if (preAnalyzeProgress != null)
             preAnalyzeProgress.SetActive(running);
-        if (preAnalyzeLayout != null)
-        {
-            float height = running ? PreAnalyzeRunningHeight : PreAnalyzeIdleHeight;
-            preAnalyzeLayout.minHeight = height;
-            preAnalyzeLayout.preferredHeight = height;
-        }
         if (!running)
             SetPreAnalyzeProgress(0, 1);
+        RebuildPanelLayout();
     }
 
     public void SetPreAnalyzeProgress(int done, int total)
@@ -241,7 +316,7 @@ public class ReplayView : MonoBehaviour
             bestMoveText.text = string.Empty;
         SetAccuracy(null, null);
         SetEvalBar(0.5f);
-        ApplyEngineHeight();
+        RebuildPanelLayout();
     }
 
     public void ShowEngine(string eval, float barRatio, string bestMove, double? whiteAccuracy = null, double? blackAccuracy = null)
@@ -252,7 +327,7 @@ public class ReplayView : MonoBehaviour
         if (bestMoveText != null)
             bestMoveText.text = bestMove ?? string.Empty;
         SetAccuracy(whiteAccuracy, blackAccuracy);
-        ApplyEngineHeight();
+        RebuildPanelLayout();
     }
 
     private void SetAccuracy(double? white, double? black)
@@ -268,20 +343,6 @@ public class ReplayView : MonoBehaviour
             blackAccuracyGroup.SetActive(black != null);
         if (accuracyRow != null)
             accuracyRow.SetActive(engineHasAccuracy);
-    }
-
-    private void ApplyEngineHeight()
-    {
-        if (engineLayout == null || !engineUiVisible) return;
-        float height = EngineHeight(true);
-        engineLayout.minHeight = height;
-        engineLayout.preferredHeight = height;
-    }
-
-    private float EngineHeight(bool on)
-    {
-        if (!on) return EngineUiOffHeight;
-        return engineHasAccuracy ? EngineUiOnHeight + EngineUiAccuracyExtra : EngineUiOnHeight;
     }
 
     private void OnEngineToggled(bool on)
@@ -428,37 +489,19 @@ public class ReplayView : MonoBehaviour
         item.transform.localScale = Vector3.one;
 
         var hlg = item.GetComponent<HorizontalLayoutGroup>();
-        hlg.childForceExpandWidth = false;
-        hlg.childControlWidth = true;
-        hlg.childAlignment = TextAnchor.MiddleLeft;
-        hlg.spacing = RowSpacing;
-        hlg.padding = new RectOffset(indent ? VariationIndent : 0, 0, 0, 0);
-
-        Transform number = item.transform.Find("Number");
-        number.GetComponent<Text>().alignment = TextAnchor.MiddleLeft;
-        SetColumnWidth(number, NumberWidth, 0);
-        SetColumnWidth(item.transform.Find("White"), CellWidth, 0);
-        SetColumnWidth(item.transform.Find("Black"), CellWidth, 0);
-        item.transform.Find("White").GetComponentInChildren<Text>().alignment = TextAnchor.MiddleCenter;
-        item.transform.Find("Black").GetComponentInChildren<Text>().alignment = TextAnchor.MiddleCenter;
+        int left = indent ? variationIndent : 0;
+        if (hlg.padding.left != left)
+            hlg.padding = new RectOffset(left, hlg.padding.right, hlg.padding.top, hlg.padding.bottom);
         return item;
-    }
-
-    private static void SetColumnWidth(Transform column, float width, float flexible)
-    {
-        LayoutElement element = column.GetComponent<LayoutElement>();
-        element.minWidth = width;
-        element.preferredWidth = width;
-        element.flexibleWidth = flexible;
-        Text label = column.GetComponentInChildren<Text>();
-        label.horizontalOverflow = HorizontalWrapMode.Overflow;
     }
 
     private void FitPanelWidth()
     {
         var contentRect = content.GetComponent<RectTransform>();
         LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
-        float width = RowWidth + VariationIndent;
+        float width = variationIndent;
+        if (itemPrefab != null)
+            width += LayoutUtility.GetPreferredWidth(itemPrefab.GetComponent<RectTransform>());
         for (int i = 0; i < content.transform.childCount; i++)
         {
             var child = content.transform.GetChild(i) as RectTransform;
@@ -490,6 +533,12 @@ public class ReplayView : MonoBehaviour
             preAnalyzeLayout.minWidth = inner;
             preAnalyzeLayout.preferredWidth = inner;
         }
+        if (fileNameLayout != null)
+        {
+            fileNameLayout.minWidth = inner;
+            fileNameLayout.preferredWidth = inner;
+            fileNameLayout.flexibleHeight = 0f;
+        }
 
         var rt = panel.GetComponent<RectTransform>();
         float scaleY = Mathf.Max(rt.localScale.y, 0.01f);
@@ -509,6 +558,26 @@ public class ReplayView : MonoBehaviour
         PreAnalyzeClicked?.Invoke();
     }
 
+    private void OnRenameEdited(string _)
+    {
+        SetRenameError(string.Empty);
+        RefreshRenameCheck();
+    }
+
+    private void OnRenameSubmitted(string _)
+    {
+        OnRenameSaveClicked();
+    }
+
+    private void OnRenameSaveClicked()
+    {
+        if (fileMissing || renameInput == null) return;
+        string typed = (renameInput.text ?? string.Empty).Trim();
+        if (string.Equals(typed, currentFileName ?? string.Empty, StringComparison.Ordinal))
+            return;
+        RenameConfirmed?.Invoke(renameInput.text);
+    }
+
     private void OnDepthEndEdit(string _)
     {
         if (depthInput == null) return;
@@ -517,9 +586,9 @@ public class ReplayView : MonoBehaviour
 
     private IEnumerator CopyIfenFeedback()
     {
-        copyIfenText.text = CopyIfenDoneLabel;
+        copyIfenText.text = copyIfenDoneLabel;
         yield return new WaitForSeconds(1.2f);
-        copyIfenText.text = CopyIfenLabel;
+        copyIfenText.text = copyIfenIdleLabel;
         copyIfenFeedback = null;
     }
 
@@ -692,5 +761,22 @@ public class ReplayView : MonoBehaviour
         if (Enum.TryParse(value, out EndGameReason reason))
             return IpgnFormatter.FormatTermination(reason);
         return value;
+    }
+
+    private void RefreshRenameCheck()
+    {
+        if (renameCheck == null || renameInput == null) return;
+        string typed = (renameInput.text ?? string.Empty).Trim();
+        bool changed = !fileMissing && !string.Equals(typed, currentFileName ?? string.Empty, StringComparison.Ordinal);
+        if (renameCheck.gameObject.activeSelf == changed)
+            return;
+        renameCheck.gameObject.SetActive(changed);
+        RebuildPanelLayout();
+    }
+
+    private void RebuildPanelLayout()
+    {
+        if (panel == null || !panel.activeInHierarchy) return;
+        LayoutRebuilder.ForceRebuildLayoutImmediate(panel.GetComponent<RectTransform>());
     }
 }
