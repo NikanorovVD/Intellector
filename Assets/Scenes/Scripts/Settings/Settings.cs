@@ -18,6 +18,15 @@ public class Settings
     public static string ReplayFilePath { get; set; }
     public static string StartIfen { get; private set; }
     public static RecordedPosition StartPosition { get; private set; }
+    public static PositionArrange Arrange { get; } = new PositionArrange();
+
+    public sealed class PositionArrange
+    {
+        public bool Editing { get; set; }
+        public bool Resume { get; set; }
+        public GameMode Mode { get; set; }
+        public string Backup { get; set; }
+    }
 
     public static bool TrySetStartIfen(string raw, out string error)
     {

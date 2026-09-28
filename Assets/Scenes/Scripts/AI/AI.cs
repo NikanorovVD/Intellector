@@ -30,7 +30,7 @@ public class AI : MonoBehaviour
 
     private async void Start()
     {
-        if (Settings.GameMode != GameMode.AI) return;
+        if (Settings.Arrange.Editing || Settings.GameMode != GameMode.AI) return;
 
         main_board.MoveStartEvent += (start, end, _) =>
         {

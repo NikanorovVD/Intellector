@@ -74,11 +74,21 @@ public class Board : MonoBehaviour
         (WhiteTeamMaterial, BlackTeamMaterial) = materialSelector.GetCurrentMaterials(Settings.PieceMaterials);
 
         GenerateAllTiles();
-        GenerateAllPieces();
-
-        Turn = false;
-        game_over = false;
-        ApplyConfiguredStart();
+        if (Settings.Arrange.Editing)
+        {
+            CreateEmptyPieces();
+            Turn = false;
+            game_over = false;
+            if (Settings.StartPosition != null)
+                LoadPosition(Settings.StartPosition);
+        }
+        else
+        {
+            GenerateAllPieces();
+            Turn = false;
+            game_over = false;
+            ApplyConfiguredStart();
+        }
     }
 
     void Update()
@@ -139,9 +149,7 @@ public class Board : MonoBehaviour
     }
     public void GenerateAllPieces()
     {
-        pieces = new IPiece[9][];
-        for (int i = 0; i < 9; i++)
-            pieces[i] = new IPiece[7 - (i % 2)];
+        CreateEmptyPieces();
 
         pieces[0][0] = GenerateSinglePiece(PieceType.dominator, false, 0, 0);
         pieces[1][0] = GenerateSinglePiece(PieceType.liberator, false, 1, 0);
@@ -168,6 +176,26 @@ public class Board : MonoBehaviour
             pieces[i][5] = GenerateSinglePiece(PieceType.progressor, true, i, 5);
 
     }
+    public void CreateEmptyPieces()
+    {
+        pieces = new IPiece[9][];
+        for (int i = 0; i < 9; i++)
+            pieces[i] = new IPiece[7 - (i % 2)];
+    }
+
+    public void ClearPieces()
+    {
+        for (int x = 0; x < pieces.Length; x++)
+            for (int y = 0; y < pieces[x].Length; y++)
+                ClearTile(new Vector2Int(x, y));
+    }
+
+    public void SetPiece(Vector2Int pos, TileState? state)
+    {
+        ClearTile(pos);
+        SetTileState(pos, state);
+    }
+
     public IPiece GenerateSinglePiece(PieceType type, bool team, int x, int y)
     {
         GameObject gameObject = Instantiate(piecesPrefabs[(int)type], transform);
@@ -184,8 +212,30 @@ public class Board : MonoBehaviour
             // FIXME: можно нормально повернутый префаб агрессора, пожалуйста?
             gameObject.transform.rotation = Quaternion.Euler(0, 90, 0);
         }
-        gameObject.GetComponent<MeshRenderer>().materials = (team == true) ? new Material[] { BlackTeamMaterial } : new Material[] { WhiteTeamMaterial };
+        ApplyPieceMaterial(gameObject, team);
         return piece;
+    }
+
+    public GameObject CreatePalettePiece(PieceType type, bool team)
+    {
+        GameObject piece = Instantiate(piecesPrefabs[(int)type]);
+        Collider[] colliders = piece.GetComponentsInChildren<Collider>();
+        for (int i = 0; i < colliders.Length; i++)
+            colliders[i].enabled = false;
+        ApplyPieceMaterial(piece, team);
+        return piece;
+    }
+
+    public void ApplyPieceMaterial(GameObject piece, bool team)
+    {
+        Material material = team ? BlackTeamMaterial : WhiteTeamMaterial;
+        MeshRenderer[] renderers = piece.GetComponentsInChildren<MeshRenderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].materials = new Material[] { material };
+            renderers[i].shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderers[i].receiveShadows = false;
+        }
     }
 
     public void SetTiles(Vector2Int from, TileState? fromState, Vector2Int to, TileState? toState)

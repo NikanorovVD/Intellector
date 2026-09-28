@@ -16,7 +16,7 @@ public class GameRecorder : MonoBehaviour
 
     void Start()
     {
-        if (Settings.GameMode == GameMode.Replay) return;
+        if (Settings.Arrange.Editing || Settings.GameMode == GameMode.Replay) return;
         Board.MoveStartEvent += MoveStartHandler;
         Board.EndGameEvent += EndGameHandler;
         Board.RestartEvent += BeginNewGame;
