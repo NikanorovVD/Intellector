@@ -501,7 +501,7 @@ public class ReplayView : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
         float width = variationIndent;
         if (itemPrefab != null)
-            width += LayoutUtility.GetPreferredWidth(itemPrefab.GetComponent<RectTransform>());
+            width += itemPrefab.GetComponent<RectTransform>().sizeDelta.x;
         for (int i = 0; i < content.transform.childCount; i++)
         {
             var child = content.transform.GetChild(i) as RectTransform;
