@@ -1,16 +1,13 @@
 ﻿using UnityEngine;
 
-namespace Assets.Scenes.Scripts.Server
+public interface IServerListener
 {
-    public interface IServerListener
-    {
-        public void RegisterObserver(IServerListenerObserver observer);
-        public void UnregisterObserver(IServerListenerObserver observer);
-        public void ListenServer();
-        public void MoveReceived(Vector2Int start, Vector2Int end, int transform_info);
-        public void TimeReceived(int time);
-        public void ExitReceived();
-        public void RematchReceived();
-        public void TimeOutReceived(bool exit_team);
-    }
+    void RegisterObserver(IServerListenerObserver observer);
+    void UnregisterObserver(IServerListenerObserver observer);
+    void ListenServer();
+    void MoveReceived(Vector2Int start, Vector2Int end, int transformInfo);
+    void TimeReceived(int time);
+    void ExitReceived();
+    void RematchReceived();
+    void TimeOutReceived(bool exitTeam);
 }

@@ -3,9 +3,9 @@ using UnityEngine;
 public class Settings
 {
     // FIXME: сомнительно держать версию в коде
-    public const int APP_VERSION = 17;
-    private static Connection _serverConnection;
-    private static UserConfig _userConfig;
+    public const int AppVersion = 17;
+    private static Connection serverConnection;
+    private static UserConfig userConfig;
     public static IServerFactory ServerFactory { get; private set; }
 
     static Settings()
@@ -45,25 +45,25 @@ public class Settings
 
     public static Connection GetConnection()
     {
-        if (_serverConnection == null)
+        if (serverConnection == null)
         {
             TextAsset textAsset = Resources.Load<TextAsset>("server_connection");
-            _serverConnection = JsonUtility.FromJson<Connection>(textAsset.text);
+            serverConnection = JsonUtility.FromJson<Connection>(textAsset.text);
         }
-        return _serverConnection;
+        return serverConnection;
     }
 
     public static string UserName
     {
         get
         {
-            _userConfig ??= UserConfig.Load();
-            return _userConfig.UserName;
+            userConfig ??= UserConfig.Load();
+            return userConfig.UserName;
         }
         set
         {
-            _userConfig.UserName = value;
-            _userConfig.Save();
+            userConfig.UserName = value;
+            userConfig.Save();
         }
     }
 
@@ -71,13 +71,13 @@ public class Settings
     {
         get
         {
-            _userConfig ??= UserConfig.Load();
-            return _userConfig.Material;
+            userConfig ??= UserConfig.Load();
+            return userConfig.Material;
         }
         set
         {
-            _userConfig.Material = value;
-            _userConfig.Save();
+            userConfig.Material = value;
+            userConfig.Save();
         }
     }
 
@@ -85,13 +85,13 @@ public class Settings
     {
         get
         {
-            _userConfig ??= UserConfig.Load();
-            return _userConfig.AutoRotateCameraInLocalGame;
+            userConfig ??= UserConfig.Load();
+            return userConfig.AutoRotateCameraInLocalGame;
         }
         set
         {
-            _userConfig.AutoRotateCameraInLocalGame = value;
-            _userConfig.Save();
+            userConfig.AutoRotateCameraInLocalGame = value;
+            userConfig.Save();
         }
     }
 
@@ -99,14 +99,14 @@ public class Settings
     {
         get
         {
-            _userConfig ??= UserConfig.Load();
-            return _userConfig.AI.Clamped();
+            userConfig ??= UserConfig.Load();
+            return userConfig.AI.Clamped();
         }
         set
         {
-            _userConfig ??= UserConfig.Load();
-            _userConfig.AI = value.Clamped();
-            _userConfig.Save();
+            userConfig ??= UserConfig.Load();
+            userConfig.AI = value.Clamped();
+            userConfig.Save();
         }
     }
 }

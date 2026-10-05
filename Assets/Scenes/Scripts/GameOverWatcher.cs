@@ -1,35 +1,36 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using UnityEngine;
 
 public class GameOverWatcher : MonoBehaviour
 {
-    [SerializeField] public Board Board;
+    [SerializeField] private Board board;
 
-    public const int MAX_MOVES_WITHOUT_PROGRESS = 60;
-    public const int MAX_POSITION_REPEATS = 3;
+    public const int MaxMovesWithoutProgress = 60;
+    public const int MaxPositionRepeats = 3;
 
     private int currentMovesWithoutProgressCount;
     private Dictionary<string, int> positionCounts = new();
     private bool progressiveMove;
 
-    void Start()
+    private void Start()
     {
         if (Settings.GameMode == GameMode.Replay) return;
 
         currentMovesWithoutProgressCount = Settings.StartPosition?.HalfmoveClock ?? 0;
 
-        Board.MoveStartEvent += MoveStartHandler;
-        Board.MoveEndEvent += MoveEndHandler;
-        Board.RestartEvent += () =>
+        board.MoveStartEvent += MoveStartHandler;
+        board.MoveEndEvent += MoveEndHandler;
+        board.RestartEvent += () =>
         {
             currentMovesWithoutProgressCount = Settings.StartPosition?.HalfmoveClock ?? 0;
             positionCounts.Clear();
         };
     }
 
-    private void MoveStartHandler(Vector2Int start, Vector2Int end, int transform_info)
+    private void MoveStartHandler(Vector2Int start, Vector2Int end, int transformInfo)
     {
         if (IsProgressiveMove(start, end))
         {
@@ -40,24 +41,24 @@ public class GameOverWatcher : MonoBehaviour
         {
             currentMovesWithoutProgressCount++;
             progressiveMove = false;
-            if (currentMovesWithoutProgressCount >= MAX_MOVES_WITHOUT_PROGRESS)
+            if (currentMovesWithoutProgressCount >= MaxMovesWithoutProgress)
             {
-                Board.GameOver(null, EndGameReason.DrawBy30MovesRule);
+                board.GameOver(null, EndGameReason.DrawBy30MovesRule);
                 return;
             }
         }
     }
 
-    private void MoveEndHandler(Vector2Int start, Vector2Int end, int transform_info)
+    private void MoveEndHandler(Vector2Int start, Vector2Int end, int transformInfo)
     {
         if (progressiveMove) positionCounts.Clear();
-        string positionHash = GetPositionHash(Board.Turn, Board.pieces);
+        string positionHash = GetPositionHash(board.Turn, board.Pieces);
         if (positionCounts.TryGetValue(positionHash, out int count))
         {
             count++;
-            if (count >= MAX_POSITION_REPEATS)
+            if (count >= MaxPositionRepeats)
             {
-                Board.GameOver(null, EndGameReason.DrawByRepeatingPosition);
+                board.GameOver(null, EndGameReason.DrawByRepeatingPosition);
                 return;
             }
             positionCounts[positionHash] = count;
@@ -69,21 +70,21 @@ public class GameOverWatcher : MonoBehaviour
 
         if (IsAllPiecesBlocked())
         {
-            Board.GameOver(!Board.Turn, EndGameReason.AllPiecesBlocked);
+            board.GameOver(!board.Turn, EndGameReason.AllPiecesBlocked);
             return;
         }
     }
 
     private bool IsAllPiecesBlocked()
     {
-        bool teamToMove = Board.Turn;
-        foreach (IPiece[] pieces in Board.pieces)
+        bool teamToMove = board.Turn;
+        foreach (IPiece[] pieces in board.Pieces)
         {
             foreach (IPiece piece in pieces)
             {
                 if (piece != null && piece.Team == teamToMove)
                 {
-                    if (piece.GetAvailableMooves().Any())
+                    if (piece.GetAvailableMoves().Any())
                     {
                         return false;
                     }
@@ -95,8 +96,8 @@ public class GameOverWatcher : MonoBehaviour
 
     private bool IsProgressiveMove(Vector2Int start, Vector2Int end)
     {
-        if (Board.pieces[start.x][start.y].Type == PieceType.progressor) return true;
-        if (Board.pieces[end.x][end.y] != null) return true;
+        if (board.Pieces[start.x][start.y].Type == PieceType.Progressor) return true;
+        if (board.Pieces[end.x][end.y] != null) return true;
         return false;
     }
 

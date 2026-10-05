@@ -1,32 +1,33 @@
 using System.Net.Sockets;
+
 using static Networking;
 
 public interface IGameJoiner
 {
-    public (bool, GameInfo) JoinGame(uint game_id);
+    (bool, GameInfo) JoinGame(uint gameId);
 }
 
 public class GameJoiner : IGameJoiner
 {
-    public (bool, GameInfo) JoinGame(uint game_id)
+    public (bool, GameInfo) JoinGame(uint gameId)
     {
-        const byte join_game_code = 30;
-        const byte no_such_game_ans = 99;
+        const byte JoinGameCode = 30;
+        const byte NoSuchGameAns = 99;
 
         TcpClient server = ServerConnection.GetConnection().Client;
         NetworkStream stream = server.GetStream();
 
-        SendCode(join_game_code, stream);
-        SendCode((byte)game_id, stream);
+        SendCode(JoinGameCode, stream);
+        SendCode((byte)gameId, stream);
 
-        GameInfo game_info = RecvGameInfo(stream);
+        GameInfo gameInfo = RecvGameInfo(stream);
 
         byte ans = RecvCode(stream);
-        if (ans == no_such_game_ans) return (false, null);
+        if (ans == NoSuchGameAns) return (false, null);
 
         bool team = ans != 0;
-        game_info.Team = team;
+        gameInfo.Team = team;
 
-        return (true, game_info);
+        return (true, gameInfo);
     }
 }

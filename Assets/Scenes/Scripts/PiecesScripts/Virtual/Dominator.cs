@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public class Dominator : Piece
 {
-    public override PieceType Type => PieceType.dominator;
-    public override List<Vector2Int> GetAvailableMooves()
+    public override PieceType Type => PieceType.Dominator;
+    public override List<Vector2Int> GetAvailableMoves()
     {
         List<Vector2Int> result = new List<Vector2Int>();
 
@@ -58,7 +59,7 @@ public class Dominator : Piece
         }
 
         //ходы по диагонали вниз влево
-        for (int i = X - 1, j = Y; i >= 0; i--) 
+        for (int i = X - 1, j = Y; i >= 0; i--)
         {
             if (i % 2 == 1) j--;
             if (j < 0) break;                                                                   //нижняя граница

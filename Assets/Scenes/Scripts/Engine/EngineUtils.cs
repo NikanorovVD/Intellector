@@ -14,25 +14,25 @@ public static class EngineUtils
         (EngineFigure)((int)whiteFigure + (int)color);
     public static EngineColor Opposite(EngineColor color) => (EngineColor)((int)color ^ 1);
 
-    private static readonly int[] ColumnStart = { 0, 7, 13, 20, 26, 33, 39, 46, 52 };
-    private static readonly (int x, int y)[] UnityFromEngine = new (int x, int y)[59];
+    private static readonly int[] columnStart = { 0, 7, 13, 20, 26, 33, 39, 46, 52 };
+    private static readonly (int x, int y)[] unityFromEngine = new (int x, int y)[59];
 
     static EngineUtils()
     {
         int i = 0;
-        for (int x = 0; x < ColumnStart.Length; x++)
+        for (int x = 0; x < columnStart.Length; x++)
         {
             int height = x % 2 == 0 ? 7 : 6;
             for (int y = 0; y < height; y++)
-                UnityFromEngine[i++] = (x, y);
+                unityFromEngine[i++] = (x, y);
         }
     }
 
     public static string IndexToTileName(int index)
     {
-        if (index < 0 || index >= UnityFromEngine.Length)
+        if (index < 0 || index >= unityFromEngine.Length)
             throw new ArgumentOutOfRangeException(nameof(index), index, "Индекс клетки вне диапазона 0..58.");
-        var (x, y) = UnityFromEngine[index];
+        var (x, y) = unityFromEngine[index];
         return $"{(char)('a' + x)}{y + 1}";
     }
 
@@ -81,7 +81,7 @@ public static class EngineUtils
     public static EngineColor CharToColor(char letter) =>
         (letter == EngineChars.WhiteToMove) ? EngineColor.White : EngineColor.Black;
 
-    public static int GetEngineIndex(int x, int y) => ColumnStart[x] + y;
+    public static int GetEngineIndex(int x, int y) => columnStart[x] + y;
 
-    public static (int x, int y) EngineIndexToUnity(int index) => UnityFromEngine[index];
+    public static (int x, int y) EngineIndexToUnity(int index) => unityFromEngine[index];
 }

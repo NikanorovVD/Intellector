@@ -1,44 +1,45 @@
 using System;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class SettingsScene : MonoBehaviour
 {
-    [SerializeField] private GameObject UIContainer;
+    [SerializeField] private GameObject uiContainer;
 
-    private InputField NameInput;
-    private Text ErrorText;
-    private Text MaterialName;
-    private Text AutoRotateCameraText;
+    private InputField nameInput;
+    private Text errorText;
+    private Text materialName;
+    private Text autoRotateCameraText;
 
     private void Awake()
     {
-        NameInput = UIContainer.transform.Find("Content/NameInput").GetComponent<InputField>();
-        ErrorText = UIContainer.transform.Find("Content/NameInput/ErrorMessage").GetComponent<Text>();
-        MaterialName = UIContainer.transform.Find("Content/MaterialChoose/CurrentMaterialName").GetComponent<Text>();
-        AutoRotateCameraText = UIContainer.transform.Find("Content/AutorotateChoose/CurrentAutorotate").GetComponent<Text>();
+        nameInput = uiContainer.transform.Find("Content/NameInput").GetComponent<InputField>();
+        errorText = uiContainer.transform.Find("Content/NameInput/ErrorMessage").GetComponent<Text>();
+        materialName = uiContainer.transform.Find("Content/MaterialChoose/CurrentMaterialName").GetComponent<Text>();
+        autoRotateCameraText = uiContainer.transform.Find("Content/AutorotateChoose/CurrentAutorotate").GetComponent<Text>();
     }
 
-    void Start()
+    private void Start()
     {
         ShowCurrentSettings();
     }
 
     private void ShowCurrentSettings()
     {
-        NameInput.text = Settings.UserName;
-        MaterialName.text = MaterialSelector.MaterialName(Settings.PieceMaterials);
-        AutoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
+        nameInput.text = Settings.UserName;
+        materialName.text = MaterialSelector.MaterialName(Settings.PieceMaterials);
+        autoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
     }
 
     public void InputChanged() => CheckName();
 
     private bool CheckName()
     {
-        string error_mes;
-        bool valid = UserNameValidator.CheckName(NameInput.text, out error_mes);
-        ErrorText.text = error_mes;
+        string errorMes;
+        bool valid = UserNameValidator.CheckName(nameInput.text, out errorMes);
+        errorText.text = errorMes;
         return valid;
     }
 
@@ -46,7 +47,7 @@ public class SettingsScene : MonoBehaviour
     {
         if (CheckName())
         {
-            Settings.UserName = NameInput.text;
+            Settings.UserName = nameInput.text;
             Exit();
         }
     }
@@ -54,17 +55,17 @@ public class SettingsScene : MonoBehaviour
     public void CancelButtonClick()
     {
         ShowCurrentSettings();
-        ErrorText.text = String.Empty;
+        errorText.text = String.Empty;
     }
 
     public void SwitchMaterial(int direction)
     {
-        int new_materials_number = ((int)Settings.PieceMaterials + direction);
-        int max_number = Enum.GetNames(typeof(PieceMaterials)).Length;
-        if (new_materials_number >= max_number) new_materials_number = 0;
-        if (new_materials_number < 0) new_materials_number = max_number - 1;
-        Settings.PieceMaterials = (PieceMaterials)(new_materials_number);
-        MaterialName.text = MaterialSelector.MaterialName(Settings.PieceMaterials);
+        int newMaterialsNumber = ((int)Settings.PieceMaterials + direction);
+        int maxNumber = Enum.GetNames(typeof(PieceMaterials)).Length;
+        if (newMaterialsNumber >= maxNumber) newMaterialsNumber = 0;
+        if (newMaterialsNumber < 0) newMaterialsNumber = maxNumber - 1;
+        Settings.PieceMaterials = (PieceMaterials)(newMaterialsNumber);
+        materialName.text = MaterialSelector.MaterialName(Settings.PieceMaterials);
     }
 
     public void Exit()
@@ -75,6 +76,6 @@ public class SettingsScene : MonoBehaviour
     public void SwitchCameraAutoRotation()
     {
         Settings.AutoRotateCameraInLocalGame = !Settings.AutoRotateCameraInLocalGame;
-        AutoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
+        autoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
     }
 }

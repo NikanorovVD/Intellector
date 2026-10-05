@@ -3,18 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ReplayView : MonoBehaviour
 {
-    static readonly Color RowColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
-    static readonly Color VariationRowColor = new Color(0.28f, 0.18f, 0.32f, 0.9f);
-    static readonly Color SelectedFrameColor = new Color(1f, 0.88f, 0.35f, 1f);
-    static readonly Color ExcellentColor = new Color(0.11f, 0.30f, 0.16f, 0.9f);
-    static readonly Color InaccuracyColor = new Color(0.33f, 0.30f, 0.10f, 0.9f);
-    static readonly Color MistakeColor = new Color(0.37f, 0.22f, 0.07f, 0.9f);
-    static readonly Color BlunderColor = new Color(0.37f, 0.11f, 0.11f, 0.9f);
+    private static readonly Color rowColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
+    private static readonly Color variationRowColor = new Color(0.28f, 0.18f, 0.32f, 0.9f);
+    private static readonly Color selectedFrameColor = new Color(1f, 0.88f, 0.35f, 1f);
+    private static readonly Color excellentColor = new Color(0.11f, 0.30f, 0.16f, 0.9f);
+    private static readonly Color inaccuracyColor = new Color(0.33f, 0.30f, 0.10f, 0.9f);
+    private static readonly Color mistakeColor = new Color(0.37f, 0.22f, 0.07f, 0.9f);
+    private static readonly Color blunderColor = new Color(0.37f, 0.11f, 0.11f, 0.9f);
 
     private const float NumberWidth = 22f;
     private const float CellWidth = 110f;
@@ -32,30 +33,30 @@ public class ReplayView : MonoBehaviour
     private const float PreAnalyzeIdleHeight = 24f;
     private const float PreAnalyzeRunningHeight = 36f;
 
-    [SerializeField] GameObject panel;
-    [SerializeField] GameObject content;
-    [SerializeField] GameObject itemPrefab;
-    [SerializeField] Text meta;
-    [SerializeField] Toggle engineToggle;
-    [SerializeField] Text evalText;
-    [SerializeField] Text bestMoveText;
-    [SerializeField] GameObject accuracyRow;
-    [SerializeField] GameObject whiteAccuracyGroup;
-    [SerializeField] GameObject blackAccuracyGroup;
-    [SerializeField] Text whiteAccuracyText;
-    [SerializeField] Text blackAccuracyText;
-    [SerializeField] LayoutElement engineLayout;
-    [SerializeField] GameObject evalBar;
-    [SerializeField] RectTransform evalBarFill;
-    [SerializeField] Button copyIfenButton;
-    [SerializeField] Text copyIfenText;
-    [SerializeField] LayoutElement copyIfenLayout;
-    [SerializeField] Button preAnalyzeButton;
-    [SerializeField] Text preAnalyzeButtonText;
-    [SerializeField] LayoutElement preAnalyzeLayout;
-    [SerializeField] InputField depthInput;
-    [SerializeField] GameObject preAnalyzeProgress;
-    [SerializeField] RectTransform preAnalyzeProgressFill;
+    [SerializeField] private GameObject panel;
+    [SerializeField] private GameObject content;
+    [SerializeField] private GameObject itemPrefab;
+    [SerializeField] private Text meta;
+    [SerializeField] private Toggle engineToggle;
+    [SerializeField] private Text evalText;
+    [SerializeField] private Text bestMoveText;
+    [SerializeField] private GameObject accuracyRow;
+    [SerializeField] private GameObject whiteAccuracyGroup;
+    [SerializeField] private GameObject blackAccuracyGroup;
+    [SerializeField] private Text whiteAccuracyText;
+    [SerializeField] private Text blackAccuracyText;
+    [SerializeField] private LayoutElement engineLayout;
+    [SerializeField] private GameObject evalBar;
+    [SerializeField] private RectTransform evalBarFill;
+    [SerializeField] private Button copyIfenButton;
+    [SerializeField] private Text copyIfenText;
+    [SerializeField] private LayoutElement copyIfenLayout;
+    [SerializeField] private Button preAnalyzeButton;
+    [SerializeField] private Text preAnalyzeButtonText;
+    [SerializeField] private LayoutElement preAnalyzeLayout;
+    [SerializeField] private InputField depthInput;
+    [SerializeField] private GameObject preAnalyzeProgress;
+    [SerializeField] private RectTransform preAnalyzeProgressFill;
 
     public event Action<bool> EngineToggled;
     public event Action<int, bool> MoveClicked;
@@ -79,7 +80,7 @@ public class ReplayView : MonoBehaviour
         public Color Idle;
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
         if (engineToggle != null)
             engineToggle.onValueChanged.AddListener(OnEngineToggled);
@@ -95,7 +96,7 @@ public class ReplayView : MonoBehaviour
         }
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
         if (engineToggle != null)
             engineToggle.onValueChanged.RemoveListener(OnEngineToggled);
@@ -391,12 +392,12 @@ public class ReplayView : MonoBehaviour
     private Color IdleColorFor(bool isVariation, int ply)
     {
         if (isVariation)
-            return VariationRowColor;
+            return variationRowColor;
         if (mainQualities == null || ply <= 0)
-            return RowColor;
+            return rowColor;
         int index = ply - 1;
         if (index >= mainQualities.Count)
-            return RowColor;
+            return rowColor;
         return ColorFor(mainQualities[index].Judgement);
     }
 
@@ -404,10 +405,10 @@ public class ReplayView : MonoBehaviour
     {
         return judgement switch
         {
-            MoveJudgement.Inaccuracy => InaccuracyColor,
-            MoveJudgement.Mistake => MistakeColor,
-            MoveJudgement.Blunder => BlunderColor,
-            _ => ExcellentColor
+            MoveJudgement.Inaccuracy => inaccuracyColor,
+            MoveJudgement.Mistake => mistakeColor,
+            MoveJudgement.Blunder => blunderColor,
+            _ => excellentColor
         };
     }
 
@@ -555,7 +556,7 @@ public class ReplayView : MonoBehaviour
         frame.type = Image.Type.Sliced;
         frame.fillCenter = false;
         frame.pixelsPerUnitMultiplier = 1.2f;
-        frame.color = SelectedFrameColor;
+        frame.color = selectedFrameColor;
         frame.raycastTarget = false;
         frame.enabled = false;
         return frame;

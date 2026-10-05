@@ -727,10 +727,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3910c81b14452284089fdc21df71f165, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DominatorButton: {fileID: 6593513138711044606}
-  AgressorButton: {fileID: 4127770734183469307}
-  LiberatorButton: {fileID: 8347483416363052352}
-  DefensorButton: {fileID: 4892188193354520307}
+  dominatorButton: {fileID: 6593513138711044606}
+  agressorButton: {fileID: 4127770734183469307}
+  liberatorButton: {fileID: 8347483416363052352}
+  defensorButton: {fileID: 4892188193354520307}
 --- !u!1 &6593513138711044606
 GameObject:
   m_ObjectHideFlags: 0

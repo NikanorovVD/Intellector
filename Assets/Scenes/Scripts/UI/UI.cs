@@ -3,8 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class UI : MonoBehaviour
 {
-    [SerializeField] NetworkManager networkManager;
-    [SerializeField] Board board;
+    [SerializeField] private NetworkManager networkManager;
+    [SerializeField] private Board board;
     public void Exit()
     {
         if (board.NetworkGame)

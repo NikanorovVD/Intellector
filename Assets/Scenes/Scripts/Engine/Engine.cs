@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -415,7 +415,7 @@ public class Engine
 
         void AddWhiteProgressorMoves(int coord)
         {
-            int[] targets = T.PMoves_white[coord];
+            int[] targets = T.PMovesWhite[coord];
             int len = targets.Length;
 
             if (all)
@@ -458,7 +458,7 @@ public class Engine
 
         void AddBlackProgressorMoves(int coord)
         {
-            int[] targets = T.PMoves_black[coord];
+            int[] targets = T.PMovesBlack[coord];
             int len = targets.Length;
 
             if (all)
@@ -713,11 +713,11 @@ public class Engine
             if (fields[f] == U.WithColor(EngineFigure.WhiteLiberator, opp)) return true;
 
         if (opp == EngineColor.White)
-            foreach (int f in T.PMoves_black[field])
+            foreach (int f in T.PMovesBlack[field])
                 if (fields[f] == EngineFigure.WhiteProgressor) return true;
 
         if (opp == EngineColor.Black)
-            foreach (int f in T.PMoves_white[field])
+            foreach (int f in T.PMovesWhite[field])
                 if (fields[f] == EngineFigure.BlackProgressor) return true;
 
         for (int dir = 0; dir < 6; dir++)
@@ -987,19 +987,19 @@ public class Engine
         public List<EngineMove> Line;
     }
 
-    private static readonly SearchContext DepthSearch = new()
+    private static readonly SearchContext depthSearch = new()
     {
         AbortMode = SearchAbortMode.None, CountNodes = false, TrackLine = false,
         UpdateHashBoundsAtRoot = true, ReportRootProgress = false, UseMoveIndexForVariability = true
     };
 
-    private static readonly SearchContext TimeSearch = new()
+    private static readonly SearchContext timeSearch = new()
     {
         AbortMode = SearchAbortMode.Time, CountNodes = true, TrackLine = true,
         UpdateHashBoundsAtRoot = true, ReportRootProgress = true, UseMoveIndexForVariability = false
     };
 
-    private static readonly SearchContext CountSearch = new()
+    private static readonly SearchContext countSearch = new()
     {
         AbortMode = SearchAbortMode.Count, CountNodes = true, TrackLine = false,
         UpdateHashBoundsAtRoot = false, ReportRootProgress = true, UseMoveIndexForVariability = false
@@ -1395,7 +1395,7 @@ public class Engine
     private (EngineMove? move, double mark) AB(double alpha, double beta,
         int depth, double extension, int maxDepth, int? pos, bool firstDepth = false)
     {
-        var r = AlphaBeta(alpha, beta, depth, extension, maxDepth, pos, DepthSearch, firstDepth);
+        var r = AlphaBeta(alpha, beta, depth, extension, maxDepth, pos, depthSearch, firstDepth);
         return (r.Move, r.Mark);
     }
 
@@ -1403,7 +1403,7 @@ public class Engine
         double alpha, double beta,
         int depth, double extension, int maxDepth, int? pos, bool firstDepth = false)
     {
-        var r = AlphaBeta(alpha, beta, depth, extension, maxDepth, pos, TimeSearch, firstDepth);
+        var r = AlphaBeta(alpha, beta, depth, extension, maxDepth, pos, timeSearch, firstDepth);
         return (r.Move, r.Mark, r.Line ?? new List<EngineMove>());
     }
 
@@ -1411,7 +1411,7 @@ public class Engine
         double alpha, double beta,
         int depth, double extension, int maxDepth, int? pos, bool firstDepth = false)
     {
-        var r = AlphaBeta(alpha, beta, depth, extension, maxDepth, pos, CountSearch, firstDepth);
+        var r = AlphaBeta(alpha, beta, depth, extension, maxDepth, pos, countSearch, firstDepth);
         return (r.Move, r.Mark);
     }
 

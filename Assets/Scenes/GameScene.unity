@@ -246,11 +246,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a05d3c508978ff4b9f43ffc660e2353, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GameObject: {fileID: 1992075610}
-  OpponentTime: {fileID: 815194353}
-  MyTime: {fileID: 2036338601}
-  OpponentPanel: {fileID: 1289135097}
-  MyPanel: {fileID: 609978208}
+  gameObject: {fileID: 1992075610}
+  opponentTimeLabel: {fileID: 815194353}
+  myTimeLabel: {fileID: 2036338601}
+  opponentPanel: {fileID: 1289135097}
+  myPanel: {fileID: 609978208}
 --- !u!1 &53335207
 GameObject:
   m_ObjectHideFlags: 0
@@ -593,8 +593,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DesktopScale: 1
-  AndroidScale: 1.8
+  desktopScale: 1
+  androidScale: 1.8
 --- !u!1 &262079597
 GameObject:
   m_ObjectHideFlags: 3
@@ -1272,7 +1272,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   board: {fileID: 4735542688449980585}
-  WaitScreen: {fileID: 0}
+  waitScreen: {fileID: 0}
 --- !u!4 &498376094
 Transform:
   m_ObjectHideFlags: 0
@@ -1434,8 +1434,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DesktopScale: 1
-  AndroidScale: 1.5
+  desktopScale: 1
+  androidScale: 1.5
 --- !u!1 &546878643 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7aa2ac9371885764797e2b8dd41a94e2, type: 3}
@@ -1453,9 +1453,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85be55cdcef3f054c9ff7781b9430fae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WhiteCamera: {fileID: 1231289928}
-  BlackCamera: {fileID: 1494846469}
-  TopCamera: {fileID: 2126817110}
+  whiteCamera: {fileID: 1231289928}
+  blackCamera: {fileID: 1494846469}
+  topCamera: {fileID: 2126817110}
   board: {fileID: 4735542688449980585}
 --- !u!4 &546878647 stripped
 Transform:
@@ -3252,7 +3252,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f93e0a1300ea8348bb218fdd2c340a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentCamera: {fileID: 1231289928}
+  currentCamera: {fileID: 1231289928}
 --- !u!1 &1279668666
 GameObject:
   m_ObjectHideFlags: 0
@@ -3980,7 +3980,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99ab03077738231418a8b2131365ceb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  network_manager: {fileID: 498376093}
+  networkManager: {fileID: 498376093}
   view: {fileID: 33548564}
   board: {fileID: 4735542688449980585}
 --- !u!4 &1444618572 stripped
@@ -4211,7 +4211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08892af62aa81504ca038fc2d7fb1f46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Board: {fileID: 4735542688449980585}
+  board: {fileID: 4735542688449980585}
 --- !u!4 &1459118320
 Transform:
   m_ObjectHideFlags: 0
@@ -4256,7 +4256,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1b7a6235f8142ce30ab9c8d7e6f5041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Board: {fileID: 4735542688449980585}
+  board: {fileID: 4735542688449980585}
 --- !u!4 &1468000102
 Transform:
   m_ObjectHideFlags: 0
@@ -4302,7 +4302,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3d9e0457f8164c02d0e9f1b4c5a7293, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Board: {fileID: 4735542688449980585}
+  board: {fileID: 4735542688449980585}
   view: {fileID: 1479000203}
 --- !u!114 &1479000203
 MonoBehaviour:
@@ -4404,7 +4404,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f93e0a1300ea8348bb218fdd2c340a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _currentCamera: {fileID: 1494846469}
+  currentCamera: {fileID: 1494846469}
 --- !u!114 &1494846469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5413,7 +5413,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e918f62b0a605f045a867be088bdd8fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  main_board: {fileID: 4735542688449980585}
+  mainBoard: {fileID: 4735542688449980585}
 --- !u!4 &1945706231
 Transform:
   m_ObjectHideFlags: 0
@@ -5638,8 +5638,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7647f8c65c169cb47a98c3980ffddee4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DesktopScale: 1
-  AndroidScale: 2
+  desktopScale: 1
+  androidScale: 2
   anchorType: 0
 --- !u!1 &2036338599
 GameObject:
@@ -6131,11 +6131,11 @@ PrefabInstance:
       value: Board
       objectReference: {fileID: 0}
     - target: {fileID: 5309763044146601906, guid: 62c306f32c8f920419d00c3f3d2d0725, type: 3}
-      propertyPath: EndGame
+      propertyPath: endGame
       value: 
       objectReference: {fileID: 1444618573}
     - target: {fileID: 5309763044146601906, guid: 62c306f32c8f920419d00c3f3d2d0725, type: 3}
-      propertyPath: Progressor_end
+      propertyPath: progressorEnd
       value: 
       objectReference: {fileID: 536947205}
     - target: {fileID: 5309763044146601906, guid: 62c306f32c8f920419d00c3f3d2d0725, type: 3}
@@ -6143,7 +6143,7 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 779179599}
     - target: {fileID: 5309763044146601906, guid: 62c306f32c8f920419d00c3f3d2d0725, type: 3}
-      propertyPath: Around_Intellector
+      propertyPath: aroundIntellector
       value: 
       objectReference: {fileID: 234183487}
     m_RemovedComponents: []
@@ -6173,8 +6173,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DesktopScale: 1
-  AndroidScale: 1.8
+  desktopScale: 1
+  androidScale: 1.8
 --- !u!114 &4735542688449980585 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5309763044146601906, guid: 62c306f32c8f920419d00c3f3d2d0725, type: 3}
@@ -6199,11 +6199,11 @@ PrefabInstance:
       value: EndGame
       objectReference: {fileID: 0}
     - target: {fileID: 5997927835210953982, guid: cf090fbf7c80c5840a14671c7818cb48, type: 3}
-      propertyPath: Rematch
+      propertyPath: rematch
       value: 
       objectReference: {fileID: 1916245453}
     - target: {fileID: 5997927835210953982, guid: cf090fbf7c80c5840a14671c7818cb48, type: 3}
-      propertyPath: EndGameWindow
+      propertyPath: endGameWindow
       value: 
       objectReference: {fileID: 4082230316915263927}
     - target: {fileID: 5997927835210953982, guid: cf090fbf7c80c5840a14671c7818cb48, type: 3}
@@ -6407,8 +6407,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DesktopScale: 1
-  AndroidScale: 1.8
+  desktopScale: 1
+  androidScale: 1.8
 --- !u!114 &1482000105
 MonoBehaviour:
   m_ObjectHideFlags: 0

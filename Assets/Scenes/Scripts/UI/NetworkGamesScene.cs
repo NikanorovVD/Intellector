@@ -1,24 +1,25 @@
 using System.Collections.Generic;
+using System;
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System;
 
 public class NetworkGamesScene : MonoBehaviour
 {
-    [SerializeField] GameObject NetworkGamePrefab;
-    [SerializeField] GameObject Content;
-    [SerializeField] GameObject GameInfoWindow;
-    [SerializeField] GameObject ErrorWindow;
-    [SerializeField] GameObject WaitingWindow;
+    [SerializeField] private GameObject networkGamePrefab;
+    [SerializeField] private GameObject content;
+    [SerializeField] private GameObject gameInfoWindow;
+    [SerializeField] private GameObject errorWindow;
+    [SerializeField] private GameObject waitingWindow;
     [SerializeField] public Color DefaultColor;
     [SerializeField] public Color SelectedColor;
-    [SerializeField] GameObject[] Buttons;
-    
-    private readonly List<GameObject> Items = new List<GameObject>();
+    [SerializeField] private GameObject[] buttons;
+
+    private readonly List<GameObject> items = new List<GameObject>();
     public uint SelectedId;
 
-    void Start()
+    private void Start()
     {
         ShowGamesList();
     }
@@ -36,57 +37,56 @@ public class NetworkGamesScene : MonoBehaviour
         }
         catch(VersionException e)
         {
-            ErrorWindow.SetActive(true);
-            ErrorWindow.GetComponentInChildren<Text>().text = e.Message;
+            errorWindow.SetActive(true);
+            errorWindow.GetComponentInChildren<Text>().text = e.Message;
             DeactivateButtons();
         }
         catch (Exception e)
         {
             Debug.LogException(e);
-            ErrorWindow.SetActive(true);
+            errorWindow.SetActive(true);
             DeactivateButtons();
         }
 
-        void DeactivateButtons() { foreach (var button in Buttons) button.SetActive(false); }
+        void DeactivateButtons() { foreach (var button in buttons) button.SetActive(false); }
     }
 
     private void DisplayGame(GameInfo game)
     {
-        GameObject net_game_obj = Instantiate(NetworkGamePrefab);
-        NetworkGameItem net_game = net_game_obj.GetComponent<NetworkGameItem>();
+        GameObject netGameObj = Instantiate(networkGamePrefab);
+        NetworkGameItem netGame = netGameObj.GetComponent<NetworkGameItem>();
 
+        netGame.GameInfo = game;
+        netGame.NetworkGameScene = this;
+        netGameObj.transform.SetParent(content.GetComponent<Transform>(), transform);
 
-        net_game.GameInfo = game;
-        net_game.NetworkGameScene = this;
-        net_game_obj.transform.SetParent(Content.GetComponent<Transform>(), transform);
-
-        RectTransform rect = net_game_obj.GetComponent<RectTransform>();
+        RectTransform rect = netGameObj.GetComponent<RectTransform>();
         rect.localScale = Vector3.one;
 
-        net_game.DisplayGameInfo();
-        net_game.SetDefaultColor();
-        Items.Add(net_game_obj);
+        netGame.DisplayGameInfo();
+        netGame.SetDefaultColor();
+        items.Add(netGameObj);
     }
 
     private void ClearItems()
     {
-        foreach (GameObject item in Items)
+        foreach (GameObject item in items)
         {
             Destroy(item);
         }
-        Items.Clear();
+        items.Clear();
     }
 
     public void ShowGameInfoWindow()
     {
-        GameInfoWindow.SetActive(true);
+        gameInfoWindow.SetActive(true);
     }
 
     public void SetDefaultColors()
     {
-        foreach (GameObject game_obj in Items)
+        foreach (GameObject gameObj in items)
         {
-            game_obj.GetComponent<NetworkGameItem>().SetDefaultColor();
+            gameObj.GetComponent<NetworkGameItem>().SetDefaultColor();
         }
     }
 
@@ -97,8 +97,8 @@ public class NetworkGamesScene : MonoBehaviour
             (bool connect, GameInfo gameInfo) = ServerManager.GetInstance().JoinGame(SelectedId);
             if (!connect)
             {
-                ErrorWindow.SetActive(true);
-                ErrorWindow.GetComponentInChildren<Text>().text = "Игра уже не существует";
+                errorWindow.SetActive(true);
+                errorWindow.GetComponentInChildren<Text>().text = "Игра уже не существует";
                 return;
             }
             gameInfo.Save();
@@ -107,10 +107,10 @@ public class NetworkGamesScene : MonoBehaviour
     }
     public void CreateGameConfirmClick()
     {
-        GameInfo gameInfo = GameInfoWindow.GetComponent<GameInfoWindow>().GetGameInfo();
+        GameInfo gameInfo = gameInfoWindow.GetComponent<GameInfoWindow>().GetGameInfo();
         if (gameInfo != null)
         {
-            WaitingWindow.SetActive(true);
+            waitingWindow.SetActive(true);
             ServerManager.GetInstance().CreateGame(gameInfo,GoToGameScene);
         }
     }
@@ -118,7 +118,7 @@ public class NetworkGamesScene : MonoBehaviour
     public void CancelWaiting()
     {
         ServerManager.GetInstance().CancelGameCreate();
-        WaitingWindow.SetActive(false);
+        waitingWindow.SetActive(false);
     }
 
     private void GoToGameScene()

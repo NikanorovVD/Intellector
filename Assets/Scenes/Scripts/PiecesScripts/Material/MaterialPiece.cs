@@ -1,41 +1,40 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class MaterialPiece : MonoBehaviour, IPiece
 {
-    private readonly Piece _piece;
+    private readonly Piece piece;
     public MaterialPiece(Piece piece)
     {
-        _piece = piece;
+        this.piece = piece;
     }
-    public PieceType Type { get => _piece.Type; }
+    public PieceType Type { get => piece.Type; }
     public int X
     {
-        get => _piece.X;
-        set => _piece.X = value;
+        get => piece.X;
+        set => piece.X = value;
     }
     public int Y
     {
-        get => _piece.Y;
-        set => _piece.Y = value;
+        get => piece.Y;
+        set => piece.Y = value;
     }
     public bool Team
     {
-        get => _piece.Team;
-        set => _piece.Team = value;
+        get => piece.Team;
+        set => piece.Team = value;
     }
     public IPiece[][] Board
     {
-        get => _piece.Board;
-        set => _piece.Board = value;
+        get => piece.Board;
+        set => piece.Board = value;
     }
     public bool HasIntellectorNearby()
     {
-        return _piece.HasIntellectorNearby();
+        return piece.HasIntellectorNearby();
     }
-    public List<Vector2Int> GetAvailableMooves()
+    public List<Vector2Int> GetAvailableMoves()
     {
-        return _piece.GetAvailableMooves();
+        return piece.GetAvailableMoves();
     }
 }
-

@@ -267,7 +267,7 @@ public static class EngineTables
     public static int[][] DMoves => LShortMoves;
     public static int[][] Near => LShortMoves;
 
-    public static readonly int[][] PMoves_white = new int[][]
+    public static readonly int[][] PMovesWhite = new int[][]
     {
         /*a1*/new int[]{},    /*a2*/new[]{2,8},     /*a3*/new[]{3,9},
         /*a4*/new[]{4,10},    /*a5*/new[]{5,11},    /*a6*/new[]{6,12},    /*a7*/new int[]{},
@@ -289,7 +289,7 @@ public static class EngineTables
         /*i4*/new[]{49,56},   /*i5*/new[]{50,57},   /*i6*/new[]{51,58},   /*i7*/new int[]{},
     };
 
-    public static readonly int[][] PMoves_black = new int[][]
+    public static readonly int[][] PMovesBlack = new int[][]
     {
         /*a1*/new int[]{},    /*a2*/new[]{0,7},     /*a3*/new[]{1,8},
         /*a4*/new[]{2,9},     /*a5*/new[]{3,10},    /*a6*/new[]{4,11},    /*a7*/new int[]{},
@@ -326,10 +326,10 @@ public static class EngineTables
     public static readonly int[] AMovesCount = {
         8,0,0,8,0,0,8, 0,9,0,0,9,0, 10,0,0,12,0,0,10, 0,11,0,0,11,0,
         12,0,0,12,0,0,12, 0,11,0,0,11,0, 10,0,0,12,0,0,10, 0,9,0,0,9,0, 8,0,0,8,0,0,8};
-    public static readonly int[] PMovesCount_w = {
+    public static readonly int[] PMovesCountW = {
         0,2,2,2,2,2,0, 3,3,3,3,3,2, 0,3,3,3,3,3,0, 3,3,3,3,3,2,
         0,3,3,3,3,3,0, 3,3,3,3,3,2, 0,3,3,3,3,3,0, 3,3,3,3,3,2, 0,2,2,2,2,2,0};
-    public static readonly int[] PMovesCount_b = {
+    public static readonly int[] PMovesCountB = {
         0,2,2,2,2,2,0, 2,3,3,3,3,3, 0,3,3,3,3,3,0, 2,3,3,3,3,3,
         0,3,3,3,3,3,0, 2,3,3,3,3,3, 0,3,3,3,3,3,0, 2,3,3,3,3,3, 0,2,2,2,2,2,0};
     public static readonly int[] MMovesCount = {
@@ -339,19 +339,19 @@ public static class EngineTables
     public static readonly int[] DistanceToCenter = {
         5,4,4,4,4,4,5, 4,3,3,3,3,4, 4,3,2,2,2,3,4, 3,2,1,1,2,3,
         3,2,1,0,1,2,3, 3,2,1,1,2,3, 4,3,2,2,2,3,4, 4,3,3,3,3,4, 5,4,4,4,4,4,5};
-    public static readonly int[] PPromotion_w = {
+    public static readonly int[] PPromotionW = {
         0,0,20,50,100,150,0, 0,0,20,50,100,150, 0,0,20,50,100,150,0,
         0,0,20,50,100,150, 0,0,20,50,100,150,0, 0,0,20,50,100,150,
         0,0,20,50,100,150,0, 0,0,20,50,100,150, 0,0,20,50,100,150,0};
-    public static readonly int[] PPromotion_b = {
+    public static readonly int[] PPromotionB = {
         0,-150,-100,-50,-20,0,0, -150,-100,-50,-20,0,0, 0,-150,-100,-50,-20,0,0,
         -150,-100,-50,-20,0,0, 0,-150,-100,-50,-20,0,0, -150,-100,-50,-20,0,0,
         0,-150,-100,-50,-20,0,0, -150,-100,-50,-20,0,0, 0,-150,-100,-50,-20,0,0};
-    public static readonly int[] IPromotion_w = {
+    public static readonly int[] IPromotionW = {
         0,5,10,20,50,100,100000, 0,5,10,20,50,100, 0,5,10,20,50,100,100000,
         0,5,10,20,50,100, 0,5,10,20,50,100,100000, 0,5,10,20,50,100,
         0,5,10,20,50,100,100000, 0,5,10,20,50,100, 0,5,10,20,50,100,100000};
-    public static readonly int[] IPromotion_b = {
+    public static readonly int[] IPromotionB = {
         -100000,-100,-50,-20,-10,-5,0, -100,-50,-20,-10,-5,0,
         -100000,-100,-50,-20,-10,-5,0, -100,-50,-20,-10,-5,0,
         -100000,-100,-50,-20,-10,-5,0, -100,-50,-20,-10,-5,0,
@@ -370,8 +370,8 @@ public static class EngineTables
 
         for (int i = 0; i <= 58; i++)
         {
-            Price[(int)EngineFigure.WhiteProgressor][i] = MarkOf(EngineFigure.WhiteProgressor) + PMovesCount_w[i] * kMovesCount + PPromotion_w[i];
-            Price[(int)EngineFigure.BlackProgressor][i] = MarkOf(EngineFigure.BlackProgressor) - PMovesCount_b[i] * kMovesCount + PPromotion_b[i];
+            Price[(int)EngineFigure.WhiteProgressor][i] = MarkOf(EngineFigure.WhiteProgressor) + PMovesCountW[i] * kMovesCount + PPromotionW[i];
+            Price[(int)EngineFigure.BlackProgressor][i] = MarkOf(EngineFigure.BlackProgressor) - PMovesCountB[i] * kMovesCount + PPromotionB[i];
             Price[(int)EngineFigure.WhiteDominator][i] = MarkOf(EngineFigure.WhiteDominator) + MMovesCount[i] * kMovesCount + DistanceToCenter[i] * kCenter;
             Price[(int)EngineFigure.BlackDominator][i] = MarkOf(EngineFigure.BlackDominator) - MMovesCount[i] * kMovesCount - DistanceToCenter[i] * kCenter;
             Price[(int)EngineFigure.WhiteLiberator][i] = MarkOf(EngineFigure.WhiteLiberator) + (LShortMovesCount[i] / 2.0 + LLongMovesCount[i]) * kMovesCount + DistanceToCenter[i] * kCenter;
@@ -380,8 +380,8 @@ public static class EngineTables
             Price[(int)EngineFigure.BlackAgressor][i] = MarkOf(EngineFigure.BlackAgressor) - AMovesCount[i] * kMovesCount;
             Price[(int)EngineFigure.WhiteDefensor][i] = MarkOf(EngineFigure.WhiteDefensor) + DMovesCount[i] * kMovesCount + DistanceToCenter[i] * kCenter;
             Price[(int)EngineFigure.BlackDefensor][i] = MarkOf(EngineFigure.BlackDefensor) - DMovesCount[i] * kMovesCount - DistanceToCenter[i] * kCenter;
-            Price[(int)EngineFigure.WhiteIntellector][i] = MarkOf(EngineFigure.WhiteIntellector) + IMovesCount[i] * kMovesCount + IPromotion_w[i];
-            Price[(int)EngineFigure.BlackIntellector][i] = MarkOf(EngineFigure.BlackIntellector) - IMovesCount[i] * kMovesCount + IPromotion_b[i];
+            Price[(int)EngineFigure.WhiteIntellector][i] = MarkOf(EngineFigure.WhiteIntellector) + IMovesCount[i] * kMovesCount + IPromotionW[i];
+            Price[(int)EngineFigure.BlackIntellector][i] = MarkOf(EngineFigure.BlackIntellector) - IMovesCount[i] * kMovesCount + IPromotionB[i];
             Price[(int)EngineFigure.Empty][i] = 0;
         }
     }

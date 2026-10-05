@@ -3,22 +3,22 @@ using UnityEngine;
 public class MouseController : MonoBehaviour
 {
     [SerializeField] private Board board;
-    private Camera _currentCamera;
+    private Camera currentCamera;
 
-    private static readonly string[] _layersNames = {"Tile","HoverTile","SelectedTile", "Available", "HoverAvailable", "HoverSelected", "Hint", "HoverHint"};
+    private static readonly string[] layersNames = {"Tile","HoverTile","SelectedTile", "Available", "HoverAvailable", "HoverSelected", "Hint", "HoverHint"};
 
-    void Update()
+    private void Update()
     {
-        if (board.game_over || board.wait_for_transformation) return;
-        if (!_currentCamera)
+        if (board.GameOver || board.WaitForTransformation) return;
+        if (!currentCamera)
         {
-            _currentCamera = Camera.main;
+            currentCamera = Camera.main;
             return;
         }
 
-        Ray ray = _currentCamera.ScreenPointToRay(Input.mousePosition);
+        Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(ray, out RaycastHit info, 500, LayerMask.GetMask(_layersNames)))
+        if (Physics.Raycast(ray, out RaycastHit info, 500, LayerMask.GetMask(layersNames)))
         {
             //Выделение поля
             Vector2Int hitPosition = board.LookUpTileIndex(info.transform.gameObject);
@@ -27,7 +27,7 @@ public class MouseController : MonoBehaviour
         else board.RemoveHover();
 
         //обработка нажатия ЛКМ
-        if (Input.GetMouseButtonDown(0) && (Physics.Raycast(ray, out info, 500, LayerMask.GetMask(_layersNames))))
+        if (Input.GetMouseButtonDown(0) && (Physics.Raycast(ray, out info, 500, LayerMask.GetMask(layersNames))))
         {
             Vector2Int hitPosition = board.LookUpTileIndex(info.transform.gameObject);
             board.SelectTile(hitPosition);

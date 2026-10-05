@@ -1,8 +1,9 @@
-public enum PieceType {
-    progressor = 0,
-    liberator = 1,
-    intellector = 2,
-    dominator = 3, 
-    defensor = 4, 
-    agressor = 5
+public enum PieceType
+{
+    Progressor = 0,
+    Liberator = 1,
+    Intellector = 2,
+    Dominator = 3,
+    Defensor = 4,
+    Agressor = 5
 }

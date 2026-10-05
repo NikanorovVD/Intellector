@@ -936,7 +936,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca828a9fc60dc28459468c2904fd2803, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UIContainer: {fileID: 2083363364}
+  uiContainer: {fileID: 2083363364}
 --- !u!4 &663391772
 Transform:
   m_ObjectHideFlags: 0
@@ -4022,8 +4022,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DesktopScale: 1
-  AndroidScale: 1.8
+  desktopScale: 1
+  androidScale: 1.8
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

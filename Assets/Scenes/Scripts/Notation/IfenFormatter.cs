@@ -6,29 +6,29 @@ public static class IfenFormatter
     public static RecordedPosition Initial()
     {
         var position = new RecordedPosition();
-        Place(position, 0, 0, PieceType.dominator, false);
-        Place(position, 1, 0, PieceType.liberator, false);
-        Place(position, 2, 0, PieceType.agressor, false);
-        Place(position, 3, 0, PieceType.defensor, false);
-        Place(position, 4, 0, PieceType.intellector, false);
-        Place(position, 5, 0, PieceType.defensor, false);
-        Place(position, 6, 0, PieceType.agressor, false);
-        Place(position, 7, 0, PieceType.liberator, false);
-        Place(position, 8, 0, PieceType.dominator, false);
+        Place(position, 0, 0, PieceType.Dominator, false);
+        Place(position, 1, 0, PieceType.Liberator, false);
+        Place(position, 2, 0, PieceType.Agressor, false);
+        Place(position, 3, 0, PieceType.Defensor, false);
+        Place(position, 4, 0, PieceType.Intellector, false);
+        Place(position, 5, 0, PieceType.Defensor, false);
+        Place(position, 6, 0, PieceType.Agressor, false);
+        Place(position, 7, 0, PieceType.Liberator, false);
+        Place(position, 8, 0, PieceType.Dominator, false);
         for (int x = 0; x < 9; x += 2)
-            Place(position, x, 1, PieceType.progressor, false);
+            Place(position, x, 1, PieceType.Progressor, false);
 
-        Place(position, 0, 6, PieceType.dominator, true);
-        Place(position, 1, 5, PieceType.liberator, true);
-        Place(position, 2, 6, PieceType.agressor, true);
-        Place(position, 3, 5, PieceType.defensor, true);
-        Place(position, 4, 6, PieceType.intellector, true);
-        Place(position, 5, 5, PieceType.defensor, true);
-        Place(position, 6, 6, PieceType.agressor, true);
-        Place(position, 7, 5, PieceType.liberator, true);
-        Place(position, 8, 6, PieceType.dominator, true);
+        Place(position, 0, 6, PieceType.Dominator, true);
+        Place(position, 1, 5, PieceType.Liberator, true);
+        Place(position, 2, 6, PieceType.Agressor, true);
+        Place(position, 3, 5, PieceType.Defensor, true);
+        Place(position, 4, 6, PieceType.Intellector, true);
+        Place(position, 5, 5, PieceType.Defensor, true);
+        Place(position, 6, 6, PieceType.Agressor, true);
+        Place(position, 7, 5, PieceType.Liberator, true);
+        Place(position, 8, 6, PieceType.Dominator, true);
         for (int x = 0; x < 9; x += 2)
-            Place(position, x, 5, PieceType.progressor, true);
+            Place(position, x, 5, PieceType.Progressor, true);
 
         return position;
     }

@@ -6,7 +6,7 @@ public class NetworkGameItem : MonoBehaviour
     public NetworkGamesScene NetworkGameScene { get; set; }
     public GameInfo GameInfo { get; set; }
 
-    void Awake()
+    private void Awake()
     {
         Button button = GetComponent<Button>();
         button.onClick.AddListener(SetSelectedNumber);
@@ -16,7 +16,7 @@ public class NetworkGameItem : MonoBehaviour
     {
         Text[] texts = GetComponentsInChildren<Text>();
         texts[0].text = GameInfo.Name;
-        texts[1].text = GameInfo.TimeContol.ToString();
+        texts[1].text = GameInfo.TimeControl.ToString();
         SetColor();
     }
 
@@ -45,9 +45,9 @@ public class NetworkGameItem : MonoBehaviour
         GameObject random = colors.transform.Find("RandomColor").gameObject;
         switch (GameInfo.Color)
         {
-            case ColorChoice.white: white.SetActive(true); break;
-            case ColorChoice.black: black.SetActive(true); break;
-            case ColorChoice.random: random.SetActive(true); break;
+            case ColorChoice.White: white.SetActive(true); break;
+            case ColorChoice.Black: black.SetActive(true); break;
+            case ColorChoice.Random: random.SetActive(true); break;
         }
     }
 }

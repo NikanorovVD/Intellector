@@ -44,11 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd98f63c79ccb6c46b882e8b26999cf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WhiteMaterials:
+  whiteMaterials:
   - {fileID: 2100000, guid: 1dbd71f7d5baf6e4a876bce24775528d, type: 2}
   - {fileID: 2100000, guid: 9ef7b536869286748b268490b0151408, type: 2}
   - {fileID: 2100000, guid: 331fe6d789308674aabee5ab9e5f844b, type: 2}
-  BlackMaterials:
+  blackMaterials:
   - {fileID: 2100000, guid: edc6352f0a7e84e428f47de43ccfd7e4, type: 2}
   - {fileID: 2100000, guid: fd50e7ba1627d6f4693e3cf0b522959c, type: 2}
   - {fileID: 2100000, guid: 081f194649c94d845b745de9a7ea7d76, type: 2}

@@ -2434,14 +2434,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b18b236039738349b42a1c01ba5df64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NetworkGamePrefab: {fileID: 2031992579220848648, guid: 5d496c9b22ce8ec4eadddb7fff4724b7, type: 3}
-  Content: {fileID: 1939815376}
-  GameInfoWindow: {fileID: 1768952689}
-  ErrorWindow: {fileID: 1260604389}
-  WaitingWindow: {fileID: 279551609}
+  networkGamePrefab: {fileID: 2031992579220848648, guid: 5d496c9b22ce8ec4eadddb7fff4724b7, type: 3}
+  content: {fileID: 1939815376}
+  gameInfoWindow: {fileID: 1768952689}
+  errorWindow: {fileID: 1260604389}
+  waitingWindow: {fileID: 279551609}
   DefaultColor: {r: 0.8352942, g: 0.6666667, b: 0.5019608, a: 1}
   SelectedColor: {r: 0.2688679, g: 0.45961487, b: 1, a: 0}
-  Buttons:
+  buttons:
   - {fileID: 365725171}
   - {fileID: 192246216}
   - {fileID: 1116368086}
@@ -3752,9 +3752,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61e888f77592d5040a271c72e716ab8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WhiteSelection: {fileID: 2091913736}
-  BlackSelection: {fileID: 455402668}
-  RandomSelection: {fileID: 465826852}
+  whiteSelection: {fileID: 2091913736}
+  blackSelection: {fileID: 455402668}
+  randomSelection: {fileID: 465826852}
 --- !u!1 &1260604389
 GameObject:
   m_ObjectHideFlags: 0
@@ -4640,8 +4640,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DesktopScale: 1
-  AndroidScale: 1.8
+  desktopScale: 1
+  androidScale: 1.8
 --- !u!1 &1477296781
 GameObject:
   m_ObjectHideFlags: 0
@@ -5318,10 +5318,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68f02733e64775b45a32668c5200823d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NameInput: {fileID: 1392263684}
-  TimeControlDropDown: {fileID: 1884752812}
-  ColorSelector: {fileID: 1238548059}
-  ErrorText: {fileID: 1615044673}
+  nameInput: {fileID: 1392263684}
+  timeControlDropDown: {fileID: 1884752812}
+  colorSelector: {fileID: 1238548059}
+  errorText: {fileID: 1615044673}
 --- !u!1 &1772261497
 GameObject:
   m_ObjectHideFlags: 0

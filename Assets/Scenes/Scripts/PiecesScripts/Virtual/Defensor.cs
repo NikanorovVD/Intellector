@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public class Defensor : Piece
 {
-    public override PieceType Type => PieceType.defensor;
-    public override List<Vector2Int> GetAvailableMooves()
+    public override PieceType Type => PieceType.Defensor;
+    public override List<Vector2Int> GetAvailableMoves()
     {
         List<Vector2Int> result = new List<Vector2Int>();
 

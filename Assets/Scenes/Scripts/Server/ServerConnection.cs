@@ -1,11 +1,12 @@
 using System.Net.Sockets;
+
 using static Networking;
 
 public class ServerConnection
 {
     public TcpClient Client { get; private set; }
 
-    private static ServerConnection Instance;
+    private static ServerConnection instance;
 
     private ServerConnection(TcpClient client)
     {
@@ -16,8 +17,8 @@ public class ServerConnection
 
     public static ServerConnection GetConnection()
     {
-        if (Instance == null || !Instance.Client.Connected) Instance = new ServerConnection(ConnectToServer());
-        return Instance;
+        if (instance == null || !instance.Client.Connected) instance = new ServerConnection(ConnectToServer());
+        return instance;
     }
 
     private static TcpClient ConnectToServer()
@@ -33,14 +34,14 @@ public class ServerConnection
 
     private static void CheckVersion(NetworkStream stream)
     {
-        SendInt(Settings.APP_VERSION, stream);
-        int server_version = RecvInt(stream);
-        if (Settings.APP_VERSION != server_version)
+        SendInt(Settings.AppVersion, stream);
+        int serverVersion = RecvInt(stream);
+        if (Settings.AppVersion != serverVersion)
         {
             throw new VersionException(
              $"\"Неподходящая версия\n" +
-             $"Версия сервера - {VerToStr(server_version)}\n" +
-             $"Используемая версия клиента - {VerToStr(Settings.APP_VERSION)}\""
+             $"Версия сервера - {VerToStr(serverVersion)}\n" +
+             $"Используемая версия клиента - {VerToStr(Settings.AppVersion)}\""
              );
         }
 

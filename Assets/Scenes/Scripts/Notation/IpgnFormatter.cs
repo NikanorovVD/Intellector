@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Text;
+
 using UnityEngine;
 
 public static class IpgnFormatter
@@ -81,12 +82,12 @@ public static class IpgnFormatter
     {
         return char.ToUpperInvariant(letter) switch
         {
-            'P' => PieceType.progressor,
-            'L' => PieceType.liberator,
-            'I' => PieceType.intellector,
-            'D' => PieceType.dominator,
-            'F' => PieceType.defensor,
-            'A' => PieceType.agressor,
+            'P' => PieceType.Progressor,
+            'L' => PieceType.Liberator,
+            'I' => PieceType.Intellector,
+            'D' => PieceType.Dominator,
+            'F' => PieceType.Defensor,
+            'A' => PieceType.Agressor,
             _ => throw new ArgumentOutOfRangeException(nameof(letter), letter, "Неизвестная буква фигуры")
         };
     }
@@ -108,12 +109,12 @@ public static class IpgnFormatter
     {
         return type switch
         {
-            PieceType.progressor => 'P',
-            PieceType.liberator => 'L',
-            PieceType.intellector => 'I',
-            PieceType.dominator => 'D',
-            PieceType.defensor => 'F',
-            PieceType.agressor => 'A',
+            PieceType.Progressor => 'P',
+            PieceType.Liberator => 'L',
+            PieceType.Intellector => 'I',
+            PieceType.Dominator => 'D',
+            PieceType.Defensor => 'F',
+            PieceType.Agressor => 'A',
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Неизвестный тип фигуры")
         };
     }
@@ -137,7 +138,7 @@ public static class IpgnFormatter
         };
     }
 
-    public static string FormatTimeControl(TimeContol timeControl)
+    public static string FormatTimeControl(TimeControl timeControl)
     {
         if (timeControl == null || !timeControl.Active)
             return "-";

@@ -19,6 +19,6 @@ public class AndroidSimulationMenu
     private static void DisableAndroidSim()
     {
         EditorPrefs.SetBool("AndroidSimulationActive", false);
-    }   
+    }
 }
 #endif

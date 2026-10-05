@@ -7,4 +7,3 @@ public class Connection
     public string ServerIP;
     public int Port;
 }
-

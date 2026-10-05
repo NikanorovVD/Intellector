@@ -1,20 +1,22 @@
-using Cinemachine;
 using System;
 using System.Threading.Tasks;
+
+using Cinemachine;
+
 using UnityEngine;
 
 public class CameraChange : MonoBehaviour
 {
-    public CinemachineFreeLook WhiteCamera;
-    public CinemachineFreeLook BlackCamera;
-    public CinemachineVirtualCamera TopCamera;
+    [SerializeField] private CinemachineFreeLook whiteCamera;
+    [SerializeField] private CinemachineFreeLook blackCamera;
+    [SerializeField] private CinemachineVirtualCamera topCamera;
 
     [SerializeField] private Board board;
 
     private bool currentTeam;
     private bool topCameraOn;
 
-    private const int cameraAutoRotationDalayMs = 200;
+    private const int CameraAutoRotationDelayMs = 200;
 
     private void Start()
     {
@@ -33,15 +35,15 @@ public class CameraChange : MonoBehaviour
         {
             board.MoveEndEvent += async (Vector2Int _, Vector2Int _, int _) =>
             {
-                if (board.game_over) return;
-                await Task.Delay(cameraAutoRotationDalayMs);
+                if (board.GameOver) return;
+                await Task.Delay(CameraAutoRotationDelayMs);
                 currentTeam = !currentTeam;
                 SwitchCamera();
             };
         }
     }
 
-    void Update()
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -94,35 +96,34 @@ public class CameraChange : MonoBehaviour
         }
     }
 
-
     private void SwitchToWhiteMainCamera()
     {
-        TopCamera.gameObject.SetActive(false);
-        BlackCamera.gameObject.SetActive(false);
-        WhiteCamera.gameObject.SetActive(true);
+        topCamera.gameObject.SetActive(false);
+        blackCamera.gameObject.SetActive(false);
+        whiteCamera.gameObject.SetActive(true);
     }
 
     private void SwitchToBlackMainCamera()
     {
-        TopCamera.gameObject.SetActive(false);
-        BlackCamera.gameObject.SetActive(true);
-        WhiteCamera.gameObject.SetActive(false);
+        topCamera.gameObject.SetActive(false);
+        blackCamera.gameObject.SetActive(true);
+        whiteCamera.gameObject.SetActive(false);
     }
 
     private void SwitchToTopCamera()
     {
-        TopCamera.gameObject.SetActive(true);
-        BlackCamera.gameObject.SetActive(false);
-        WhiteCamera.gameObject.SetActive(false);
+        topCamera.gameObject.SetActive(true);
+        blackCamera.gameObject.SetActive(false);
+        whiteCamera.gameObject.SetActive(false);
     }
 
     private void RotateTopCameraToWhite()
     {
-        TopCamera.transform.rotation = Quaternion.Euler(90, 0, 0);
+        topCamera.transform.rotation = Quaternion.Euler(90, 0, 0);
     }
 
     private void RotateTopCameraToBlack()
     {
-        TopCamera.transform.rotation = Quaternion.Euler(90, 0, 180);
+        topCamera.transform.rotation = Quaternion.Euler(90, 0, 180);
     }
 }

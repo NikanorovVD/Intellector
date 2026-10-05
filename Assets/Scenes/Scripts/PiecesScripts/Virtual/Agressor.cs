@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public class Agressor : Piece
 {
-    public override PieceType Type => PieceType.agressor;
-    public override List<Vector2Int> GetAvailableMooves()
+    public override PieceType Type => PieceType.Agressor;
+    public override List<Vector2Int> GetAvailableMoves()
     {
         List<Vector2Int> result = new List<Vector2Int>();
 

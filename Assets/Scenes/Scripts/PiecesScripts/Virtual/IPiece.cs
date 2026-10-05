@@ -1,16 +1,17 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public interface IPiece
 {
-    public PieceType Type { get;  }
-    public int X {  get; set; }
-    public int Y {  get; set; }
-    public bool Team {  get; set; }
-    public IPiece[][] Board {  get; set; }
+    PieceType Type { get;  }
+    int X {  get; set; }
+    int Y {  get; set; }
+    bool Team {  get; set; }
+    IPiece[][] Board {  get; set; }
 
-    public bool HasIntellectorNearby();
+    bool HasIntellectorNearby();
     // FIXME: методы интерфейса всегда абстрактные
     // FIXME: возврат List<Vector2Int> - неправильно, должен быть List<Move> с полной информацией о ходе
-    abstract public List<Vector2Int> GetAvailableMooves();
+    List<Vector2Int> GetAvailableMoves();
 }

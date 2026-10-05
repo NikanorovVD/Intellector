@@ -16,28 +16,28 @@ public enum EndGameReason
 
 public class EndGame : MonoBehaviour
 {
-    [SerializeField] GameObject EndGameWindow;
-    [SerializeField] GameObject Rematch;
-    [SerializeField] NetworkManager networkManager;
-    private Text low_text;
-    private Text top_text;
+    [SerializeField] private GameObject endGameWindow;
+    [SerializeField] private GameObject rematch;
+    [SerializeField] private NetworkManager networkManager;
+    private Text lowText;
+    private Text topText;
 
     private void Awake()
     {
-        Text[] text = EndGameWindow.GetComponentsInChildren<Text>();
-        low_text = text[0];
-        top_text = text[1];
+        Text[] text = endGameWindow.GetComponentsInChildren<Text>();
+        lowText = text[0];
+        topText = text[1];
         networkManager.ExitEvent += () => RematchSetActive(false);
         networkManager.RematchEvent += () => DisplayRematchRequest();
     }
 
     public void DisplayResult(bool isNetwork, bool? winner, bool playerTeam, EndGameReason reason)
     {
-        EndGameWindow.SetActive(true);
+        endGameWindow.SetActive(true);
 
         if (isNetwork)
         {
-            top_text.text = winner switch
+            topText.text = winner switch
             {
                 false => (winner == playerTeam) ? "ВЫ ВЫИГРАЛИ" : "ВЫ ПРОИГРАЛИ",
                 true => (winner == playerTeam) ? "ВЫ ВЫИГРАЛИ" : "ВЫ ПРОИГРАЛИ",
@@ -45,14 +45,14 @@ public class EndGame : MonoBehaviour
             };
         }
 
-        else top_text.text = winner switch
+        else topText.text = winner switch
         {
             false => "ПОБЕДИЛИ БЕЛЫЕ",
             true => "ПОБЕДИЛИ ЧЕРНЫЕ",
             null => "НИЧЬЯ"
         };
 
-        low_text.text = reason switch
+        lowText.text = reason switch
         {
             EndGameReason.IntellectorCapture => "Интеллектор был взят",
             EndGameReason.IntellectorReachLustRank => "Интеллектор достиг базовой линии",
@@ -69,16 +69,16 @@ public class EndGame : MonoBehaviour
 
     public void Hide()
     {
-        EndGameWindow.SetActive(false);
+        endGameWindow.SetActive(false);
     }
 
     private void DisplayRematchRequest()
     {
-        low_text.text = "ПРОТИВНИК ПРЕДЛАГАЕТ РЕВАНШ";
+        lowText.text = "ПРОТИВНИК ПРЕДЛАГАЕТ РЕВАНШ";
     }
 
     private void RematchSetActive(bool active)
     {
-        Rematch.SetActive(active);
+        rematch.SetActive(active);
     }
 }

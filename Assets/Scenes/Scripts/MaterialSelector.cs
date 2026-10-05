@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public enum PieceMaterials
@@ -10,19 +11,19 @@ public enum PieceMaterials
 
 public class MaterialSelector : MonoBehaviour
 {
-    [SerializeField] private Material[] WhiteMaterials;
-    [SerializeField] private Material[] BlackMaterials;
+    [SerializeField] private Material[] whiteMaterials;
+    [SerializeField] private Material[] blackMaterials;
 
-    private static readonly Dictionary<PieceMaterials, string> _materialNames = new Dictionary<PieceMaterials, string> {
+    private static readonly Dictionary<PieceMaterials, string> materialNames = new Dictionary<PieceMaterials, string> {
         { PieceMaterials.Standard, "Стандарт" } ,
         { PieceMaterials.Mramor, "Мрамор" },
         { PieceMaterials.New, "Новый" }
     };
 
-    public static string MaterialName(PieceMaterials material) => _materialNames[material];
+    public static string MaterialName(PieceMaterials material) => materialNames[material];
 
     public (Material, Material) GetCurrentMaterials(PieceMaterials materials)
     {
-        return (WhiteMaterials[(int)materials], BlackMaterials[(int)materials]);
+        return (whiteMaterials[(int)materials], blackMaterials[(int)materials]);
     }
 }

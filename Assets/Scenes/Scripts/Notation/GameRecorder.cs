@@ -1,12 +1,13 @@
 using System;
 using System.IO;
+
 using UnityEngine;
 
 public class GameRecorder : MonoBehaviour
 {
     public const int NoTransformInfo = 200;
 
-    [SerializeField] public Board Board;
+    [SerializeField] private Board board;
 
     private GameRecord record;
     private string filePath;
@@ -14,28 +15,28 @@ public class GameRecorder : MonoBehaviour
     private int firstPly;
     private int firstFullmove;
 
-    void Start()
+    private void Start()
     {
         if (Settings.GameMode == GameMode.Replay) return;
-        Board.MoveStartEvent += MoveStartHandler;
-        Board.EndGameEvent += EndGameHandler;
-        Board.RestartEvent += BeginNewGame;
+        board.MoveStartEvent += MoveStartHandler;
+        board.EndGameEvent += EndGameHandler;
+        board.RestartEvent += BeginNewGame;
         BeginNewGame();
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         if (Board == null) return;
-        Board.MoveStartEvent -= MoveStartHandler;
-        Board.EndGameEvent -= EndGameHandler;
-        Board.RestartEvent -= BeginNewGame;
+        board.MoveStartEvent -= MoveStartHandler;
+        board.EndGameEvent -= EndGameHandler;
+        board.RestartEvent -= BeginNewGame;
     }
 
     private void BeginNewGame()
     {
         DateTime utcNow = DateTime.UtcNow;
         GameMode mode = Settings.GameMode;
-        (string white, string black) = ResolvePlayerNames(mode, Board.PlayerTeam);
+        (string white, string black) = ResolvePlayerNames(mode, board.PlayerTeam);
 
         record = new GameRecord
         {
@@ -48,7 +49,7 @@ public class GameRecorder : MonoBehaviour
             Result = GameRecord.UnfinishedResult,
             TimeControl = ResolveTimeControl(),
             GameMode = mode.ToString(),
-            AppVersion = Settings.APP_VERSION.ToString()
+            AppVersion = Settings.AppVersion.ToString()
         };
         if (!string.IsNullOrEmpty(Settings.StartIfen))
         {
@@ -61,17 +62,17 @@ public class GameRecorder : MonoBehaviour
         WriteRecord(record);
     }
 
-    private void MoveStartHandler(Vector2Int start, Vector2Int end, int transform_info)
+    private void MoveStartHandler(Vector2Int start, Vector2Int end, int transformInfo)
     {
-        IPiece moving = Board.pieces[start.x][start.y];
+        IPiece moving = board.Pieces[start.x][start.y];
         if (moving == null) return;
 
-        IPiece target = Board.pieces[end.x][end.y];
+        IPiece target = board.Pieces[end.x][end.y];
         bool castling = target != null && target.Team == moving.Team;
         bool capture = target != null && target.Team != moving.Team;
         PieceType? transformation = null;
-        if (transform_info != NoTransformInfo && transform_info != (int)moving.Type)
-            transformation = (PieceType)transform_info;
+        if (transformInfo != NoTransformInfo && transformInfo != (int)moving.Type)
+            transformation = (PieceType)transformInfo;
 
         RecordedMove recordedMove = new RecordedMove
         {
@@ -146,7 +147,7 @@ public class GameRecorder : MonoBehaviour
 
     private static string ResolveTimeControl()
     {
-        return IpgnFormatter.FormatTimeControl(GameInfo.Load().TimeContol);
+        return IpgnFormatter.FormatTimeControl(GameInfo.Load().TimeControl);
     }
 
     private static string CreateFilePath(GameMode mode)

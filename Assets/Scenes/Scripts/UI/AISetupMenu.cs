@@ -1,23 +1,24 @@
 using System;
 using System.Globalization;
 using System.Text;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class AISetupMenu : MonoBehaviour
 {
-    [SerializeField] GameObject panel;
-    [SerializeField] Text title;
-    [SerializeField] Text modeName;
-    [SerializeField] Text valueLabel;
-    [SerializeField] InputField valueInput;
-    [SerializeField] InputField ifenInput;
-    [SerializeField] Toggle customStartToggle;
-    [SerializeField] GameObject[] ifenControls;
-    [SerializeField] Text errorText;
-    [SerializeField] GameObject[] aiControls;
-    [SerializeField] ColorSelector colorSelector;
+    [SerializeField] private GameObject panel;
+    [SerializeField] private Text title;
+    [SerializeField] private Text modeName;
+    [SerializeField] private Text valueLabel;
+    [SerializeField] private InputField valueInput;
+    [SerializeField] private InputField ifenInput;
+    [SerializeField] private Toggle customStartToggle;
+    [SerializeField] private GameObject[] ifenControls;
+    [SerializeField] private Text errorText;
+    [SerializeField] private GameObject[] aiControls;
+    [SerializeField] private ColorSelector colorSelector;
 
     private AISettings ai;
     private bool refreshing;

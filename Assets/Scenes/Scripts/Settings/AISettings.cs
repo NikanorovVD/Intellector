@@ -1,4 +1,5 @@
 using System;
+
 using UnityEngine;
 
 public struct AISettings
@@ -21,7 +22,7 @@ public struct AISettings
         Depth = DefaultDepth,
         SearchTimeMs = DefaultSearchTimeMs,
         Level = DefaultLevel,
-        Color = ColorChoice.random
+        Color = ColorChoice.Random
     };
 
     public AISettings Clamped()
@@ -32,7 +33,7 @@ public struct AISettings
             Depth = Mathf.Max(1, Depth),
             SearchTimeMs = Mathf.Max(1, SearchTimeMs),
             Level = Mathf.Clamp(Level, MinLevel, MaxLevel),
-            Color = Enum.IsDefined(typeof(ColorChoice), (int)Color) ? Color : ColorChoice.random
+            Color = Enum.IsDefined(typeof(ColorChoice), (int)Color) ? Color : ColorChoice.Random
         };
     }
 

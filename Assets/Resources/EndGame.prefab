@@ -44,6 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 361c688571dbd7a45a98b740b0934d7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EndGameWindow: {fileID: 0}
-  Rematch: {fileID: 0}
+  endGameWindow: {fileID: 0}
+  rematch: {fileID: 0}
   networkManager: {fileID: 0}

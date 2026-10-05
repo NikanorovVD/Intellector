@@ -1,15 +1,16 @@
 using System;
 using System.Threading;
+
 using UnityEngine;
 using UnityEngine.UI;
 
 public class TimeControlView : MonoBehaviour
 {
-    [SerializeField] GameObject GameObject;
-    [SerializeField] Text OpponentTime;
-    [SerializeField] Text MyTime;
-    [SerializeField] GameObject OpponentPanel;
-    [SerializeField] GameObject MyPanel;
+    [SerializeField] private GameObject gameObject;
+    [SerializeField] private Text opponentTimeLabel;
+    [SerializeField] private Text myTimeLabel;
+    [SerializeField] private GameObject opponentPanel;
+    [SerializeField] private GameObject myPanel;
 
     public delegate void DisplayTime(int time);
 
@@ -18,15 +19,15 @@ public class TimeControlView : MonoBehaviour
     public Action DisplayWhiteTurn;
     public Action DisplayBlackTurn;
 
-    private int my_time;
-    private int opponent_time;
+    private int myTime;
+    private int opponentTime;
     private bool turn;
-    bool time_run;
+    private bool timeRun;
 
-    Thread my_time_runner;
-    Thread opponent_time_runner;
+    private Thread myTimeRunner;
+    private Thread opponentTimeRunner;
 
-    public bool Team 
+    public bool Team
     {
         set
         {
@@ -52,74 +53,74 @@ public class TimeControlView : MonoBehaviour
 
     public void Activate()
     {
-        GameObject.SetActive(true);
+        gameObject.SetActive(true);
     }
     public void StartRunTime()
     {
-        time_run = true;
+        timeRun = true;
         DisplayWhiteTurn();
-        my_time_runner = new Thread(() => ShowRunningTime(DisplayMyTime, ref my_time, true));
-        opponent_time_runner = new Thread(() => ShowRunningTime(DisplayOpponentTime, ref opponent_time, false));
-        my_time_runner.Start();
-        opponent_time_runner.Start();
+        myTimeRunner = new Thread(() => ShowRunningTime(DisplayMyTime, ref myTime, true));
+        opponentTimeRunner = new Thread(() => ShowRunningTime(DisplayOpponentTime, ref opponentTime, false));
+        myTimeRunner.Start();
+        opponentTimeRunner.Start();
     }
     public void Stop()
     {
-        time_run = false;
-        my_time_runner.Join();
-        opponent_time_runner.Join();
+        timeRun = false;
+        myTimeRunner.Join();
+        opponentTimeRunner.Join();
     }
     private void DisplayOpponentTime(int time)
     {
-        opponent_time = time;
-        MainTasks.AddTask(() => { if (OpponentTime != null) OpponentTime.text = TimeToString(time); });
+        opponentTime = time;
+        MainTasks.AddTask(() => { if (opponentTimeLabel != null) opponentTimeLabel.text = TimeToString(time); });
     }
 
     private void DisplayMyTime(int time)
     {
-        my_time = time;
-        MainTasks.AddTask(() => { if (MyTime != null) MyTime.text = TimeToString(time); });
-    } 
+        myTime = time;
+        MainTasks.AddTask(() => { if (myTimeLabel != null) myTimeLabel.text = TimeToString(time); });
+    }
 
     private void DisplayOpponentTurn()
     {
         turn = false;
-        
-        OpponentPanel.SetActive(true);
-        MyPanel.SetActive(false);   
+
+        opponentPanel.SetActive(true);
+        myPanel.SetActive(false);
     }
 
     private void DisplayMyTurn()
     {
         turn = true;
-        
-        MyPanel.SetActive(true);
-        OpponentPanel.SetActive(false);        
+
+        myPanel.SetActive(true);
+        opponentPanel.SetActive(false);
     }
 
     private string TimeToString(int milliseconds)
     {
-        int total_seconds = milliseconds / 1000;
-        int minutes = total_seconds / 60;
-        int seconds = total_seconds % 60;
+        int totalSeconds = milliseconds / 1000;
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
         return $"{minutes:D2}:{seconds:D2}";
     }
 
-    private void ShowRunningTime(DisplayTime display_time, ref int time, bool needed_turn)
+    private void ShowRunningTime(DisplayTime displayTime, ref int time, bool neededTurn)
     {
-        const int sleep_time = 100;
-        while (time_run)
+        const int SleepTime = 100;
+        while (timeRun)
         {
-            if (turn != needed_turn)
+            if (turn != neededTurn)
             {
-                Thread.Sleep(sleep_time);
+                Thread.Sleep(SleepTime);
                 continue;
             }
-            DateTime begin_time = DateTime.Now;
-            Thread.Sleep(sleep_time);
-            DateTime end_time = DateTime.Now;
-            int elapsed_time = (int)(end_time - begin_time).TotalMilliseconds;
-            display_time(time - elapsed_time);
+            DateTime beginTime = DateTime.Now;
+            Thread.Sleep(SleepTime);
+            DateTime endTime = DateTime.Now;
+            int elapsedTime = (int)(endTime - beginTime).TotalMilliseconds;
+            displayTime(time - elapsedTime);
         }
     }
 }

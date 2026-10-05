@@ -1,17 +1,17 @@
 using System.Net.Sockets;
-using UnityEngine;
 using System;
-using static LogWriter;
 using System.Threading.Tasks;
-using Assets.Scenes.Scripts.Server;
+
+using static LogWriter;
+
+using UnityEngine;
 
 public class NetworkManager : MonoBehaviour, IServerListenerObserver
 {
     [SerializeField] private Board board;
-    [SerializeField] private GameObject WaitScreen;
+    [SerializeField] private GameObject waitScreen;
 
-
-    static bool ready_for_rematch = false;
+    private static bool readyForRematch = false;
 
     public event Action ExitEvent;
     public event Action RematchEvent;
@@ -19,9 +19,8 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     public delegate void TimeReceived(int time);
     public event TimeReceived TimeEvent;
-    
 
-    void Start()
+    private void Start()
     {
         if (Settings.GameMode == GameMode.Network)
         {
@@ -34,11 +33,11 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         }
     }
 
-    public void ExecuteReceivedMove(Vector2Int start, Vector2Int end, int transform_info)
+    public void ExecuteReceivedMove(Vector2Int start, Vector2Int end, int transformInfo)
     {
         try
         {
-           board.MovePiece(start, end, transform_info);
+           board.MovePiece(start, end, transformInfo);
         }
         catch (Exception e)
         {
@@ -46,12 +45,12 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         }
     }
 
-    void MoveEventHandler(Vector2Int start, Vector2Int end, int transform_info)
+    private void MoveEventHandler(Vector2Int start, Vector2Int end, int transformInfo)
     {
-        if (board.pieces[start.x][start.y].Team == board.PlayerTeam)
+        if (board.Pieces[start.x][start.y].Team == board.PlayerTeam)
         {
-            ServerManager.GetInstance().SendMove(start, end, transform_info);
-            WriteLog($"Отправка хода: {start} ; {end} ; {transform_info}");
+            ServerManager.GetInstance().SendMove(start, end, transformInfo);
+            WriteLog($"Отправка хода: {start} ; {end} ; {transformInfo}");
         }
     }
 
@@ -61,10 +60,10 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         {
             ServerManager.GetInstance().SendRematch();
             // FIXME: переусложненная логика, можно было этот код повесить OnRematchReceived
-            await new TaskFactory().StartNew(() => { while (!ready_for_rematch) { } }, TaskCreationOptions.LongRunning);
+            await new TaskFactory().StartNew(() => { while (!readyForRematch) { } }, TaskCreationOptions.LongRunning);
 
             MainTasks.AddTask(() => board.Restart());
-            ready_for_rematch = false;
+            readyForRematch = false;
             return;
         }
         else
@@ -78,10 +77,10 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         ServerManager.GetInstance().SendExit();
     }
 
-    public void OnMoveReceived(Vector2Int start, Vector2Int end, int transform_info)
+    public void OnMoveReceived(Vector2Int start, Vector2Int end, int transformInfo)
     {
-        WriteLog($"Получен ход: {start} -> {end} : {transform_info} ");
-        MainTasks.AddTask(() => ExecuteReceivedMove(start, end, transform_info));
+        WriteLog($"Получен ход: {start} -> {end} : {transformInfo} ");
+        MainTasks.AddTask(() => ExecuteReceivedMove(start, end, transformInfo));
     }
 
     public void OnTimeReceived(int time)
@@ -99,12 +98,12 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     public void OnRematchReceived()
     {
-        ready_for_rematch = true;
+        readyForRematch = true;
         MainTasks.AddTask(() => RematchEvent?.Invoke());
     }
 
-    public void OnTimeOutReceived(bool exit_team)
+    public void OnTimeOutReceived(bool exitTeam)
     {
-        MainTasks.AddTask(() => board.GameOver(exit_team, EndGameReason.TimesUp));
+        MainTasks.AddTask(() => board.GameOver(exitTeam, EndGameReason.TimesUp));
     }
 }

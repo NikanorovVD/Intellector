@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public class Intellector : Piece
 {
-    public override PieceType Type => PieceType.intellector;
-    public override List<Vector2Int> GetAvailableMooves()
+    public override PieceType Type => PieceType.Intellector;
+    public override List<Vector2Int> GetAvailableMoves()
     {
         List<Vector2Int> result = new List<Vector2Int>();
 
@@ -23,7 +24,7 @@ public class Intellector : Piece
                 if (X % 2 == 1 && Y - 1 == j && X != i) continue;                                //две лишние клетки снизу
 
                 if (Board[i][j] != null)                                                                 //есть фигура
-                    if (Board[i][j].Team != Team || Board[i][j].Type != PieceType.defensor)  //не дефенсор своей команды
+                    if (Board[i][j].Team != Team || Board[i][j].Type != PieceType.Defensor)  //не дефенсор своей команды
                         continue;
 
                 result.Add(new Vector2Int(i, j));

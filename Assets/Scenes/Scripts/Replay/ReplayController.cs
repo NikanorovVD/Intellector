@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
+
 using UnityEngine;
 
 public class ReplayController : MonoBehaviour
 {
-    [SerializeField] public Board Board;
-    [SerializeField] ReplayView view;
+    [SerializeField] private Board board;
+    [SerializeField] private ReplayView view;
 
     private List<ReplayMove> moves;
     private readonly List<ReplayMove> variation = new();
@@ -20,7 +21,7 @@ public class ReplayController : MonoBehaviour
     private ReplayAnalysis analysis;
     private GameRecord record;
 
-    void Start()
+    private void Start()
     {
         if (Settings.GameMode != GameMode.Replay)
         {
@@ -34,14 +35,14 @@ public class ReplayController : MonoBehaviour
         if (record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen))
         {
             RecordedPosition start = IfenParser.Parse(record.Ifen);
-            Board.LoadPosition(start);
+            board.LoadPosition(start);
             firstHalfmove = start.HalfmoveClock;
         }
         moves = ReplayExpander.Expand(record);
         IpgnFormatter.GetMovetextOrigin(record, out firstPly, out firstFullmove);
         mainIndex = 0;
-        Board.HighlightLastMove(-Vector2Int.one, -Vector2Int.one);
-        Board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
+        board.HighlightLastMove(-Vector2Int.one, -Vector2Int.one);
+        board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
         view.SetPanelActive(true);
         view.SetMeta(record);
         view.SetEngineVisible(false);
@@ -51,8 +52,8 @@ public class ReplayController : MonoBehaviour
         view.EngineToggled += OnEngineToggled;
         view.CopyIfenClicked += OnCopyIfenClicked;
         view.PreAnalyzeClicked += OnPreAnalyzeClicked;
-        Board.MoveStartEvent += MoveStartHandler;
-        Board.MoveEndEvent += MoveEndHandler;
+        board.MoveStartEvent += MoveStartHandler;
+        board.MoveEndEvent += MoveEndHandler;
         analysis = new ReplayAnalysis();
         analysis.Updated += OnAnalysisUpdated;
         analysis.PreProgress += OnPreProgress;
@@ -60,7 +61,7 @@ public class ReplayController : MonoBehaviour
         AfterStep(false);
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         if (view != null)
         {
@@ -71,8 +72,8 @@ public class ReplayController : MonoBehaviour
         }
         if (Board != null)
         {
-            Board.MoveStartEvent -= MoveStartHandler;
-            Board.MoveEndEvent -= MoveEndHandler;
+            board.MoveStartEvent -= MoveStartHandler;
+            board.MoveEndEvent -= MoveEndHandler;
         }
         if (analysis != null)
         {
@@ -83,9 +84,9 @@ public class ReplayController : MonoBehaviour
         }
     }
 
-    void Update()
+    private void Update()
     {
-        if (Board.wait_for_transformation) return;
+        if (board.WaitForTransformation) return;
         if (Input.GetKeyDown(KeyCode.RightArrow))
             Forward();
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -100,7 +101,7 @@ public class ReplayController : MonoBehaviour
 
     private void Forward()
     {
-        if (Board.wait_for_transformation) return;
+        if (board.WaitForTransformation) return;
         bool moved = onVariation ? ApplyVariationForward() : ApplyMainForward();
         if (moved)
             AfterStep();
@@ -108,7 +109,7 @@ public class ReplayController : MonoBehaviour
 
     private void Back()
     {
-        if (Board.wait_for_transformation) return;
+        if (board.WaitForTransformation) return;
         bool moved = onVariation ? ApplyVariationBack() : ApplyMainBack();
         if (moved)
             AfterStep();
@@ -116,14 +117,14 @@ public class ReplayController : MonoBehaviour
 
     private void JumpToMain(int target)
     {
-        if (Board.wait_for_transformation) return;
+        if (board.WaitForTransformation) return;
         GoToMain(target);
         AfterStep();
     }
 
     private void JumpToVariation(int target)
     {
-        if (Board.wait_for_transformation) return;
+        if (board.WaitForTransformation) return;
         if (variation.Count == 0) return;
         target = Mathf.Clamp(target, 0, variation.Count);
         GoToMain(variationFrom);
@@ -151,7 +152,7 @@ public class ReplayController : MonoBehaviour
     {
         if (moves == null || mainIndex >= moves.Count) return false;
         ReplayMove move = moves[mainIndex];
-        Board.SetTiles(move.From, move.FromAfter, move.To, move.ToAfter);
+        board.SetTiles(move.From, move.FromAfter, move.To, move.ToAfter);
         mainIndex++;
         return true;
     }
@@ -161,7 +162,7 @@ public class ReplayController : MonoBehaviour
         if (moves == null || mainIndex <= 0) return false;
         mainIndex--;
         ReplayMove move = moves[mainIndex];
-        Board.SetTiles(move.From, move.FromBefore, move.To, move.ToBefore);
+        board.SetTiles(move.From, move.FromBefore, move.To, move.ToBefore);
         return true;
     }
 
@@ -169,7 +170,7 @@ public class ReplayController : MonoBehaviour
     {
         if (varIndex >= variation.Count) return false;
         ReplayMove move = variation[varIndex];
-        Board.SetTiles(move.From, move.FromAfter, move.To, move.ToAfter);
+        board.SetTiles(move.From, move.FromAfter, move.To, move.ToAfter);
         varIndex++;
         return true;
     }
@@ -185,7 +186,7 @@ public class ReplayController : MonoBehaviour
         }
         varIndex--;
         ReplayMove move = variation[varIndex];
-        Board.SetTiles(move.From, move.FromBefore, move.To, move.ToBefore);
+        board.SetTiles(move.From, move.FromBefore, move.To, move.ToBefore);
         if (varIndex == 0)
         {
             onVariation = false;
@@ -196,13 +197,13 @@ public class ReplayController : MonoBehaviour
 
     private void AfterStep(bool restartEngine = true)
     {
-        Board.ClearSelection();
+        board.ClearSelection();
         SyncTurn();
         ReplayMove last = CurrentLastMove();
         if (last == null)
-            Board.HighlightLastMove(-Vector2Int.one, -Vector2Int.one);
+            board.HighlightLastMove(-Vector2Int.one, -Vector2Int.one);
         else
-            Board.HighlightLastMove(last.From, last.To);
+            board.HighlightLastMove(last.From, last.To);
         view.Highlight(mainIndex, varIndex, onVariation);
         if (restartEngine)
             RefreshEngine();
@@ -218,19 +219,19 @@ public class ReplayController : MonoBehaviour
     private void SyncTurn()
     {
         int ply = onVariation ? variationFrom + varIndex : mainIndex;
-        Board.Turn = (firstPly + ply) % 2 == 1;
+        board.Turn = (firstPly + ply) % 2 == 1;
     }
 
-    private void MoveStartHandler(Vector2Int start, Vector2Int end, int transform_info)
+    private void MoveStartHandler(Vector2Int start, Vector2Int end, int transformInfo)
     {
-        IPiece moving = Board.pieces[start.x][start.y];
+        IPiece moving = board.Pieces[start.x][start.y];
         if (moving == null) return;
-        IPiece target = Board.pieces[end.x][end.y];
+        IPiece target = board.Pieces[end.x][end.y];
         bool castling = target != null && target.Team == moving.Team;
         bool capture = target != null && target.Team != moving.Team;
         PieceType? transformation = null;
-        if (transform_info != GameRecorder.NoTransformInfo && transform_info != (int)moving.Type)
-            transformation = (PieceType)transform_info;
+        if (transformInfo != GameRecorder.NoTransformInfo && transformInfo != (int)moving.Type)
+            transformation = (PieceType)transformInfo;
         var recorded = new RecordedMove
         {
             Piece = moving.Type,
@@ -244,17 +245,17 @@ public class ReplayController : MonoBehaviour
         {
             From = start,
             To = end,
-            FromBefore = Board.GetTileState(start),
-            ToBefore = Board.GetTileState(end),
+            FromBefore = board.GetTileState(start),
+            ToBefore = board.GetTileState(end),
             Notation = IpgnFormatter.FormatMove(recorded)
         };
     }
 
-    private void MoveEndHandler(Vector2Int start, Vector2Int end, int transform_info)
+    private void MoveEndHandler(Vector2Int start, Vector2Int end, int transformInfo)
     {
         if (pendingMove == null) return;
-        pendingMove.FromAfter = Board.GetTileState(start);
-        pendingMove.ToAfter = Board.GetTileState(end);
+        pendingMove.FromAfter = board.GetTileState(start);
+        pendingMove.ToAfter = board.GetTileState(end);
         AcceptUserMove(pendingMove);
         pendingMove = null;
     }
@@ -308,7 +309,7 @@ public class ReplayController : MonoBehaviour
 
     private void OnCopyIfenClicked()
     {
-        RecordedPosition position = Board.ToRecordedPosition(CurrentHalfmoveClock(), CurrentFullmoveNumber());
+        RecordedPosition position = board.ToRecordedPosition(CurrentHalfmoveClock(), CurrentFullmoveNumber());
         GUIUtility.systemCopyBuffer = IfenFormatter.Format(position);
         view.ShowCopyIfenCopied();
     }
@@ -340,7 +341,7 @@ public class ReplayController : MonoBehaviour
 
     private static bool ResetsHalfmove(ReplayMove move)
     {
-        if (move.FromBefore != null && move.FromBefore.Type == PieceType.progressor)
+        if (move.FromBefore != null && move.FromBefore.Type == PieceType.Progressor)
             return true;
         return move.FromBefore != null && move.ToBefore != null && move.FromBefore.Team != move.ToBefore.Team;
     }
@@ -426,7 +427,7 @@ public class ReplayController : MonoBehaviour
 
     private void ClearEngineBoard()
     {
-        Board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
+        board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
     }
 
     private void OnAnalysisUpdated(MoveResult result)

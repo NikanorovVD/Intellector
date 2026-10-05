@@ -4,8 +4,8 @@ using System.Text.RegularExpressions;
 
 public static class IpgnParser
 {
-    private static readonly Regex TagRegex = new(@"^\[(\w+)\s+""(.*)""\]\s*$", RegexOptions.Compiled);
-    private static readonly Regex MoveRegex = new(
+    private static readonly Regex tagRegex = new(@"^\[(\w+)\s+""(.*)""\]\s*$", RegexOptions.Compiled);
+    private static readonly Regex moveRegex = new(
         @"^([PLIDFA])([a-i][1-7])(<->|x|-)([a-i][1-7])(?:=([PLIDFA]))?$",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -50,7 +50,7 @@ public static class IpgnParser
 
     private static void ApplyTag(GameRecord record, string line)
     {
-        Match match = TagRegex.Match(line);
+        Match match = tagRegex.Match(line);
         if (!match.Success)
             throw new FormatException($"Некорректный тег: {line}");
 
@@ -91,7 +91,7 @@ public static class IpgnParser
 
     private static RecordedMove ParseMove(string token)
     {
-        Match match = MoveRegex.Match(token);
+        Match match = moveRegex.Match(token);
         if (!match.Success)
             throw new FormatException($"Некорректный ход: {token}");
 

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public class Progressor : Piece
 {
-    public override PieceType Type => PieceType.progressor;
-    public override List<Vector2Int> GetAvailableMooves()
+    public override PieceType Type => PieceType.Progressor;
+    public override List<Vector2Int> GetAvailableMoves()
     {
         List<Vector2Int> result = new List<Vector2Int>();
 
@@ -24,7 +25,6 @@ public class Progressor : Piece
 
                 if (Board[i][j] != null && Board[i][j].Team == Team) continue;            //есть фигура и она союзная
 
-
                 //перемещение чёрных
                 if (!Team)
                 {
@@ -41,6 +41,6 @@ public class Progressor : Piece
             }
         }
 
-        return result;              
+        return result;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using UnityEngine;
 
 // FIXME: костыльный инструмент маршализации, хочется верить что в Unity есть встроенные средства для этого
@@ -20,9 +21,9 @@ public class MainTasks : MonoBehaviour
             }
             task?.Invoke();
         }
-        catch (Exception e) 
-        { 
-            LogWriter.WriteLog(e.ToString()); 
+        catch (Exception e)
+        {
+            LogWriter.WriteLog(e.ToString());
         }
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public abstract class Piece : IPiece
@@ -26,7 +27,7 @@ public abstract class Piece : IPiece
                 if (X % 2 == 1 && Y - 1 == j && X != i) continue;
 
                 if (Board[i][j] != null && Board[i][j].Team == Team)
-                    if (Board[i][j].Type == PieceType.intellector)
+                    if (Board[i][j].Type == PieceType.Intellector)
                         return true;
             }
         }
@@ -34,5 +35,5 @@ public abstract class Piece : IPiece
         return false;
     }
 
-    abstract public List<Vector2Int> GetAvailableMooves();
+    public abstract List<Vector2Int> GetAvailableMoves();
 }

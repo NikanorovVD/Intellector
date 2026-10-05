@@ -1,5 +1,4 @@
 using UnityEngine;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -13,7 +12,7 @@ public enum Platform
 public class PlatformDependentComponent : MonoBehaviour
 {
     [SerializeField] private Platform platform;
-    void Awake()
+    private void Awake()
     {
 #if UNITY_EDITOR
         bool active = platform switch

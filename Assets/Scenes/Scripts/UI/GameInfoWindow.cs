@@ -1,33 +1,34 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameInfoWindow : MonoBehaviour
 {
-    [SerializeField] InputField NameInput;
-    [SerializeField] Dropdown TimeControlDropDown;
-    [SerializeField] ColorSelector ColorSelector;
+    [SerializeField] private InputField nameInput;
+    [SerializeField] private Dropdown timeControlDropDown;
+    [SerializeField] private ColorSelector colorSelector;
 
-    [SerializeField] Text ErrorText;
+    [SerializeField] private Text errorText;
     private void Awake()
     {
-        NameInput.text = Settings.UserName;
-        TimeControlDropDown.options = new List<Dropdown.OptionData>();
-        foreach(TimeContol time in TimeControlSelector.time_controls)
+        nameInput.text = Settings.UserName;
+        timeControlDropDown.options = new List<Dropdown.OptionData>();
+        foreach(TimeControl time in TimeControlSelector.TimeControls)
         {
-            TimeControlDropDown.options.Add(new Dropdown.OptionData(time.ToString()));
+            timeControlDropDown.options.Add(new Dropdown.OptionData(time.ToString()));
         }
     }
 
     public GameInfo GetGameInfo()
     {
-        string Name = NameInput.text;
+        string name = nameInput.text;
         if(!CheckName()) return null;
 
-        TimeContol timeContol = TimeControlSelector.time_controls[TimeControlDropDown.value];
-        ColorChoice color = ColorSelector.Color;
+        TimeControl timeControl = TimeControlSelector.TimeControls[timeControlDropDown.value];
+        ColorChoice color = colorSelector.Color;
 
-        return new GameInfo { ID = 0, Color = color, Name = Name, TimeContol = timeContol };
+        return new GameInfo { ID = 0, Color = color, Name = name, TimeControl = timeControl };
     }
 
     public void NameInputChanged()
@@ -37,9 +38,9 @@ public class GameInfoWindow : MonoBehaviour
 
     private bool CheckName()
     {
-        string error_mes;
-        bool valid = UserNameValidator.CheckName(NameInput.text, out error_mes);
-        ErrorText.text = error_mes;
+        string errorMes;
+        bool valid = UserNameValidator.CheckName(nameInput.text, out errorMes);
+        errorText.text = errorMes;
         return valid;
     }
 }

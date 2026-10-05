@@ -1,62 +1,63 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Threading.Tasks;
+
+using UnityEngine;
 
 public class AI : MonoBehaviour
 {
-    [SerializeField] private Board main_board;
-    public const int AI_MOVE_DELAY_MS = 0;
+    [SerializeField] private Board mainBoard;
+    public const int AiMoveDelayMs = 0;
 
-    private bool AiTeam => !main_board.PlayerTeam;
+    private bool AiTeam => !mainBoard.PlayerTeam;
 
     private bool lastMoveWasProgressive;
 
-    private static readonly Dictionary<EngineFigure, int> FigureToUnityType = new Dictionary<EngineFigure, int>
+    private static readonly Dictionary<EngineFigure, int> figureToUnityType = new Dictionary<EngineFigure, int>
     {
-        { EngineFigure.WhiteProgressor, (int)PieceType.progressor },
-        { EngineFigure.BlackProgressor, (int)PieceType.progressor },
-        { EngineFigure.WhiteDominator, (int)PieceType.dominator },
-        { EngineFigure.BlackDominator, (int)PieceType.dominator },
-        { EngineFigure.WhiteLiberator, (int)PieceType.liberator },
-        { EngineFigure.BlackLiberator, (int)PieceType.liberator },
-        { EngineFigure.WhiteAgressor, (int)PieceType.agressor },
-        { EngineFigure.BlackAgressor, (int)PieceType.agressor },
-        { EngineFigure.WhiteDefensor, (int)PieceType.defensor },
-        { EngineFigure.BlackDefensor, (int)PieceType.defensor },
-        { EngineFigure.WhiteIntellector, (int)PieceType.intellector },
-        { EngineFigure.BlackIntellector, (int)PieceType.intellector }
+        { EngineFigure.WhiteProgressor, (int)PieceType.Progressor },
+        { EngineFigure.BlackProgressor, (int)PieceType.Progressor },
+        { EngineFigure.WhiteDominator, (int)PieceType.Dominator },
+        { EngineFigure.BlackDominator, (int)PieceType.Dominator },
+        { EngineFigure.WhiteLiberator, (int)PieceType.Liberator },
+        { EngineFigure.BlackLiberator, (int)PieceType.Liberator },
+        { EngineFigure.WhiteAgressor, (int)PieceType.Agressor },
+        { EngineFigure.BlackAgressor, (int)PieceType.Agressor },
+        { EngineFigure.WhiteDefensor, (int)PieceType.Defensor },
+        { EngineFigure.BlackDefensor, (int)PieceType.Defensor },
+        { EngineFigure.WhiteIntellector, (int)PieceType.Intellector },
+        { EngineFigure.BlackIntellector, (int)PieceType.Intellector }
     };
 
     private async void Start()
     {
         if (Settings.GameMode != GameMode.AI) return;
 
-        main_board.MoveStartEvent += (start, end, _) =>
+        mainBoard.MoveStartEvent += (start, end, _) =>
         {
             lastMoveWasProgressive = EngineUtils.IsProgressiveMove(
-                BoardToEngine.ToEngineFigure(main_board.pieces[start.x][start.y]),
-                BoardToEngine.ToEngineFigure(main_board.pieces[end.x][end.y]));
+                BoardToEngine.ToEngineFigure(mainBoard.Pieces[start.x][start.y]),
+                BoardToEngine.ToEngineFigure(mainBoard.Pieces[end.x][end.y]));
         };
-        main_board.MoveEndEvent += (_, _, _) =>
+        mainBoard.MoveEndEvent += (_, _, _) =>
         {
-            BoardToEngine.CreateEngine(main_board).RememberPlayed(lastMoveWasProgressive);
+            BoardToEngine.CreateEngine(mainBoard).RememberPlayed(lastMoveWasProgressive);
         };
-        main_board.RestartEvent += () =>
+        mainBoard.RestartEvent += () =>
         {
             Engine.ClearPlayedHistory();
-            if (main_board.Turn == AiTeam)
+            if (mainBoard.Turn == AiTeam)
                 _ = MakeAIMove();
         };
 
-        if (main_board.Turn == AiTeam) await MakeAIMove();
+        if (mainBoard.Turn == AiTeam) await MakeAIMove();
 
-        main_board.MoveEndEvent += async (_, _, _) =>
+        mainBoard.MoveEndEvent += async (_, _, _) =>
         {
-            if (main_board.game_over) return;
-            if (main_board.Turn == AiTeam)
+            if (mainBoard.GameOver) return;
+            if (mainBoard.Turn == AiTeam)
             {
-                await Task.Delay(AI_MOVE_DELAY_MS);
+                await Task.Delay(AiMoveDelayMs);
                 await MakeAIMove();
             }
         };
@@ -64,8 +65,8 @@ public class AI : MonoBehaviour
 
     private async Task MakeAIMove()
     {
-        if (main_board.game_over) return;
-        var engine = BoardToEngine.CreateEngine(main_board);
+        if (mainBoard.GameOver) return;
+        var engine = BoardToEngine.CreateEngine(mainBoard);
         if (engine.TryGetTerminalResult(out _)) return;
         var result = await Task.Run(() => Search(engine));
         if (result.Move == null)
@@ -77,9 +78,9 @@ public class AI : MonoBehaviour
         var move = result.Move.Value;
         var (fromX, fromY) = EngineUtils.EngineIndexToUnity(move.From);
         var (toX, toY) = EngineUtils.EngineIndexToUnity(move.To);
-        int endType = FigureToUnityType[move.Figure];
+        int endType = figureToUnityType[move.Figure];
 
-        main_board.MovePiece(
+        mainBoard.MovePiece(
             new Vector2Int(fromX, fromY),
             new Vector2Int(toX, toY),
             endType

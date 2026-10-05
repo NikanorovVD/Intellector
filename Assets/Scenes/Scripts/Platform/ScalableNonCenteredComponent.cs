@@ -1,5 +1,4 @@
 using UnityEngine;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -16,10 +15,10 @@ public enum AnchorType
     Right
 }
 
-public class ScaleableNonCenteredComponent : MonoBehaviour
+public class ScalableNonCenteredComponent : MonoBehaviour
 {
-    [SerializeField] private float DesktopScale = 1;
-    [SerializeField] private float AndroidScale;
+    [SerializeField] private float desktopScale = 1;
+    [SerializeField] private float androidScale;
     [SerializeField] private AnchorType anchorType = AnchorType.TopLeft;
 
     private Vector2 initialPosition;
@@ -27,7 +26,7 @@ public class ScaleableNonCenteredComponent : MonoBehaviour
     private RectTransform parentRectTransform;
     private bool hasRectTransformParent;
 
-    void Awake()
+    private void Awake()
     {
         // Запоминаем начальную позицию и масштаб
         initialPosition = transform.localPosition;
@@ -46,12 +45,12 @@ public class ScaleableNonCenteredComponent : MonoBehaviour
     {
 #if UNITY_EDITOR
         return AndroidSimulationMenu.IsAndroidSimulationOn() ?
-            new Vector3(AndroidScale, AndroidScale, 1) :
-            new Vector3(DesktopScale, DesktopScale, 1);
+            new Vector3(androidScale, androidScale, 1) :
+            new Vector3(desktopScale, desktopScale, 1);
 #else
         return Application.platform == RuntimePlatform.Android ?
-            new Vector3(AndroidScale, AndroidScale, 1) :
-            new Vector3(DesktopScale, DesktopScale, 1);
+            new Vector3(androidScale, androidScale, 1) :
+            new Vector3(desktopScale, desktopScale, 1);
 #endif
     }
 

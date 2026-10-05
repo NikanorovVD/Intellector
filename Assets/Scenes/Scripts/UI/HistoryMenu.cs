@@ -2,19 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class HistoryMenu : MonoBehaviour
 {
-    [SerializeField] GameObject panel;
-    [SerializeField] GameObject content;
-    [SerializeField] GameObject itemPrefab;
-    [SerializeField] GameObject emptyLabel;
-    [SerializeField] GameObject renamePanel;
-    [SerializeField] InputField renameInput;
-    [SerializeField] Text renameError;
+    [SerializeField] private GameObject panel;
+    [SerializeField] private GameObject content;
+    [SerializeField] private GameObject itemPrefab;
+    [SerializeField] private GameObject emptyLabel;
+    [SerializeField] private GameObject renamePanel;
+    [SerializeField] private InputField renameInput;
+    [SerializeField] private Text renameError;
 
     private readonly List<GameObject> items = new();
     private string renamePath;

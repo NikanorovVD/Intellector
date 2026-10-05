@@ -5459,8 +5459,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DesktopScale: 1
-  AndroidScale: 1.8
+  desktopScale: 1
+  androidScale: 1.8
 --- !u!1 &2201000120
 GameObject:
   m_ObjectHideFlags: 0
@@ -9336,9 +9336,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61e888f77592d5040a271c72e716ab8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WhiteSelection: {fileID: 2201000548}
-  BlackSelection: {fileID: 2201000510}
-  RandomSelection: {fileID: 2201000514}
+  whiteSelection: {fileID: 2201000548}
+  blackSelection: {fileID: 2201000510}
+  randomSelection: {fileID: 2201000514}
 --- !u!1 &2201000536
 GameObject:
   m_ObjectHideFlags: 0

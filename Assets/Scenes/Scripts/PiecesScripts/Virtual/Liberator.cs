@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+
 using UnityEngine;
 
 public class Liberator : Piece
 {
-    public override PieceType Type => PieceType.liberator;
-    public override List<Vector2Int> GetAvailableMooves()
+    public override PieceType Type => PieceType.Liberator;
+    public override List<Vector2Int> GetAvailableMoves()
     {
         List<Vector2Int> result = new List<Vector2Int>();
 

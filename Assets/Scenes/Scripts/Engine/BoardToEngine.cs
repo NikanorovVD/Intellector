@@ -7,11 +7,11 @@ public static class BoardToEngine
         var squares = new EngineFigure[59];
         for (int i = 0; i < 59; i++) squares[i] = EngineFigure.Empty;
 
-        for (int x = 0; x < board.pieces.Length; x++)
+        for (int x = 0; x < board.Pieces.Length; x++)
         {
-            for (int y = 0; y < board.pieces[x].Length; y++)
+            for (int y = 0; y < board.Pieces[x].Length; y++)
             {
-                var piece = board.pieces[x][y];
+                var piece = board.Pieces[x][y];
                 if (piece == null) continue;
 
                 int idx = EngineUtils.GetEngineIndex(x, y);
@@ -55,12 +55,12 @@ public static class BoardToEngine
     {
         return type switch
         {
-            PieceType.progressor => EngineUtils.WithColor(EngineFigure.WhiteProgressor, color),
-            PieceType.liberator => EngineUtils.WithColor(EngineFigure.WhiteLiberator, color),
-            PieceType.intellector => EngineUtils.WithColor(EngineFigure.WhiteIntellector, color),
-            PieceType.dominator => EngineUtils.WithColor(EngineFigure.WhiteDominator, color),
-            PieceType.defensor => EngineUtils.WithColor(EngineFigure.WhiteDefensor, color),
-            PieceType.agressor => EngineUtils.WithColor(EngineFigure.WhiteAgressor, color),
+            PieceType.Progressor => EngineUtils.WithColor(EngineFigure.WhiteProgressor, color),
+            PieceType.Liberator => EngineUtils.WithColor(EngineFigure.WhiteLiberator, color),
+            PieceType.Intellector => EngineUtils.WithColor(EngineFigure.WhiteIntellector, color),
+            PieceType.Dominator => EngineUtils.WithColor(EngineFigure.WhiteDominator, color),
+            PieceType.Defensor => EngineUtils.WithColor(EngineFigure.WhiteDefensor, color),
+            PieceType.Agressor => EngineUtils.WithColor(EngineFigure.WhiteAgressor, color),
             _ => EngineFigure.Empty
         };
     }

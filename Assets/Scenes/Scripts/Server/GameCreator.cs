@@ -1,18 +1,18 @@
 using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using static Networking;
 
+using static Networking;
 
 public interface IGameCreator
 {
-    public void CreateGame(GameInfo gameInfo, Action onConnect);
-    public void CancelGameCreate();
+    void CreateGame(GameInfo gameInfo, Action onConnect);
+    void CancelGameCreate();
 }
 
 public class GameCreator : IGameCreator
 {
-    private static bool still_waiting;
+    private static bool stillWaiting;
     private GameInfo gameInfo;
     private Task waiter;
     private bool connected;
@@ -20,7 +20,7 @@ public class GameCreator : IGameCreator
     public async void CreateGame(GameInfo gameInfo, Action onConnect)
     {
         this.gameInfo = gameInfo;
-        still_waiting = true;
+        stillWaiting = true;
         waiter = Task.Run(() => ConnectionWait());
         await waiter;
         if (connected)
@@ -35,34 +35,34 @@ public class GameCreator : IGameCreator
 
     public void CancelGameCreate()
     {
-        still_waiting = false;
+        stillWaiting = false;
     }
 
     private void ConnectionWait()
     {
-        const byte white_team_code = 0;
-        const byte black_team_code = 1;
-        const byte create_game_request_code = 40;
-        const byte continue_waiting_code = 1;
-        const byte stop_code = 0;
+        const byte WhiteTeamCode = 0;
+        const byte BlackTeamCode = 1;
+        const byte CreateGameRequestCode = 40;
+        const byte ContinueWaitingCode = 1;
+        const byte StopCode = 0;
 
         TcpClient server = ServerConnection.GetConnection().Client;
         NetworkStream stream = server.GetStream();
 
-        SendCode(create_game_request_code, stream);
+        SendCode(CreateGameRequestCode, stream);
         SendGameInfo(gameInfo, stream);
         do
         {
-            byte server_ans = RecvCode(stream);
-            if (server_ans == white_team_code || server_ans == black_team_code)
+            byte serverAns = RecvCode(stream);
+            if (serverAns == WhiteTeamCode || serverAns == BlackTeamCode)
             {
-                gameInfo.Team = server_ans == black_team_code;
+                gameInfo.Team = serverAns == BlackTeamCode;
                 gameInfo.Save();
-                still_waiting = false;
+                stillWaiting = false;
                 connected = true;
                 return;
             }
-            SendCode((still_waiting) ? continue_waiting_code : stop_code, stream);
-        } while (still_waiting);         
+            SendCode((stillWaiting) ? ContinueWaitingCode : StopCode, stream);
+        } while (stillWaiting);
     }
 }

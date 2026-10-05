@@ -2,20 +2,19 @@
 
 public static class UserNameValidator
 {
-    static public bool CheckName(string name, out string error_message)
+    public static bool CheckName(string name, out string errorMessage)
     {
         if (string.IsNullOrEmpty(name))
         {
-            error_message = "Имя не должно быть пустым";
+            errorMessage = "Имя не должно быть пустым";
             return false;
         }
         if (Encoding.Default.GetBytes(name).Length > 20)
         {
-            error_message = "Имя не должно быть длинне 20 символов";
+            errorMessage = "Имя не должно быть длинне 20 символов";
             return false;
         }
-        error_message = null;
+        errorMessage = null;
         return true;
     }
 }
-

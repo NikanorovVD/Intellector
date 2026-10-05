@@ -2,37 +2,37 @@ using UnityEngine;
 
 public class TimeController : MonoBehaviour
 {
-    [SerializeField] private NetworkManager network_manager;
+    [SerializeField] private NetworkManager networkManager;
     [SerializeField] private TimeControlView view;
     [SerializeField] private Board board;
 
-    private int white_time;
-    private int black_time;
+    private int whiteTime;
+    private int blackTime;
 
-    private TimeContol time_control;
+    private TimeControl timeControl;
 
     // FIXME: дублирование состояния board.Turn
     private bool turn;
 
     // FIXME: дублирование состояния time_control.Active
     private bool active;
-    
+
     private int WhiteTime
     {
-        get { return white_time; }
+        get { return whiteTime; }
         set
         {
-            white_time = value;
-            view.DisplayWhiteTime(white_time);
+            whiteTime = value;
+            view.DisplayWhiteTime(whiteTime);
         }
     }
     private int BlackTime
     {
-        get { return black_time; }
+        get { return blackTime; }
         set
         {
-            black_time = value;
-            view.DisplayBlackTime(black_time);
+            blackTime = value;
+            view.DisplayBlackTime(blackTime);
         }
     }
 
@@ -40,8 +40,8 @@ public class TimeController : MonoBehaviour
     {
         if (Settings.GameMode == GameMode.Network)
         {
-            network_manager.TimeEvent += TimeReceived;
-            network_manager.GameStartEvent += StartGame;
+            networkManager.TimeEvent += TimeReceived;
+            networkManager.GameStartEvent += StartGame;
             board.RestartEvent += StartGame;
             board.EndGameEvent += (_, __) => EndGame();
         }
@@ -50,14 +50,14 @@ public class TimeController : MonoBehaviour
     public void StartGame()
     {
         GameInfo gameInfo = GameInfo.Load();
-        time_control = gameInfo.TimeContol;
-        active = time_control.Active;
+        timeControl = gameInfo.TimeControl;
+        active = timeControl.Active;
         if (!active) return;
 
         view.Team = board.PlayerTeam;
         turn = false;
-        WhiteTime = time_control.MaxMilliseconds;
-        BlackTime = time_control.MaxMilliseconds;
+        WhiteTime = timeControl.MaxMilliseconds;
+        BlackTime = timeControl.MaxMilliseconds;
         view.Activate();
         view.StartRunTime();
     }

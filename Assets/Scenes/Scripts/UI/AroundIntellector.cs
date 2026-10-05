@@ -2,23 +2,23 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-public class Around_Intellector : MonoBehaviour
+public class AroundIntellector : MonoBehaviour
 {
-    public bool? answer;
+    public bool? Answer;
 
-    [SerializeField] GameObject yesButton;
-    [SerializeField] GameObject noButton;
+    [SerializeField] private GameObject yesButton;
+    [SerializeField] private GameObject noButton;
 
-    void Start()
+    private void Start()
     {
-        answer = null;
+        Answer = null;
     }
 
-    void Awake()
+    private void Awake()
     {
         GetAnswer(
-            yesAction: () => { answer = true; },
-            noAction: () => { answer = false; }
+            yesAction: () => { Answer = true; },
+            noAction: () => { Answer = false; }
         );
     }
 

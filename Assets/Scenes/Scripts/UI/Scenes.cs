@@ -3,9 +3,9 @@ using UnityEngine.SceneManagement;
 
 public class Scenes: MonoBehaviour
 {
-    public void ChangeScenes(int numberScrenes)
+    public void ChangeScenes(int numberScenes)
     {
-        SceneManager.LoadScene(numberScrenes);
+        SceneManager.LoadScene(numberScenes);
     }
 
     public void LocalGame()

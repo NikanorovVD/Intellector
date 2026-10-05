@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
+
 using UnityEngine;
 
 public class ReplayAnalysis
@@ -338,9 +339,9 @@ public class ReplayAnalysis
     {
         var (fromX, fromY) = EngineUtils.EngineIndexToUnity(move.From);
         var (toX, toY) = EngineUtils.EngineIndexToUnity(move.To);
-        IPiece moving = board.pieces[fromX][fromY];
+        IPiece moving = board.Pieces[fromX][fromY];
         if (moving == null) return null;
-        IPiece target = board.pieces[toX][toY];
+        IPiece target = board.Pieces[toX][toY];
         PieceType resulting = ToPieceType(move.Figure);
         return new RecordedMove
         {
@@ -357,13 +358,13 @@ public class ReplayAnalysis
     {
         return ((int)figure / 2) switch
         {
-            0 => PieceType.progressor,
-            1 => PieceType.dominator,
-            2 => PieceType.liberator,
-            3 => PieceType.agressor,
-            4 => PieceType.defensor,
-            5 => PieceType.intellector,
-            _ => PieceType.progressor
+            0 => PieceType.Progressor,
+            1 => PieceType.Dominator,
+            2 => PieceType.Liberator,
+            3 => PieceType.Agressor,
+            4 => PieceType.Defensor,
+            5 => PieceType.Intellector,
+            _ => PieceType.Progressor
         };
     }
 }

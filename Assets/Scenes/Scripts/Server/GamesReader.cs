@@ -1,27 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+
 using static Networking;
 
 public interface IGamesReader
 {
-    public List<GameInfo> ReadGames();
+    List<GameInfo> ReadGames();
 }
 
 public class GamesReader : IGamesReader
 {
     public List<GameInfo> ReadGames()
     {
-        const byte games_list_request = 100;
+        const byte GamesListRequest = 100;
 
         TcpClient server = ServerConnection.GetConnection().Client;
         NetworkStream stream = server.GetStream();
 
-        SendCode(games_list_request, stream);
-        int GameCount = RecvInt(stream);
+        SendCode(GamesListRequest, stream);
+        int gameCount = RecvInt(stream);
 
         List<GameInfo> games = new List<GameInfo>();
-        for (int i = 0; i < GameCount; i++)
+        for (int i = 0; i < gameCount; i++)
         {
             games.Add(RecvGameInfo(stream));
         }

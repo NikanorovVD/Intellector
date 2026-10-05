@@ -1,5 +1,3 @@
-using Assets.Scenes.Scripts.Server;
-
 public class TCPServerFactory : IServerFactory
 {
     public IGameCreator MakeGameCreator()
