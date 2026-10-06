@@ -2,8 +2,6 @@ using System.Net.Sockets;
 using System;
 using System.Threading.Tasks;
 
-using static LogWriter;
-
 using UnityEngine;
 
 public class NetworkManager : MonoBehaviour, IServerListenerObserver
@@ -41,7 +39,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         }
         catch (Exception e)
         {
-            WriteLog(e.Message);
+            LogWriter.Error(e);
         }
     }
 
@@ -50,7 +48,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         if (board.Pieces[start.x][start.y].Team == board.PlayerTeam)
         {
             ServerManager.GetInstance().SendMove(start, end, transformInfo);
-            WriteLog($"Отправка хода: {start} ; {end} ; {transformInfo}");
+            LogWriter.Info($"Отправка хода: {start} ; {end} ; {transformInfo}");
         }
     }
 
@@ -79,7 +77,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     public void OnMoveReceived(Vector2Int start, Vector2Int end, int transformInfo)
     {
-        WriteLog($"Получен ход: {start} -> {end} : {transformInfo} ");
+        LogWriter.Info($"Получен ход: {start} -> {end} : {transformInfo} ");
         MainTasks.AddTask(() => ExecuteReceivedMove(start, end, transformInfo));
     }
 

@@ -43,7 +43,7 @@ public class NetworkGamesScene : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogException(e);
+            LogWriter.Error(e);
             errorWindow.SetActive(true);
             DeactivateButtons();
         }

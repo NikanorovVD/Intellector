@@ -23,7 +23,7 @@ public class MainTasks : MonoBehaviour
         }
         catch (Exception e)
         {
-            LogWriter.WriteLog(e.ToString());
+            LogWriter.Error(e);
         }
     }
 

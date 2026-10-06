@@ -74,7 +74,7 @@ public class AI : MonoBehaviour
         var result = await Task.Run(() => Search(engine));
         if (result.Move == null)
         {
-            Debug.LogError("Engine вернул null");
+            LogWriter.Error("Engine вернул null");
             return;
         }
 

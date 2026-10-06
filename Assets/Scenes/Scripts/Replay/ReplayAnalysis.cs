@@ -273,7 +273,7 @@ public class ReplayAnalysis
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                LogWriter.Error(e);
             }
         });
     }
@@ -324,7 +324,7 @@ public class ReplayAnalysis
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                LogWriter.Error(e);
             }
         });
     }
@@ -486,7 +486,7 @@ public class ReplayAnalysis
         }
         catch (Exception e)
         {
-            Debug.LogException(e);
+            LogWriter.Error(e);
             lock (preLock)
             {
                 if (gen != preGeneration) return;
@@ -598,7 +598,7 @@ public class ReplayAnalysis
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                LogWriter.Error(e);
             }
         });
     }
@@ -698,7 +698,7 @@ public class ReplayAnalysis
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                LogWriter.Error(e);
             }
         });
     }
