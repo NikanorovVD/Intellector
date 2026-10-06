@@ -66,9 +66,11 @@ public class TimeControlView : MonoBehaviour
     }
     public void Stop()
     {
+        if (myTimeRunner == null && opponentTimeRunner == null) return;
+
         timeRun = false;
-        myTimeRunner.Join();
-        opponentTimeRunner.Join();
+        myTimeRunner?.Join();
+        opponentTimeRunner?.Join();
     }
     private void DisplayOpponentTime(int time)
     {

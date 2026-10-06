@@ -1,34 +1,34 @@
-using System;
 using System.Collections.Generic;
 
 public class TimeControl
 {
-    private int maxTime;
-    private int addedTime;
+    public static readonly TimeControl Unlimited = new TimeControl(0, 0, true);
 
-    // FIXME: неочевидный флаг, что в игре есть контроль времени
-    public bool Active { get => maxTime != 0; }
-    public int MaxMilliseconds { get => maxTime; }
-    public int AddMilliseconds { get => addedTime; }
+    public int BaseMilliseconds { get; }
+    public int IncrementMilliseconds { get; }
+    public bool Unlimited { get; }
 
-    // FIXME: неудобные свойства, макс. время нельзя задать точнее минут
-    public int MaxMinutes {
-        get { return maxTime / 60000; }
-        set { maxTime = value * 60000; }
-    }
-    public int AddedSeconds {
-        get { return addedTime / 1000; }
-        set { addedTime = value * 1000;}
-    }
-    public TimeControl(int minutes, int addSeconds)
+    public TimeControl(int baseMilliseconds, int incrementMilliseconds)
+        : this(baseMilliseconds, incrementMilliseconds, false)
     {
-        MaxMinutes = minutes;
-        AddedSeconds = addSeconds;
     }
+
+    private TimeControl(int baseMilliseconds, int incrementMilliseconds, bool unlimited)
+    {
+        BaseMilliseconds = baseMilliseconds;
+        IncrementMilliseconds = incrementMilliseconds;
+        Unlimited = unlimited;
+    }
+
     public override string ToString()
     {
-        if (maxTime == 0) return "Unlimit";
-        return $"{MaxMinutes} + {AddedSeconds}";
+        if (Unlimited) return "Unlimit";
+
+        int minutes = BaseMilliseconds / 60000;
+        int extraSeconds = (BaseMilliseconds % 60000) / 1000;
+        int incrementSeconds = IncrementMilliseconds / 1000;
+        if (extraSeconds == 0) return $"{minutes} + {incrementSeconds}";
+        return $"{minutes}:{extraSeconds:D2} + {incrementSeconds}";
     }
 }
 
@@ -37,6 +37,22 @@ public static class TimeControlSelector
     public static List<TimeControl> TimeControls;
     static TimeControlSelector()
     {
-        TimeControls = new List<TimeControl>() { new(0, 0), new(1,0), new(2, 1), new(3, 0), new(3, 2), new(5, 0), new(5, 3), new(10, 0), new(10, 5), new(15, 10), new(30, 0), new(30, 20) };
+        const int MinuteMs = 60_000;
+        const int SecondMs = 1_000;
+        TimeControls = new List<TimeControl>()
+        {
+            TimeControl.Unlimited,
+            new(1 * MinuteMs, 0),
+            new(2 * MinuteMs, 1 * SecondMs),
+            new(3 * MinuteMs, 0),
+            new(3 * MinuteMs, 2 * SecondMs),
+            new(5 * MinuteMs, 0),
+            new(5 * MinuteMs, 3 * SecondMs),
+            new(10 * MinuteMs, 0),
+            new(10 * MinuteMs, 5 * SecondMs),
+            new(15 * MinuteMs, 10 * SecondMs),
+            new(30 * MinuteMs, 0),
+            new(30 * MinuteMs, 20 * SecondMs)
+        };
     }
 }

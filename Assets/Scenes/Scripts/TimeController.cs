@@ -11,12 +11,6 @@ public class TimeController : MonoBehaviour
 
     private TimeControl timeControl;
 
-    // FIXME: дублирование состояния board.Turn
-    private bool turn;
-
-    // FIXME: дублирование состояния time_control.Active
-    private bool active;
-
     private int WhiteTime
     {
         get { return whiteTime; }
@@ -51,29 +45,33 @@ public class TimeController : MonoBehaviour
     {
         GameInfo gameInfo = GameInfo.Load();
         timeControl = gameInfo.TimeControl;
-        active = timeControl.Active;
-        if (!active) return;
+        view.Stop();
+        if (timeControl == null || timeControl.Unlimited) return;
 
         view.Team = board.PlayerTeam;
-        turn = false;
-        WhiteTime = timeControl.MaxMilliseconds;
-        BlackTime = timeControl.MaxMilliseconds;
+        WhiteTime = timeControl.BaseMilliseconds;
+        BlackTime = timeControl.BaseMilliseconds;
         view.Activate();
         view.StartRunTime();
     }
 
     public void EndGame()
     {
-        if (active)
+        if (timeControl != null && !timeControl.Unlimited)
             view.Stop();
     }
 
     private void TimeReceived(int time)
     {
-        if (turn) BlackTime = time;
-        else WhiteTime = time;
-        turn = !turn;
-        if (turn) view.DisplayBlackTurn();
-        else view.DisplayWhiteTurn();
+        if (board.Turn)
+        {
+            WhiteTime = time;
+            view.DisplayBlackTurn();
+        }
+        else
+        {
+            BlackTime = time;
+            view.DisplayWhiteTurn();
+        }
     }
 }

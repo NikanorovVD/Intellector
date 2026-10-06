@@ -34,18 +34,21 @@ public static class Networking
     public static void SendGameInfo(GameInfo game, NetworkStream stream)
     {
         SendString(game.Name, stream);
-        SendInt(game.TimeControl.MaxMinutes, stream);
-        SendInt(game.TimeControl.AddedSeconds, stream);
+        SendInt(game.TimeControl.BaseMilliseconds / 60000, stream);
+        SendInt(game.TimeControl.IncrementMilliseconds / 1000, stream);
         SendInt((int)game.Color, stream);
     }
     public static GameInfo RecvGameInfo(NetworkStream stream)
     {
         uint id = RecvUInt(stream);
         string name = RecvString(stream);
-        int maxTime = RecvInt(stream);
-        int addTime = RecvInt(stream);
+        int maxMinutes = RecvInt(stream);
+        int addSeconds = RecvInt(stream);
         ColorChoice color = (ColorChoice)RecvInt(stream);
-        return new GameInfo {ID = id, Name = name, TimeControl = new(maxTime, addTime), Color = color};
+        TimeControl timeControl = maxMinutes == 0
+            ? TimeControl.Unlimited
+            : new TimeControl(maxMinutes * 60000, addSeconds * 1000);
+        return new GameInfo {ID = id, Name = name, TimeControl = timeControl, Color = color};
     }
 
     public static void SendMove(byte[] moveBytes, NetworkStream stream)

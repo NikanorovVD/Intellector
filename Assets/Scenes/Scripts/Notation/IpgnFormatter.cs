@@ -140,12 +140,13 @@ public static class IpgnFormatter
 
     public static string FormatTimeControl(TimeControl timeControl)
     {
-        if (timeControl == null || !timeControl.Active)
+        if (timeControl == null || timeControl.Unlimited)
             return "-";
-        string baseSeconds = (timeControl.MaxMilliseconds / 1000).ToString(CultureInfo.InvariantCulture);
-        if (timeControl.AddedSeconds <= 0)
+        string baseSeconds = (timeControl.BaseMilliseconds / 1000).ToString(CultureInfo.InvariantCulture);
+        int incrementSeconds = timeControl.IncrementMilliseconds / 1000;
+        if (incrementSeconds <= 0)
             return baseSeconds;
-        return baseSeconds + "+" + timeControl.AddedSeconds.ToString(CultureInfo.InvariantCulture);
+        return baseSeconds + "+" + incrementSeconds.ToString(CultureInfo.InvariantCulture);
     }
 
     public static string FormatTermination(EndGameReason reason)
