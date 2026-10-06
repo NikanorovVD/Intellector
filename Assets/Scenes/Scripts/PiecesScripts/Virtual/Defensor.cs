@@ -11,19 +11,27 @@ public class Defensor : Piece
 
         for (int i = X - 1; i <= X + 1; i++)
         {
-            if (i < 0) continue;                                                                        //левая граница
-            if (i > 8) continue;                                                                        //правая граница
+            // Левая граница
+            if (i < 0) continue;
+            // Правая граница
+            if (i > 8) continue;
 
             for (int j = Y - 1; j <= Y + 1; j++)
             {
-                if (j < 0) continue;                                                                    //нижняя граница
-                if (j >= Board[i].Length) continue;                                              //верхняя граница
+                // Нижняя граница
+                if (j < 0) continue;
+                // Верхняя граница
+                if (j >= Board[i].Length) continue;
 
-                if (X == i && Y == j) continue;                                               //клетка с фигурой
-                if (X % 2 == 0 && Y + 1 == j && X != i) continue;                        //две лишние клетки сверху
-                if (X % 2 == 1 && Y - 1 == j && X != i) continue;                        //две лишние клетки снизу
+                // Клетка с фигурой
+                if (X == i && Y == j) continue;
+                // Две лишние клетки сверху
+                if (X % 2 == 0 && Y + 1 == j && X != i) continue;
+                // Две лишние клетки снизу
+                if (X % 2 == 1 && Y - 1 == j && X != i) continue;
 
-                if (Board[i][j] != null && Board[i][j].Team == Team) continue;       //есть фигура и она союзная
+                // Есть фигура, и она союзная
+                if (Board[i][j] != null && Board[i][j].Team == Team) continue;
 
                 result.Add(new Vector2Int(i, j));
             }
