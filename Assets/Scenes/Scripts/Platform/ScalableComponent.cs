@@ -12,15 +12,15 @@ public class ScalableComponent : MonoBehaviour
 
     private void Awake()
     {
-        // TODO: вынести флаг того что у нас Android в переменную
+        bool isAndroid;
 #if UNITY_EDITOR
-        transform.localScale = AndroidSimulationMenu.IsAndroidSimulationOn() ?
-            new Vector3(androidScale, androidScale, 1) :
-            new Vector3(desktopScale, desktopScale, 1);
-        return;
+        isAndroid = AndroidSimulationMenu.IsAndroidSimulationOn();
+#else
+        isAndroid = Application.platform == RuntimePlatform.Android;
 #endif
-        transform.localScale = Application.platform == RuntimePlatform.Android ?
-            new Vector3(androidScale, androidScale, 1) :
-            new Vector3(desktopScale, desktopScale, 1);
+        transform.localScale = isAndroid
+            ? new Vector3(androidScale, androidScale, 1)
+            : new Vector3(desktopScale, desktopScale, 1);
+
     }
 }

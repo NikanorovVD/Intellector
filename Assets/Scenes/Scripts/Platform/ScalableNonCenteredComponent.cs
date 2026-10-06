@@ -44,14 +44,13 @@ public class ScalableNonCenteredComponent : MonoBehaviour
     private Vector3 GetTargetScale()
     {
 #if UNITY_EDITOR
-        return AndroidSimulationMenu.IsAndroidSimulationOn() ?
-            new Vector3(androidScale, androidScale, 1) :
-            new Vector3(desktopScale, desktopScale, 1);
+        bool isAndroid = AndroidSimulationMenu.IsAndroidSimulationOn();
 #else
-        return Application.platform == RuntimePlatform.Android ?
-            new Vector3(androidScale, androidScale, 1) :
-            new Vector3(desktopScale, desktopScale, 1);
+        bool isAndroid = Application.platform == RuntimePlatform.Android;
 #endif
+        return isAndroid
+            ? new Vector3(androidScale, androidScale, 1)
+            : new Vector3(desktopScale, desktopScale, 1);
     }
 
     private void ApplyScaleWithAnchor(Vector3 targetScale)
