@@ -119,7 +119,7 @@ public class Engine
         hashReady = true;
     }
 
-    private int Hash()
+    public int Hash()
     {
         int h = 0;
         if (sideToMove == EngineColor.Black) h ^= blackMoveKey;

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using UnityEngine;
 
@@ -12,7 +11,7 @@ public class GameOverWatcher : MonoBehaviour
     public const int MaxPositionRepeats = 3;
 
     private int currentMovesWithoutProgressCount;
-    private Dictionary<string, int> positionCounts = new();
+    private Dictionary<int, int> positionCounts = new();
     private bool progressiveMove;
 
     private void Start()
@@ -52,7 +51,7 @@ public class GameOverWatcher : MonoBehaviour
     private void MoveEndHandler(Vector2Int start, Vector2Int end, int transformInfo)
     {
         if (progressiveMove) positionCounts.Clear();
-        string positionHash = GetPositionHash(board.Turn, board.Pieces);
+        int positionHash = BoardToEngine.CreateEngine(board).Hash();
         if (positionCounts.TryGetValue(positionHash, out int count))
         {
             count++;
@@ -99,31 +98,5 @@ public class GameOverWatcher : MonoBehaviour
         if (board.Pieces[start.x][start.y].Type == PieceType.Progressor) return true;
         if (board.Pieces[end.x][end.y] != null) return true;
         return false;
-    }
-
-    // FIXME: не место для сериализации состояния игры, она может быть нужна не только для проверки на повторение позиции
-    private string GetPositionHash(bool turn, IPiece[][] pieces)
-    {
-        var hashBuilder = new StringBuilder();
-        hashBuilder.Append(turn ? '0' : '1');
-        for (int i = 0; i < pieces.Length; i++)
-        {
-            for (int j = 0; j < pieces[i].Length; j++)
-            {
-                var piece = pieces[i][j];
-                char pieceHash = piece switch
-                {
-                    null => '_',
-                    AgressorPiece => piece.Team ? 'a' : 'A',
-                    DominatorPiece => piece.Team ? 'd' : 'D',
-                    ProgressorPiece => piece.Team ? 'p' : 'P',
-                    LiberatorPiece => piece.Team ? 'l' : 'L',
-                    IntellectorPiece => piece.Team ? 'i' : 'I',
-                    DefensorPiece => piece.Team ? 'f' : 'F',
-                };
-                hashBuilder.Append(pieceHash);
-            }
-        }
-        return hashBuilder.ToString();
     }
 }
