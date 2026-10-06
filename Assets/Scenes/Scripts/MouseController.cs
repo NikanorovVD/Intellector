@@ -20,13 +20,13 @@ public class MouseController : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit info, 500, LayerMask.GetMask(layersNames)))
         {
-            //Выделение поля
+            // Выделение поля
             Vector2Int hitPosition = board.LookUpTileIndex(info.transform.gameObject);
             board.HoverTile(hitPosition);
         }
         else board.RemoveHover();
 
-        //обработка нажатия ЛКМ
+        // Обработка нажатия ЛКМ
         if (Input.GetMouseButtonDown(0) && (Physics.Raycast(ray, out info, 500, LayerMask.GetMask(layersNames))))
         {
             Vector2Int hitPosition = board.LookUpTileIndex(info.transform.gameObject);

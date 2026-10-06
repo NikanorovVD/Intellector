@@ -54,7 +54,7 @@ public class Engine
         if (position != null && TrySetPosition(position))
             return;
 
-        // начальная расстановка
+        // Начальная расстановка
         for (int i = 0; i <= 58; i++) fields[i] = EngineFigure.Empty;
 
         fields[1] = fields[14] = fields[27] = fields[40] = fields[53] = EngineFigure.WhiteProgressor;
@@ -150,7 +150,7 @@ public class Engine
         return parentHash;
     }
 
-    // запомнить, что позиция встречалась и вернуть количество повторений, нужно для учета троекратного повторения
+    // Запомнить, что позиция встречалась и вернуть количество повторений, нужно для учета троекратного повторения
     public int RememberPlayed(bool progressive)
     {
         if (progressive) playedOccurrences.Clear();
@@ -221,7 +221,7 @@ public class Engine
 
         if ((fromFig == EngineFigure.WhiteIntellector && toFig == EngineFigure.WhiteDefensor) || (fromFig == EngineFigure.BlackIntellector && toFig == EngineFigure.BlackDefensor))
         {
-            // рокировка
+            // Рокировка
             fields[move.From] = toFig;
             fields[move.To] = fromFig;
         }

@@ -115,7 +115,7 @@ public class Board : MonoBehaviour
     public Vector3 TransformCoordinates(int x, int y)
         => new Vector3(x * xOffset, 0, y * yOffset + (yOffset / 2) * (x % 2));
 
-    //Создание поля и фигур
+    // Создание поля и фигур
     public void GenerateAllTiles()
     {
         Tiles = new GameObject[9][];
@@ -269,7 +269,7 @@ public class Board : MonoBehaviour
         LoadPosition(Settings.StartPosition);
     }
 
-    //очистка
+    // Очистка
     public void Restart()
     {
         if (Settings.StartPosition != null
@@ -312,7 +312,7 @@ public class Board : MonoBehaviour
         hintMove2 = -Vector2Int.one;
     }
 
-    //операции с полями и слоями
+    // Операции с полями и слоями
     public Vector2Int LookUpTileIndex(GameObject hitInfo)
     {
         for (int i = 0; i < 9; i++)
@@ -333,14 +333,14 @@ public class Board : MonoBehaviour
         currentHover = -Vector2Int.one;
     }
 
-    //перемещение фигур
+    // Перемещение фигур
     public void SelectTile(Vector2Int coordinates)
     {
-        if ((NetworkGame || Settings.GameMode == GameMode.AI) && PlayerTeam != Turn) return; //не трогаем чужие фигуры
+        if ((NetworkGame || Settings.GameMode == GameMode.AI) && PlayerTeam != Turn) return; // Не трогаем чужие фигуры
 
-        //если не выбрана никакая фигура
+        // Если не выбрана никакая фигура
         if (currentSelect == -Vector2Int.one)
-            if ((Pieces[coordinates.x][coordinates.y] != null) && (Pieces[coordinates.x][coordinates.y].Team == Turn)) //если нажали на фигуру выбираем её
+            if ((Pieces[coordinates.x][coordinates.y] != null) && (Pieces[coordinates.x][coordinates.y].Team == Turn)) // Если нажали на фигуру выбираем её
             {
                 currentSelect = coordinates;
                 availableMoves = Pieces[coordinates.x][coordinates.y].GetAvailableMoves();
@@ -348,38 +348,38 @@ public class Board : MonoBehaviour
             }
             else { return; }
 
-        //если уже выбрана
+        // Если уже выбрана
         else
         {
-            if (currentSelect == coordinates) //если нажали на ту же фигуру сбрасываем выделение
+            if (currentSelect == coordinates) // Если нажали на ту же фигуру сбрасываем выделение
             {
                 currentSelect = -Vector2Int.one;
                 availableMoves = null;
             }
-            else //а если нажали на другое поле
+            else // А если нажали на другое поле
             {
-                if (availableMoves.Contains(coordinates)) // и туда можно пойти, то идём туда
+                if (availableMoves.Contains(coordinates)) // И туда можно пойти, то идём туда
                 {
-                    // и сбрасываем выделение
+                    // И сбрасываем выделение
                     var selectBuff = currentSelect;
                     currentSelect = -Vector2Int.one;
                     availableMoves = null;
 
-                    if (!ChekAndAskForTransformaton(selectBuff, coordinates)) //если нет никаких превращений то можно просто пойти
+                    if (!ChekAndAskForTransformaton(selectBuff, coordinates)) // Если нет никаких превращений то можно просто пойти
                         MovePiece(selectBuff, coordinates);
                 }
-                else // а если пойти туда нельзя
+                else // А если пойти туда нельзя
                 {
-                    if(Pieces[coordinates.x][coordinates.y] != null && (Pieces[coordinates.x][coordinates.y].Team == Turn)) // и там есть фигура доступная для выделения
+                    if(Pieces[coordinates.x][coordinates.y] != null && (Pieces[coordinates.x][coordinates.y].Team == Turn)) // И там есть фигура доступная для выделения
                     {
-                        //то переключаем выделение на неё
+                        // То переключаем выделение на неё
                         currentSelect = coordinates;
                         availableMoves = Pieces[coordinates.x][coordinates.y].GetAvailableMoves();
                         return;
                     }
-                    else //если нет фигуры доступной для выделения
+                    else // Если нет фигуры доступной для выделения
                     {
-                        //сбрасываем выделение
+                        // Сбрасываем выделение
                         currentSelect = -Vector2Int.one;
                         availableMoves = null;
                     }
@@ -390,9 +390,9 @@ public class Board : MonoBehaviour
 
     private bool ChekAndAskForTransformaton(Vector2Int start, Vector2Int end)
     {
-        if ((Pieces[start.x][start.y].Type == PieceType.Progressor) && // если ходил прогрессор
-        ((Pieces[start.x][start.y].Team == false && (end.y == 6)) || (Pieces[start.x][start.y].Team == true && (end.y == 0) && (end.x % 2 == 0))) //и он дошёл до поля превращения
-        && ((Pieces[end.x][end.y] == null) || (Pieces[end.x][end.y].Type != PieceType.Intellector))) //и мы не съели интеллектора
+        if ((Pieces[start.x][start.y].Type == PieceType.Progressor) && // Если ходил прогрессор
+        ((Pieces[start.x][start.y].Team == false && (end.y == 6)) || (Pieces[start.x][start.y].Team == true && (end.y == 0) && (end.x % 2 == 0))) // И он дошёл до поля превращения
+        && ((Pieces[end.x][end.y] == null) || (Pieces[end.x][end.y].Type != PieceType.Intellector))) // И мы не съели интеллектора
         {
             progressorPromotionDialog.SetActive(true);
             StartCoroutine(WaitForPieceType(start, end));
@@ -400,13 +400,13 @@ public class Board : MonoBehaviour
             return true;
         }
 
-        else if (Pieces[end.x][end.y] != null && (Pieces[end.x][end.y].Team != Pieces[start.x][start.y].Team) //если едим вражескую фигуру
-            && (Pieces[start.x][start.y].HasIntellectorNearby()) //и рядом есть интеллектор
-            && (Pieces[start.x][start.y].Type != PieceType.Progressor) //и ходил не прогрессор
-            && (Pieces[start.x][start.y].Type != Pieces[end.x][end.y].Type) //и тип съеденной фигуры отличается
-            && (Pieces[end.x][end.y].Type != PieceType.Intellector)) //и мы съели не интеллектора
+        else if (Pieces[end.x][end.y] != null && (Pieces[end.x][end.y].Team != Pieces[start.x][start.y].Team) // Если едим вражескую фигуру
+            && (Pieces[start.x][start.y].HasIntellectorNearby()) // И рядом есть интеллектор
+            && (Pieces[start.x][start.y].Type != PieceType.Progressor) // И ходил не прогрессор
+            && (Pieces[start.x][start.y].Type != Pieces[end.x][end.y].Type) // И тип съеденной фигуры отличается
+            && (Pieces[end.x][end.y].Type != PieceType.Intellector)) // И мы съели не интеллектора
         {
-            // то можно превратиться в съеденную фигуру
+            // То можно превратиться в съеденную фигуру
             intellectorSupportDialog.SetActive(true);
             StartCoroutine(WaitForTransformation(start, end));
             WaitForTransformation = true;
@@ -418,20 +418,20 @@ public class Board : MonoBehaviour
 
     public void MovePiece(Vector2Int start, Vector2Int end, int transformInfo = 200)
     {
-        //проверка очерёдности хода
+        // Проверка очерёдности хода
         if (Pieces[start.x][start.y].Team != Turn) return;
 
-        // событие начала хода
+        // Событие начала хода
         MoveStartEvent?.Invoke(start, end, transformInfo);
 
-        //Переключение очерёдности хода
+        // Переключение очерёдности хода
         Turn = !Turn;
 
-        //Сохранение последнего хода
+        // Сохранение последнего хода
         lastMove1 = start;
         lastMove2 = end;
 
-        //едим если занято вражеской фигурой
+        // Едим если занято вражеской фигурой
         if (Pieces[end.x][end.y] != null && (Pieces[end.x][end.y].Team != Pieces[start.x][start.y].Team))
         {
             Destroy(piecesObjects[Pieces[end.x][end.y]].GetComponent<MeshRenderer>());
@@ -441,17 +441,17 @@ public class Board : MonoBehaviour
             }
         }
 
-        //перемещение в пространстве
+        // Перемещение в пространстве
         piecesObjects[Pieces[start.x][start.y]].transform.position = TransformCoordinates(end.x, end.y);
 
-        //при ходе на свою фигуру
+        // При ходе на свою фигуру
         if (Pieces[end.x][end.y] != null && (Pieces[end.x][end.y].Team == Pieces[start.x][start.y].Team))
         {
-            if ( //если это дефенсор и интеллектор
+            if ( // Если это дефенсор и интеллектор
                 (Pieces[start.x][start.y].Type == PieceType.Intellector && Pieces[end.x][end.y].Type == PieceType.Defensor) ||
                 (Pieces[start.x][start.y].Type == PieceType.Defensor && Pieces[end.x][end.y].Type == PieceType.Intellector)
                )
-            {   //то меняем их местами
+            {   // То меняем их местами
                 Castling();
             }
             else
@@ -459,21 +459,21 @@ public class Board : MonoBehaviour
         }
         else
         {
-            //изменение ссылок
+            // Изменение ссылок
             Pieces[end.x][end.y] = Pieces[start.x][start.y];
             Pieces[end.x][end.y].X = end.x;
             Pieces[end.x][end.y].Y = end.y;
             Pieces[start.x][start.y] = null;
         }
 
-        //превращаемя если надо
+        // Превращаемя если надо
         if (transformInfo != 200)
         {
             Destroy(piecesObjects[Pieces[end.x][end.y]].GetComponent<MeshRenderer>());
             Pieces[end.x][end.y] = GenerateSinglePiece((PieceType)transformInfo, Pieces[end.x][end.y].Team, end.x, end.y);
         }
 
-        //"рокировка"
+        // "Рокировка"
         void Castling()
         {
             piecesObjects[Pieces[end.x][end.y]].transform.position = TransformCoordinates(start.x, start.y);
@@ -484,7 +484,7 @@ public class Board : MonoBehaviour
             Pieces[end.x][end.y].Y = end.y;
         }
 
-        //достижение интеллектором базовой линии
+        // Достижение интеллектором базовой линии
         if ((Pieces[end.x][end.y].Type == PieceType.Intellector) &&
             (
                 ((Pieces[end.x][end.y].Team == false) && (end.y == 6)) ||
@@ -494,11 +494,11 @@ public class Board : MonoBehaviour
             GameOver(Pieces[end.x][end.y].Team, EndGameReason.IntellectorReachLustRank);
         }
 
-        //вызов события хода
+        // Вызов события хода
         MoveEndEvent?.Invoke(start, end, transformInfo);
     }
 
-    //превращения
+    // Превращения
     private IEnumerator WaitForTransformation(Vector2Int start, Vector2Int end)
     {
         yield return new WaitUntil(() => !intellectorSupportDialog.activeInHierarchy);
@@ -538,7 +538,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    //конец игры
+    // Конец игры
     public void GameOver(bool? winner, EndGameReason reason)
     {
         if (Settings.GameMode == GameMode.Replay) return;
