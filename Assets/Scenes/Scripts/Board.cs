@@ -18,8 +18,8 @@ public class Board : MonoBehaviour
     private Material blackTeamMaterial;
 
     [Header("UI")]
-    [SerializeField] private GameObject progressorEnd;
-    [SerializeField] private GameObject aroundIntellector;
+    [SerializeField] private GameObject progressorPromotionDialog;
+    [SerializeField] private GameObject intellectorSupportDialog;
     [SerializeField] private EndGame endGame;
 
     [NonSerialized] public bool NetworkGame;
@@ -394,7 +394,7 @@ public class Board : MonoBehaviour
         ((Pieces[start.x][start.y].Team == false && (end.y == 6)) || (Pieces[start.x][start.y].Team == true && (end.y == 0) && (end.x % 2 == 0))) //и он дошёл до поля превращения
         && ((Pieces[end.x][end.y] == null) || (Pieces[end.x][end.y].Type != PieceType.Intellector))) //и мы не съели интеллектора
         {
-            progressorEnd.SetActive(true);
+            progressorPromotionDialog.SetActive(true);
             StartCoroutine(WaitForPieceType(start, end));
             WaitForTransformation = true;
             return true;
@@ -407,7 +407,7 @@ public class Board : MonoBehaviour
             && (Pieces[end.x][end.y].Type != PieceType.Intellector)) //и мы съели не интеллектора
         {
             // то можно превратиться в съеденную фигуру
-            aroundIntellector.SetActive(true);
+            intellectorSupportDialog.SetActive(true);
             StartCoroutine(WaitForTransformation(start, end));
             WaitForTransformation = true;
             return true;
@@ -501,33 +501,33 @@ public class Board : MonoBehaviour
     //превращения
     private IEnumerator WaitForTransformation(Vector2Int start, Vector2Int end)
     {
-        yield return new WaitUntil(() => !aroundIntellector.activeInHierarchy);
+        yield return new WaitUntil(() => !intellectorSupportDialog.activeInHierarchy);
 
         TransformToEaten(start, end);
 
-        aroundIntellector.GetComponent<AroundIntellector>().Answer = null;
+        intellectorSupportDialog.GetComponent<IntellectorSupportDialog>().Answer = null;
         WaitForTransformation = false;
     }
 
     private IEnumerator WaitForPieceType(Vector2Int start, Vector2Int end)
     {
-        yield return new WaitUntil(() => !progressorEnd.activeInHierarchy);
+        yield return new WaitUntil(() => !progressorPromotionDialog.activeInHierarchy);
 
         ProgressorTransformation(start, end);
 
-        progressorEnd.GetComponent<ProgressorEnd>().Answer = null;
+        progressorPromotionDialog.GetComponent<ProgressorPromotionDialog>().Answer = null;
         WaitForTransformation = false;
     }
 
     private void ProgressorTransformation(Vector2Int start, Vector2Int end)
     {
-        PieceType newType = (PieceType)progressorEnd.GetComponent<ProgressorEnd>().Answer;
+        PieceType newType = (PieceType)progressorPromotionDialog.GetComponent<ProgressorPromotionDialog>().Answer;
         MovePiece(start, end, (int)newType);
     }
 
     private void TransformToEaten(Vector2Int start, Vector2Int end)
     {
-        if (aroundIntellector.GetComponent<AroundIntellector>().Answer == true)
+        if (intellectorSupportDialog.GetComponent<IntellectorSupportDialog>().Answer == true)
         {
             PieceType newType = Pieces[end.x][end.y].Type;
             MovePiece(start, end, (int)newType);

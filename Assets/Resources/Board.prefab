@@ -54,6 +54,6 @@ MonoBehaviour:
   - {fileID: 3921855789588228246, guid: c472eae9aa6195844b6ef2773229b403, type: 3}
   tileSize: 2.97
   materialSelector: {fileID: 2773076270618924470, guid: acf97f41c2d93ff47a66c4bbb50675ab, type: 3}
-  progressorEnd: {fileID: 6010875868009438423, guid: e66c51252b2262847acf7b917ebc25bf, type: 3}
-  aroundIntellector: {fileID: 3987409887233491731, guid: e72543fb42cb5394b8ca8141aa3e2a2b, type: 3}
+  progressorPromotionDialog: {fileID: 6010875868009438423, guid: e66c51252b2262847acf7b917ebc25bf, type: 3}
+  intellectorSupportDialog: {fileID: 3987409887233491731, guid: e72543fb42cb5394b8ca8141aa3e2a2b, type: 3}
   endGame: {fileID: 5997927835210953982, guid: cf090fbf7c80c5840a14671c7818cb48, type: 3}

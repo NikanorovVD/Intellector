@@ -92,7 +92,7 @@ GameObject:
   - component: {fileID: 8473734397238526722}
   - component: {fileID: 8820562921199648345}
   m_Layer: 5
-  m_Name: Around_Intellector
+  m_Name: IntellectorSupportDialog
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

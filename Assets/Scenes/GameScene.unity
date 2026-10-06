@@ -2550,7 +2550,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3987409887233491731, guid: e72543fb42cb5394b8ca8141aa3e2a2b, type: 3}
       propertyPath: m_Name
-      value: Around_Intellector
+      value: IntellectorSupportDialog
       objectReference: {fileID: 0}
     - target: {fileID: 3987409887233491731, guid: e72543fb42cb5394b8ca8141aa3e2a2b, type: 3}
       propertyPath: m_IsActive
@@ -4009,7 +4009,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6010875868009438423, guid: e66c51252b2262847acf7b917ebc25bf, type: 3}
       propertyPath: m_Name
-      value: Progressor_end
+      value: ProgressorPromotionDialog
       objectReference: {fileID: 0}
     - target: {fileID: 6010875868009438423, guid: e66c51252b2262847acf7b917ebc25bf, type: 3}
       propertyPath: m_IsActive
@@ -6135,7 +6135,7 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1444618573}
     - target: {fileID: 5309763044146601906, guid: 62c306f32c8f920419d00c3f3d2d0725, type: 3}
-      propertyPath: progressorEnd
+      propertyPath: progressorPromotionDialog
       value: 
       objectReference: {fileID: 536947205}
     - target: {fileID: 5309763044146601906, guid: 62c306f32c8f920419d00c3f3d2d0725, type: 3}
@@ -6143,7 +6143,7 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 779179599}
     - target: {fileID: 5309763044146601906, guid: 62c306f32c8f920419d00c3f3d2d0725, type: 3}
-      propertyPath: aroundIntellector
+      propertyPath: intellectorSupportDialog
       value: 
       objectReference: {fileID: 234183487}
     m_RemovedComponents: []

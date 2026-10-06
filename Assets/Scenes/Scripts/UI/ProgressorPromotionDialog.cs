@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-public class ProgressorEnd : MonoBehaviour
+public class ProgressorPromotionDialog : MonoBehaviour
 {
     public PieceType? Answer;
 

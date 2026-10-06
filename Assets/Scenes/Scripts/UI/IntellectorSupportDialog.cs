@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-public class AroundIntellector : MonoBehaviour
+public class IntellectorSupportDialog : MonoBehaviour
 {
     public bool? Answer;
 

@@ -648,7 +648,7 @@ GameObject:
   - component: {fileID: 9174518052741871622}
   - component: {fileID: 9070528632707541685}
   m_Layer: 5
-  m_Name: Progressor_end
+  m_Name: ProgressorPromotionDialog
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
