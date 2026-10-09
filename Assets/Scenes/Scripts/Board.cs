@@ -172,8 +172,8 @@ public class Board : MonoBehaviour
         Pieces[8][6] = GenerateSinglePiece(PieceType.Dominator, true, 8, 6);
         for (int i = 0; i < 9; i += 2)
             Pieces[i][5] = GenerateSinglePiece(PieceType.Progressor, true, i, 5);
-
     }
+
     public void CreateEmptyPieces()
     {
         Pieces = new IPiece[9][];

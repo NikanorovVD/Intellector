@@ -66,6 +66,7 @@ public class ReplayView : MonoBehaviour
     private string copyIfenIdleLabel;
     private string preAnalyzeIdleLabel;
     private string currentFileName;
+    private bool fileMissing;
 
     public bool EngineUiVisible => engineUiVisible;
 
@@ -141,8 +142,6 @@ public class ReplayView : MonoBehaviour
         if (!on)
             CloseRename();
     }
-
-    private bool fileMissing;
 
     public bool IsRenaming => renameInput != null && renameInput.isFocused && !fileMissing;
 

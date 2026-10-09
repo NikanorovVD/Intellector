@@ -1,14 +1,15 @@
 using System.Globalization;
+
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public class PositionSetup : MonoBehaviour
 {
-    [SerializeField] Board board;
-    [SerializeField] PositionSetupView view;
+    [SerializeField] private Board board;
+    [SerializeField] private PositionSetupView view;
 
-    private static readonly string[] Layers =
+    private static readonly string[] layersNames =
     {
         "Tile", "HoverTile", "SelectedTile", "Available", "HoverAvailable", "HoverSelected", "Hint", "HoverHint"
     };
@@ -129,7 +130,7 @@ public class PositionSetup : MonoBehaviour
         if (camera == null) return;
 
         Ray ray = camera.ScreenPointToRay(Input.mousePosition);
-        bool hit = Physics.Raycast(ray, out RaycastHit info, 500, LayerMask.GetMask(Layers));
+        bool hit = Physics.Raycast(ray, out RaycastHit info, 500, LayerMask.GetMask(layersNames));
         if (hit)
             board.HoverTile(board.LookUpTileIndex(info.transform.gameObject));
         else

@@ -1,33 +1,34 @@
 using System.Globalization;
+
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class PositionSetupView : MonoBehaviour
 {
-    [SerializeField] GameObject panel;
-    [SerializeField] Image[] pieceFrames;
-    [SerializeField] Image whiteTeamFrame;
-    [SerializeField] Image blackTeamFrame;
-    [SerializeField] Image eraseFrame;
-    [SerializeField] Image whiteMoveFrame;
-    [SerializeField] Image blackMoveFrame;
-    [SerializeField] InputField halfmoveInput;
-    [SerializeField] InputField fullmoveInput;
-    [SerializeField] Text preview;
-    [SerializeField] RectTransform copyButton;
-    [SerializeField] Text status;
-    [SerializeField] Camera previewCamera;
-    [SerializeField] Transform previewRoot;
+    [SerializeField] private GameObject panel;
+    [SerializeField] private Image[] pieceFrames;
+    [SerializeField] private Image whiteTeamFrame;
+    [SerializeField] private Image blackTeamFrame;
+    [SerializeField] private Image eraseFrame;
+    [SerializeField] private Image whiteMoveFrame;
+    [SerializeField] private Image blackMoveFrame;
+    [SerializeField] private InputField halfmoveInput;
+    [SerializeField] private InputField fullmoveInput;
+    [SerializeField] private Text preview;
+    [SerializeField] private RectTransform copyButton;
+    [SerializeField] private Text status;
+    [SerializeField] private Camera previewCamera;
+    [SerializeField] private Transform previewRoot;
 
     private const int PreviewLayer = 3;
     private const float MaxIfenWidth = 348f;
     private const float CopyGap = 8f;
     private const float CopySize = 28f;
 
-    private static readonly Color Selected = new Color(0.91f, 0.72f, 0.54f, 1f);
-    private static readonly Color Idle = new Color(0.25f, 0.25f, 0.25f, 1f);
-    private static readonly Color PieceIdle = new Color(0.62f, 0.54f, 0.44f, 1f);
+    private static readonly Color selectedColor = new Color(0.91f, 0.72f, 0.54f, 1f);
+    private static readonly Color idleColor = new Color(0.25f, 0.25f, 0.25f, 1f);
+    private static readonly Color pieceIdleColor = new Color(0.62f, 0.54f, 0.44f, 1f);
 
     private GameObject[] previewPieces;
     private RenderTexture[] previewTextures;
@@ -110,7 +111,7 @@ public class PositionSetupView : MonoBehaviour
             for (int i = 0; i < pieceFrames.Length; i++)
             {
                 if (pieceFrames[i] == null) continue;
-                pieceFrames[i].color = !erase && pieceIndex == i ? Selected : PieceIdle;
+                pieceFrames[i].color = !erase && pieceIndex == i ? selectedColor : pieceIdleColor;
             }
         }
         Paint(whiteTeamFrame, !erase && !blackPieces);
@@ -226,6 +227,6 @@ public class PositionSetupView : MonoBehaviour
     private static void Paint(Image image, bool selected)
     {
         if (image != null)
-            image.color = selected ? Selected : Idle;
+            image.color = selected ? selectedColor : idleColor;
     }
 }

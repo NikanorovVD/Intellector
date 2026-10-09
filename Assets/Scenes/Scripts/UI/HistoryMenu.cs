@@ -17,7 +17,7 @@ public class HistoryMenu : MonoBehaviour
     [SerializeField] private InputField renameInput;
     [SerializeField] private Text renameError;
 
-    private static readonly Color CurrentRowColor = new Color(0.62f, 0.46f, 0.14f, 1f);
+    private static readonly Color currentRowColor = new Color(0.62f, 0.46f, 0.14f, 1f);
 
     private readonly List<GameObject> items = new();
     private string renamePath;
@@ -95,7 +95,7 @@ public class HistoryMenu : MonoBehaviour
             item.transform.Find("Name").GetComponent<Text>().text = Path.GetFileNameWithoutExtension(path);
             Image row = item.GetComponent<Image>();
             if (row != null && IsOpenReplay(path))
-                row.color = CurrentRowColor;
+                row.color = currentRowColor;
             item.GetComponent<Button>().onClick.AddListener(() => OpenReplay(captured));
             item.transform.Find("Rename").GetComponent<Button>().onClick.AddListener(() => BeginRename(captured));
             item.transform.Find("Delete").GetComponent<Button>().onClick.AddListener(() => DeleteReplay(captured));
