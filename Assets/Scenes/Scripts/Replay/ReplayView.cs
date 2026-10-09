@@ -33,15 +33,12 @@ public class ReplayView : MonoBehaviour
     [SerializeField] private GameObject blackAccuracyGroup;
     [SerializeField] private Text whiteAccuracyText;
     [SerializeField] private Text blackAccuracyText;
-    [SerializeField] private LayoutElement engineLayout;
     [SerializeField] private GameObject evalBar;
     [SerializeField] private RectTransform evalBarFill;
     [SerializeField] private Button copyIfenButton;
     [SerializeField] private Text copyIfenText;
-    [SerializeField] private LayoutElement copyIfenLayout;
     [SerializeField] private Button preAnalyzeButton;
     [SerializeField] private Text preAnalyzeButtonText;
-    [SerializeField] private LayoutElement preAnalyzeLayout;
     [SerializeField] private InputField depthInput;
     [SerializeField] private GameObject preAnalyzeProgress;
     [SerializeField] private RectTransform preAnalyzeProgressFill;
@@ -226,7 +223,6 @@ public class ReplayView : MonoBehaviour
         while (content.transform.childCount > 0)
             DestroyImmediate(content.transform.GetChild(0).gameObject);
         FillList(moves, variation, variationFrom, firstPly, firstFullmove);
-        FitPanelWidth();
     }
 
     public void Highlight(int mainIndex, int varIndex, bool onVariation)
@@ -487,70 +483,6 @@ public class ReplayView : MonoBehaviour
             row.padding = new RectOffset(VariationIndent, 0, 0, 0);
         }
         return item;
-    }
-
-    private float TemplateRowWidth()
-    {
-        HorizontalLayoutGroup row = itemPrefab.GetComponent<HorizontalLayoutGroup>();
-        float width = row.spacing * 2f;
-        width += ColumnWidth(itemPrefab.transform.Find("Number"));
-        width += ColumnWidth(itemPrefab.transform.Find("White"));
-        width += ColumnWidth(itemPrefab.transform.Find("Black"));
-        return width;
-    }
-
-    private static float ColumnWidth(Transform column)
-    {
-        LayoutElement element = column.GetComponent<LayoutElement>();
-        return Mathf.Max(element.minWidth, element.preferredWidth);
-    }
-
-    private void FitPanelWidth()
-    {
-        var contentRect = content.GetComponent<RectTransform>();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
-        float width = TemplateRowWidth() + VariationIndent;
-        for (int i = 0; i < content.transform.childCount; i++)
-        {
-            var child = content.transform.GetChild(i) as RectTransform;
-            if (child != null)
-                width = Mathf.Max(width, LayoutUtility.GetPreferredWidth(child));
-        }
-        var padding = content.GetComponent<HorizontalOrVerticalLayoutGroup>().padding;
-        width += padding.left + padding.right;
-        var panelPadding = panel.GetComponent<HorizontalOrVerticalLayoutGroup>().padding;
-        width += panelPadding.left + panelPadding.right;
-
-        float inner = width - panelPadding.left - panelPadding.right;
-        meta.horizontalOverflow = HorizontalWrapMode.Wrap;
-        var metaLayout = meta.GetComponent<LayoutElement>();
-        metaLayout.minWidth = inner;
-        metaLayout.preferredWidth = inner;
-        if (engineLayout != null)
-        {
-            engineLayout.minWidth = inner;
-            engineLayout.preferredWidth = inner;
-        }
-        if (copyIfenLayout != null)
-        {
-            copyIfenLayout.minWidth = inner;
-            copyIfenLayout.preferredWidth = inner;
-        }
-        if (preAnalyzeLayout != null)
-        {
-            preAnalyzeLayout.minWidth = inner;
-            preAnalyzeLayout.preferredWidth = inner;
-        }
-        if (fileNameLayout != null)
-        {
-            fileNameLayout.minWidth = inner;
-            fileNameLayout.preferredWidth = inner;
-            fileNameLayout.flexibleHeight = 0f;
-        }
-
-        var rt = panel.GetComponent<RectTransform>();
-        rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
-        LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
     }
 
     private void OnCopyIfenClicked()

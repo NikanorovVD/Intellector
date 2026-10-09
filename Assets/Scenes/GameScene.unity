@@ -4331,15 +4331,12 @@ MonoBehaviour:
   blackAccuracyGroup: {fileID: 1482000750}
   whiteAccuracyText: {fileID: 1482000742}
   blackAccuracyText: {fileID: 1482000772}
-  engineLayout: {fileID: 1482000303}
   evalBar: {fileID: 1482000370}
   evalBarFill: {fileID: 1482000381}
   copyIfenButton: {fileID: 1482000504}
   copyIfenText: {fileID: 1482000512}
-  copyIfenLayout: {fileID: 1482000505}
   preAnalyzeButton: {fileID: 1482000624}
   preAnalyzeButtonText: {fileID: 1482000632}
-  preAnalyzeLayout: {fileID: 1482000603}
   depthInput: {fileID: 1482000644}
   preAnalyzeProgress: {fileID: 1482000670}
   preAnalyzeProgressFill: {fileID: 1482000681}
@@ -6366,7 +6363,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 0}
+  m_SizeDelta: {x: 286, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1482000102
 MonoBehaviour:
@@ -6554,9 +6551,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 250
+  m_MinWidth: 274
   m_MinHeight: 0
-  m_PreferredWidth: 250
+  m_PreferredWidth: 274
   m_PreferredHeight: -1
   m_FlexibleWidth: 1
   m_FlexibleHeight: 0
@@ -6642,9 +6639,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 250
+  m_MinWidth: 274
   m_MinHeight: -1
-  m_PreferredWidth: 250
+  m_PreferredWidth: 274
   m_PreferredHeight: -1
   m_FlexibleWidth: 1
   m_FlexibleHeight: 0
@@ -9446,9 +9443,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 250
+  m_MinWidth: 274
   m_MinHeight: 24
-  m_PreferredWidth: 250
+  m_PreferredWidth: 274
   m_PreferredHeight: 24
   m_FlexibleWidth: 1
   m_FlexibleHeight: 0
@@ -9610,9 +9607,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 250
+  m_MinWidth: 274
   m_MinHeight: -1
-  m_PreferredWidth: 250
+  m_PreferredWidth: 274
   m_PreferredHeight: -1
   m_FlexibleWidth: 1
   m_FlexibleHeight: 0
@@ -10483,9 +10480,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 250
+  m_MinWidth: 274
   m_MinHeight: 32
-  m_PreferredWidth: 250
+  m_PreferredWidth: 274
   m_PreferredHeight: -1
   m_FlexibleWidth: 1
   m_FlexibleHeight: 0
