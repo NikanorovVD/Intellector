@@ -26,7 +26,7 @@ public class GameRecorder : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (Board == null) return;
+        if (board == null) return;
         board.MoveStartEvent -= MoveStartHandler;
         board.EndGameEvent -= EndGameHandler;
         board.RestartEvent -= BeginNewGame;

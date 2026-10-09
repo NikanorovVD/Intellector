@@ -46,7 +46,7 @@ public class TimeController : MonoBehaviour
         GameInfo gameInfo = GameInfo.Load();
         timeControl = gameInfo.TimeControl;
         view.Stop();
-        if (timeControl == null || timeControl.Unlimited) return;
+        if (timeControl == null || timeControl.IsUnlimited) return;
 
         view.Team = board.PlayerTeam;
         WhiteTime = timeControl.BaseMilliseconds;
@@ -57,7 +57,7 @@ public class TimeController : MonoBehaviour
 
     public void EndGame()
     {
-        if (timeControl != null && !timeControl.Unlimited)
+        if (timeControl != null && !timeControl.IsUnlimited)
             view.Stop();
     }
 

@@ -9,7 +9,7 @@ public class MouseController : MonoBehaviour
 
     private void Update()
     {
-        if (board.GameOver || board.WaitForTransformation) return;
+        if (board.IsGameOver || board.IsWaitingForTransformation) return;
         if (!currentCamera)
         {
             currentCamera = Camera.main;

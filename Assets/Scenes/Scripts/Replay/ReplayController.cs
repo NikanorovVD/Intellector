@@ -70,7 +70,7 @@ public class ReplayController : MonoBehaviour
             view.CopyIfenClicked -= OnCopyIfenClicked;
             view.PreAnalyzeClicked -= OnPreAnalyzeClicked;
         }
-        if (Board != null)
+        if (board != null)
         {
             board.MoveStartEvent -= MoveStartHandler;
             board.MoveEndEvent -= MoveEndHandler;
@@ -86,7 +86,7 @@ public class ReplayController : MonoBehaviour
 
     private void Update()
     {
-        if (board.WaitForTransformation) return;
+        if (board.IsWaitingForTransformation) return;
         if (Input.GetKeyDown(KeyCode.RightArrow))
             Forward();
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -101,7 +101,7 @@ public class ReplayController : MonoBehaviour
 
     private void Forward()
     {
-        if (board.WaitForTransformation) return;
+        if (board.IsWaitingForTransformation) return;
         bool moved = onVariation ? ApplyVariationForward() : ApplyMainForward();
         if (moved)
             AfterStep();
@@ -109,7 +109,7 @@ public class ReplayController : MonoBehaviour
 
     private void Back()
     {
-        if (board.WaitForTransformation) return;
+        if (board.IsWaitingForTransformation) return;
         bool moved = onVariation ? ApplyVariationBack() : ApplyMainBack();
         if (moved)
             AfterStep();
@@ -117,14 +117,14 @@ public class ReplayController : MonoBehaviour
 
     private void JumpToMain(int target)
     {
-        if (board.WaitForTransformation) return;
+        if (board.IsWaitingForTransformation) return;
         GoToMain(target);
         AfterStep();
     }
 
     private void JumpToVariation(int target)
     {
-        if (board.WaitForTransformation) return;
+        if (board.IsWaitingForTransformation) return;
         if (variation.Count == 0) return;
         target = Mathf.Clamp(target, 0, variation.Count);
         GoToMain(variationFrom);
@@ -422,7 +422,7 @@ public class ReplayController : MonoBehaviour
 
         ClearEngineBoard();
         view.ClearEngine();
-        analysis.Analyze(Board);
+        analysis.Analyze(board);
     }
 
     private void ClearEngineBoard()
@@ -454,8 +454,8 @@ public class ReplayController : MonoBehaviour
         }
         if (result.Move.HasValue)
         {
-            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), ReplayAnalysis.FormatBestMove(result.Move.Value, Board), whiteAccuracy, blackAccuracy);
-            ReplayAnalysis.HintMove(result.Move.Value, Board);
+            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), ReplayAnalysis.FormatBestMove(result.Move.Value, board), whiteAccuracy, blackAccuracy);
+            ReplayAnalysis.HintMove(result.Move.Value, board);
         }
         else
         {

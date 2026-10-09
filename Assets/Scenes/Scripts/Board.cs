@@ -33,8 +33,8 @@ public class Board : MonoBehaviour
     public event EndGameDelegate EndGameEvent;
 
     [NonSerialized] public bool Turn;
-    [NonSerialized] public bool GameOver;
-    [NonSerialized] public bool WaitForTransformation;
+    [NonSerialized] public bool IsGameOver;
+    [NonSerialized] public bool IsWaitingForTransformation;
     public IPiece[][] Pieces;
     private readonly Dictionary<IPiece, GameObject> piecesObjects = new();
     public GameObject[][] Tiles;
@@ -76,7 +76,7 @@ public class Board : MonoBehaviour
         GenerateAllPieces();
 
         Turn = false;
-        GameOver = false;
+        IsGameOver = false;
         ApplyConfiguredStart();
     }
 
@@ -287,7 +287,7 @@ public class Board : MonoBehaviour
         {
             PlayerTeam = !PlayerTeam;
         }
-        GameOver = false;
+        IsGameOver = false;
         endGame.Hide();
         RestartEvent?.Invoke();
     }
@@ -396,7 +396,7 @@ public class Board : MonoBehaviour
         {
             progressorPromotionDialog.SetActive(true);
             StartCoroutine(WaitForPieceType(start, end));
-            WaitForTransformation = true;
+            IsWaitingForTransformation = true;
             return true;
         }
 
@@ -409,7 +409,7 @@ public class Board : MonoBehaviour
             // То можно превратиться в съеденную фигуру
             intellectorSupportDialog.SetActive(true);
             StartCoroutine(WaitForTransformation(start, end));
-            WaitForTransformation = true;
+            IsWaitingForTransformation = true;
             return true;
         }
 
@@ -506,7 +506,7 @@ public class Board : MonoBehaviour
         TransformToEaten(start, end);
 
         intellectorSupportDialog.GetComponent<IntellectorSupportDialog>().Answer = null;
-        WaitForTransformation = false;
+        IsWaitingForTransformation = false;
     }
 
     private IEnumerator WaitForPieceType(Vector2Int start, Vector2Int end)
@@ -516,7 +516,7 @@ public class Board : MonoBehaviour
         ProgressorTransformation(start, end);
 
         progressorPromotionDialog.GetComponent<ProgressorPromotionDialog>().Answer = null;
-        WaitForTransformation = false;
+        IsWaitingForTransformation = false;
     }
 
     private void ProgressorTransformation(Vector2Int start, Vector2Int end)
@@ -542,8 +542,8 @@ public class Board : MonoBehaviour
     public void GameOver(bool? winner, EndGameReason reason)
     {
         if (Settings.GameMode == GameMode.Replay) return;
-        if (GameOver) return;
-        GameOver = true;
+        if (IsGameOver) return;
+        IsGameOver = true;
         DeleteAllHighlights();
         endGame.DisplayResult(NetworkGame, winner, PlayerTeam, reason);
         EndGameEvent?.Invoke(winner, reason);

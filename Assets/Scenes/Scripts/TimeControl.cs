@@ -6,7 +6,7 @@ public class TimeControl
 
     public int BaseMilliseconds { get; }
     public int IncrementMilliseconds { get; }
-    public bool Unlimited { get; }
+    public bool IsUnlimited { get; }
 
     public TimeControl(int baseMilliseconds, int incrementMilliseconds)
         : this(baseMilliseconds, incrementMilliseconds, false)
@@ -17,12 +17,12 @@ public class TimeControl
     {
         BaseMilliseconds = baseMilliseconds;
         IncrementMilliseconds = incrementMilliseconds;
-        Unlimited = unlimited;
+        IsUnlimited = unlimited;
     }
 
     public override string ToString()
     {
-        if (Unlimited) return "Unlimit";
+        if (IsUnlimited) return "Unlimit";
 
         int minutes = BaseMilliseconds / 60000;
         int extraSeconds = (BaseMilliseconds % 60000) / 1000;

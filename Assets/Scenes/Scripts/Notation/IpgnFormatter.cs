@@ -140,7 +140,7 @@ public static class IpgnFormatter
 
     public static string FormatTimeControl(TimeControl timeControl)
     {
-        if (timeControl == null || timeControl.Unlimited)
+        if (timeControl == null || timeControl.IsUnlimited)
             return "-";
         string baseSeconds = (timeControl.BaseMilliseconds / 1000).ToString(CultureInfo.InvariantCulture);
         int incrementSeconds = timeControl.IncrementMilliseconds / 1000;

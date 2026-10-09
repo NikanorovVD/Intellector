@@ -35,7 +35,7 @@ public class CameraChange : MonoBehaviour
         {
             board.MoveEndEvent += async (Vector2Int _, Vector2Int _, int _) =>
             {
-                if (board.GameOver) return;
+                if (board.IsGameOver) return;
                 await Task.Delay(CameraAutoRotationDelayMs);
                 currentTeam = !currentTeam;
                 SwitchCamera();
