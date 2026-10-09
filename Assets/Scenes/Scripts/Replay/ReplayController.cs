@@ -7,6 +7,9 @@ public class ReplayController : MonoBehaviour
 {
     [SerializeField] private Board board;
     [SerializeField] private ReplayView view;
+    [SerializeField] private GameObject historyButton;
+
+    private HistoryMenu history;
 
     private List<ReplayMove> moves;
     private readonly List<ReplayMove> variation = new();
@@ -30,6 +33,15 @@ public class ReplayController : MonoBehaviour
             return;
         }
 
+        if (historyButton != null)
+            historyButton.SetActive(true);
+        history = HistoryMenu.FindInScene();
+        if (history != null)
+        {
+            history.OpenReplayRenamed += OnHistoryRenamed;
+            history.OpenReplayRemoved += OnHistoryRemoved;
+        }
+
         string text = File.ReadAllText(Settings.ReplayFilePath);
         record = IpgnParser.Parse(text);
         if (record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen))
@@ -45,6 +57,7 @@ public class ReplayController : MonoBehaviour
         board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
         view.SetPanelActive(true);
         view.SetMeta(record);
+        view.SetFileName(Path.GetFileNameWithoutExtension(Settings.ReplayFilePath));
         view.SetEngineVisible(false);
         view.SetPreAnalyzeRunning(false);
         view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
@@ -52,6 +65,7 @@ public class ReplayController : MonoBehaviour
         view.EngineToggled += OnEngineToggled;
         view.CopyIfenClicked += OnCopyIfenClicked;
         view.PreAnalyzeClicked += OnPreAnalyzeClicked;
+        view.RenameConfirmed += OnRenameConfirmed;
         board.MoveStartEvent += MoveStartHandler;
         board.MoveEndEvent += MoveEndHandler;
         analysis = new ReplayAnalysis();
@@ -63,12 +77,18 @@ public class ReplayController : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (history != null)
+        {
+            history.OpenReplayRenamed -= OnHistoryRenamed;
+            history.OpenReplayRemoved -= OnHistoryRemoved;
+        }
         if (view != null)
         {
             view.MoveClicked -= OnMoveClicked;
             view.EngineToggled -= OnEngineToggled;
             view.CopyIfenClicked -= OnCopyIfenClicked;
             view.PreAnalyzeClicked -= OnPreAnalyzeClicked;
+            view.RenameConfirmed -= OnRenameConfirmed;
         }
         if (board != null)
         {
@@ -87,6 +107,14 @@ public class ReplayController : MonoBehaviour
     private void Update()
     {
         if (board.IsWaitingForTransformation) return;
+        if (history != null && history.IsOpen)
+            return;
+        if (view != null && view.IsRenaming)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+                view.CloseRename();
+            return;
+        }
         if (Input.GetKeyDown(KeyCode.RightArrow))
             Forward();
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -312,6 +340,28 @@ public class ReplayController : MonoBehaviour
         RecordedPosition position = board.ToRecordedPosition(CurrentHalfmoveClock(), CurrentFullmoveNumber());
         GUIUtility.systemCopyBuffer = IfenFormatter.Format(position);
         view.ShowCopyIfenCopied();
+    }
+
+    private void OnRenameConfirmed(string name)
+    {
+        if (!ReplayFile.TryRename(Settings.ReplayFilePath, name, out string dest, out string error))
+        {
+            view.SetRenameError(error);
+            return;
+        }
+        Settings.ReplayFilePath = dest;
+        view.SetFileName(Path.GetFileNameWithoutExtension(dest));
+        view.CloseRename();
+    }
+
+    private void OnHistoryRenamed(string path)
+    {
+        view.SetFileName(Path.GetFileNameWithoutExtension(path));
+    }
+
+    private void OnHistoryRemoved()
+    {
+        view.ClearFileName();
     }
 
     private int CurrentFullmoveNumber()

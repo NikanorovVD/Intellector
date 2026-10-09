@@ -16,7 +16,7 @@ public class GameOverWatcher : MonoBehaviour
 
     private void Start()
     {
-        if (Settings.GameMode == GameMode.Replay) return;
+        if (Settings.Arrange.Editing || Settings.GameMode == GameMode.Replay) return;
 
         currentMovesWithoutProgressCount = Settings.StartPosition?.HalfmoveClock ?? 0;
 

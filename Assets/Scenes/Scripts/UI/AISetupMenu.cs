@@ -30,6 +30,13 @@ public class AISetupMenu : MonoBehaviour
         EnsureColorSelector();
     }
 
+    private void Start()
+    {
+        if (!Settings.Arrange.Resume) return;
+        Settings.Arrange.Resume = false;
+        Open(Settings.Arrange.Mode);
+    }
+
     private void OnValidate()
     {
         EnsureColorSelector();
@@ -187,6 +194,25 @@ public class AISetupMenu : MonoBehaviour
     {
         for (int i = 0; i < ifenControls.Length; i++)
             ifenControls[i].SetActive(on);
+    }
+
+    public void BeginArrange()
+    {
+        Settings.Arrange.Backup = Settings.StartIfen;
+        string raw = (ifenInput.text ?? string.Empty).Trim();
+        if (raw.Length == 0)
+            Settings.ClearStartPosition();
+        else if (!Settings.TrySetStartIfen(raw, out string error))
+        {
+            errorText.text = error;
+            return;
+        }
+
+        Settings.Arrange.Editing = true;
+        Settings.Arrange.Resume = true;
+        Settings.Arrange.Mode = pendingMode;
+        Settings.GameMode = GameMode.Local;
+        SceneManager.LoadScene(1);
     }
 
     private char ValidateChar(string text, int charIndex, char addedChar)

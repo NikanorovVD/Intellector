@@ -22,7 +22,7 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
 
     private void Start()
     {
-        if (Settings.GameMode == GameMode.Network)
+        if (!Settings.Arrange.Editing && Settings.GameMode == GameMode.Network)
         {
             ServerConnection connection = ServerConnection.GetConnection();
 
