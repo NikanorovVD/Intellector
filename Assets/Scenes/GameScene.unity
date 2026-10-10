@@ -4285,6 +4285,7 @@ GameObject:
   - component: {fileID: 1479000202}
   - component: {fileID: 1479000201}
   - component: {fileID: 1479000203}
+  - component: {fileID: 1479000204}
   m_Layer: 0
   m_Name: ReplayController
   m_TagString: Untagged
@@ -4305,6 +4306,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   board: {fileID: 4735542688449980585}
+  promotionHint: {fileID: 1479000204}
   view: {fileID: 1479000203}
   historyButton: {fileID: 1845800100}
 --- !u!114 &1479000203
@@ -4348,6 +4350,27 @@ MonoBehaviour:
   renameCheck: {fileID: 1482000854}
   renameError: {fileID: 1482000872}
   fileDeleted: {fileID: 1482000882}
+--- !u!114 &1479000204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1479000200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4c8e1f07b2d4e9a8c6d5f3b1a0e7d24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  board: {fileID: 4735542688449980585}
+  piecesPrefabs:
+  - {fileID: 3098160627348155019, guid: 0d7b869f3c170894987c0bb0abb3b5e1, type: 3}
+  - {fileID: 5613614577265383081, guid: 4880204f63b10ce4ab9e81c4ba25d506, type: 3}
+  - {fileID: 1683711937275641648, guid: a1a690b649915ad4d8713bac7652c08d, type: 3}
+  - {fileID: 3802074769640215051, guid: 1b1354960f7c53546ab0aa27a6e70a08, type: 3}
+  - {fileID: 6615136682099356554, guid: 2e3b9dcf00c25194591fda5b4e86542b, type: 3}
+  - {fileID: 3921855789588228246, guid: c472eae9aa6195844b6ef2773229b403, type: 3}
+  material: {fileID: 2100000, guid: e7c4a91b2d8f4e6a9b0c3d5f7a1e8b42, type: 2}
 --- !u!4 &1479000202
 Transform:
   m_ObjectHideFlags: 0

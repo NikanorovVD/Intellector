@@ -328,11 +328,24 @@ public class ReplayAnalysis
         return recorded == null ? string.Empty : IpgnFormatter.FormatMove(recorded);
     }
 
-    public static void HintMove(EngineMove move, Board board)
+    public static void HintMove(EngineMove move, Board board, PromotionHint promotionHint)
     {
         var (fromX, fromY) = EngineUtils.EngineIndexToUnity(move.From);
         var (toX, toY) = EngineUtils.EngineIndexToUnity(move.To);
+        IPiece moving = board.Pieces[fromX][fromY];
         board.HighlightHint(new Vector2Int(fromX, fromY), new Vector2Int(toX, toY));
+        if (promotionHint == null)
+            return;
+        if (moving == null)
+        {
+            promotionHint.Clear();
+            return;
+        }
+        PieceType resulting = ToPieceType(move.Figure);
+        if (resulting == moving.Type)
+            promotionHint.Clear();
+        else
+            promotionHint.Show(new Vector2Int(toX, toY), resulting, moving.Team);
     }
 
     private static RecordedMove ToRecordedMove(EngineMove move, Board board)

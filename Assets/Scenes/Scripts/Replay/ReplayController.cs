@@ -6,6 +6,7 @@ using UnityEngine;
 public class ReplayController : MonoBehaviour
 {
     [SerializeField] private Board board;
+    [SerializeField] private PromotionHint promotionHint;
     [SerializeField] private ReplayView view;
     [SerializeField] private GameObject historyButton;
 
@@ -55,6 +56,8 @@ public class ReplayController : MonoBehaviour
         mainIndex = 0;
         board.HighlightLastMove(-Vector2Int.one, -Vector2Int.one);
         board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
+        if (promotionHint != null)
+            promotionHint.Clear();
         view.SetPanelActive(true);
         view.SetMeta(record);
         view.SetFileName(Path.GetFileNameWithoutExtension(Settings.ReplayFilePath));
@@ -478,6 +481,8 @@ public class ReplayController : MonoBehaviour
     private void ClearEngineBoard()
     {
         board.HighlightHint(-Vector2Int.one, -Vector2Int.one);
+        if (promotionHint != null)
+            promotionHint.Clear();
     }
 
     private void OnAnalysisUpdated(MoveResult result)
@@ -505,7 +510,7 @@ public class ReplayController : MonoBehaviour
         if (result.Move.HasValue)
         {
             view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), ReplayAnalysis.FormatBestMove(result.Move.Value, board), whiteAccuracy, blackAccuracy);
-            ReplayAnalysis.HintMove(result.Move.Value, board);
+            ReplayAnalysis.HintMove(result.Move.Value, board, promotionHint);
         }
         else
         {
