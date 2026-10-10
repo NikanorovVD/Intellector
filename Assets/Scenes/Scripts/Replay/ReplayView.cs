@@ -344,9 +344,29 @@ public class ReplayView : MonoBehaviour
     public void ClearEngine()
     {
         if (evalText != null)
-            evalText.text = engineUiVisible ? "..." : string.Empty;
+        {
+            evalText.gameObject.SetActive(true);
+            evalText.text = "...";
+        }
         if (bestMoveText != null)
+        {
+            bestMoveText.gameObject.SetActive(true);
             bestMoveText.text = string.Empty;
+        }
+        if (evalBar != null)
+            evalBar.SetActive(true);
+        SetEvalBar(0.5f);
+        RebuildPanelLayout();
+    }
+
+    public void HideEngine()
+    {
+        if (evalText != null)
+            evalText.gameObject.SetActive(false);
+        if (bestMoveText != null)
+            bestMoveText.gameObject.SetActive(false);
+        if (evalBar != null)
+            evalBar.SetActive(false);
         SetAccuracy(null, null);
         SetEvalBar(0.5f);
         RebuildPanelLayout();
@@ -355,17 +375,43 @@ public class ReplayView : MonoBehaviour
     public void ShowEngine(string eval, float barRatio, string bestMove, double? whiteAccuracy = null, double? blackAccuracy = null)
     {
         if (evalText != null)
+        {
+            evalText.gameObject.SetActive(true);
             evalText.text = eval;
+        }
+        if (evalBar != null)
+            evalBar.SetActive(true);
         SetEvalBar(barRatio);
         if (bestMoveText != null)
+        {
+            bestMoveText.gameObject.SetActive(true);
             bestMoveText.text = bestMove ?? string.Empty;
+        }
         SetAccuracy(whiteAccuracy, blackAccuracy);
+        RebuildPanelLayout();
+    }
+
+    public void ShowAccuracy(double? white, double? black)
+    {
+        if (white == null && black == null)
+        {
+            HideEngine();
+            return;
+        }
+
+        if (evalText != null)
+            evalText.gameObject.SetActive(false);
+        if (bestMoveText != null)
+            bestMoveText.gameObject.SetActive(false);
+        if (evalBar != null)
+            evalBar.SetActive(false);
+        SetAccuracy(white, black);
         RebuildPanelLayout();
     }
 
     private void SetAccuracy(double? white, double? black)
     {
-        engineHasAccuracy = engineUiVisible && (white != null || black != null);
+        engineHasAccuracy = white != null || black != null;
         if (whiteAccuracyText != null)
             whiteAccuracyText.text = white != null ? MoveAccuracy.FormatPercent(white.Value) : string.Empty;
         if (blackAccuracyText != null)
@@ -395,8 +441,7 @@ public class ReplayView : MonoBehaviour
 
     private void OnEngineToggled(bool on)
     {
-        SetEngineVisible(on);
-        ClearEngine();
+        engineUiVisible = on;
         EngineToggled?.Invoke(on);
     }
 

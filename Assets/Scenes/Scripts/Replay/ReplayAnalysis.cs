@@ -273,6 +273,48 @@ public class ReplayAnalysis
             return gen == preGeneration;
     }
 
+    public bool TryDeepenMain(int ply, MoveResult result)
+    {
+        if (double.IsNaN(result.Mark) || double.IsInfinity(result.Mark))
+            return false;
+
+        List<(int index, MoveQuality quality)> changed = null;
+        lock (preLock)
+        {
+            if (preAnalyzing || mainCache == null || mainHas == null)
+                return false;
+            if (ply < 0 || ply >= mainCache.Length || !mainHas[ply])
+                return false;
+            if (result.Depth <= mainCache[ply].Depth)
+                return false;
+
+            MoveQuality[] previous = moveQualities;
+            mainCache[ply] = result;
+            if (!mainLineComplete)
+                return true;
+
+            ComputeMoveQualityLocked();
+            if (previous == null || moveQualities == null)
+                return true;
+            int count = Math.Min(previous.Length, moveQualities.Length);
+            for (int i = 0; i < count; i++)
+            {
+                if (previous[i].Known && previous[i].Judgement == moveQualities[i].Judgement)
+                    continue;
+                if (changed == null)
+                    changed = new List<(int index, MoveQuality quality)>();
+                changed.Add((i, moveQualities[i]));
+            }
+        }
+
+        if (changed != null)
+        {
+            for (int i = 0; i < changed.Count; i++)
+                MoveJudged?.Invoke(changed[i].index, changed[i].quality);
+        }
+        return true;
+    }
+
     private bool StoreMain(int gen, int ply, MoveResult result)
     {
         lock (preLock)
@@ -295,7 +337,7 @@ public class ReplayAnalysis
 
     private void StartAnchor(NotationBoard previous, int ply, int positionCount, int firstPly, int gen)
     {
-        if (ply <= 0 || previous == null || HasLive(ply - 1))
+        if (ply <= 0 || previous == null || HasLive(ply - 1) || HasMain(ply - 1))
             return;
 
         int anchorPly = ply - 1;
@@ -330,6 +372,12 @@ public class ReplayAnalysis
     {
         lock (preLock)
             return liveHas != null && ply >= 0 && ply < liveHas.Length && liveHas[ply];
+    }
+
+    private bool HasMain(int ply)
+    {
+        lock (preLock)
+            return mainHas != null && ply >= 0 && ply < mainHas.Length && mainHas[ply];
     }
 
     private void NoteLive(int ply, MoveResult result, int positionCount, int firstPly)

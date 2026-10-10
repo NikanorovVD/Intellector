@@ -404,10 +404,7 @@ public class ReplayController : MonoBehaviour
     private void OnEngineToggled(bool on)
     {
         analysis.SetEnabled(on);
-        if (on)
-            RefreshEngine();
-        else
-            ClearEngineBoard();
+        RefreshEngine();
     }
 
     private void OnPreAnalyzeClicked()
@@ -426,10 +423,7 @@ public class ReplayController : MonoBehaviour
         view.SetPreAnalyzeRunning(true);
         view.SetPreAnalyzeProgress(0, total);
         analysis.StartPreAnalyze(moves, ReplayExpander.CreateStartBoard(record), firstPly, depth);
-        if (!view.EngineUiVisible)
-            view.SetEngineOn(true);
-        else
-            RefreshEngine();
+        RefreshEngine();
     }
 
     private void OnPreProgress(int done, int total)
@@ -457,26 +451,30 @@ public class ReplayController : MonoBehaviour
 
     private void RefreshEngine()
     {
-        if (analysis == null || !analysis.Enabled)
+        if (analysis == null)
             return;
 
-        if (!onVariation && analysis.TryGetMain(mainIndex, out MoveResult cached))
+        MoveResult cached = default;
+        bool hasCache = !onVariation && analysis.TryGetMain(mainIndex, out cached);
+        if (hasCache)
+            ShowResult(cached);
+        else if (!analysis.Enabled || analysis.IsPreAnalyzing)
+            ShowAccuracyOnly();
+
+        if (analysis.IsPreAnalyzing || !analysis.Enabled)
         {
             analysis.StopLive();
-            OnAnalysisUpdated(cached);
+            if (!hasCache)
+                ClearEngineBoard();
             return;
         }
 
-        if (analysis.IsPreAnalyzing)
+        if (!hasCache)
         {
-            analysis.StopLive();
-            view.ClearEngine();
             ClearEngineBoard();
-            return;
+            view.ClearEngine();
         }
 
-        ClearEngineBoard();
-        view.ClearEngine();
         int ply = onVariation ? -1 : mainIndex;
         analysis.Analyze(
             board,
@@ -484,6 +482,40 @@ public class ReplayController : MonoBehaviour
             (moves?.Count ?? 0) + 1,
             firstPly,
             ply > 0 ? PositionBoard(ply - 1) : null);
+    }
+
+    private void ShowAccuracyOnly()
+    {
+        double? whiteAccuracy = null;
+        double? blackAccuracy = null;
+        if (analysis.TryGetMoveQuality(out GameMoveQuality quality))
+        {
+            whiteAccuracy = quality.WhiteAccuracy;
+            blackAccuracy = quality.BlackAccuracy;
+        }
+        view.ShowAccuracy(whiteAccuracy, blackAccuracy);
+    }
+
+    private void ShowResult(MoveResult result)
+    {
+        string eval = ReplayAnalysis.FormatMark(result.Mark) + "  глубина " + result.Depth;
+        double? whiteAccuracy = null;
+        double? blackAccuracy = null;
+        if (analysis.TryGetMoveQuality(out GameMoveQuality quality))
+        {
+            whiteAccuracy = quality.WhiteAccuracy;
+            blackAccuracy = quality.BlackAccuracy;
+        }
+        if (result.Move.HasValue)
+        {
+            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), ReplayAnalysis.FormatBestMove(result.Move.Value, board), whiteAccuracy, blackAccuracy);
+            ReplayAnalysis.HintMove(result.Move.Value, board, promotionHint);
+        }
+        else
+        {
+            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), string.Empty, whiteAccuracy, blackAccuracy);
+            ClearEngineBoard();
+        }
     }
 
     private NotationBoard PositionBoard(int ply)
@@ -512,35 +544,20 @@ public class ReplayController : MonoBehaviour
 
     private void OnAnalysisUpdated(MoveResult result)
     {
-        if (!view.EngineUiVisible)
-        {
-            view.ClearEngine();
-            ClearEngineBoard();
+        if (analysis == null || !analysis.Enabled)
             return;
-        }
+        if (!onVariation && analysis.TryGetMain(mainIndex, out MoveResult cached) && result.Depth <= cached.Depth)
+            return;
+        if (!onVariation)
+            analysis.TryDeepenMain(mainIndex, result);
         if (!result.Move.HasValue && result.Depth == 0 && result.Mark == 0)
         {
+            if (!onVariation && analysis.TryGetMain(mainIndex, out _))
+                return;
             view.ClearEngine();
             ClearEngineBoard();
             return;
         }
-        string eval = ReplayAnalysis.FormatMark(result.Mark) + "  глубина " + result.Depth;
-        double? whiteAccuracy = null;
-        double? blackAccuracy = null;
-        if (analysis.TryGetMoveQuality(out GameMoveQuality quality))
-        {
-            whiteAccuracy = quality.WhiteAccuracy;
-            blackAccuracy = quality.BlackAccuracy;
-        }
-        if (result.Move.HasValue)
-        {
-            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), ReplayAnalysis.FormatBestMove(result.Move.Value, board), whiteAccuracy, blackAccuracy);
-            ReplayAnalysis.HintMove(result.Move.Value, board, promotionHint);
-        }
-        else
-        {
-            view.ShowEngine(eval, ReplayAnalysis.BarRatio(result.Mark), string.Empty, whiteAccuracy, blackAccuracy);
-            ClearEngineBoard();
-        }
+        ShowResult(result);
     }
 }
