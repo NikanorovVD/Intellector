@@ -31,6 +31,8 @@ public class ReplayView : MonoBehaviour
     [SerializeField] private GameObject accuracyRow;
     [SerializeField] private GameObject whiteAccuracyGroup;
     [SerializeField] private GameObject blackAccuracyGroup;
+    [SerializeField] private Text whiteAccuracyName;
+    [SerializeField] private Text blackAccuracyName;
     [SerializeField] private Text whiteAccuracyText;
     [SerializeField] private Text blackAccuracyText;
     [SerializeField] private GameObject evalBar;
@@ -64,6 +66,8 @@ public class ReplayView : MonoBehaviour
     private string preAnalyzeIdleLabel;
     private string currentFileName;
     private bool fileMissing;
+    private string whitePlayerName;
+    private string blackPlayerName;
 
     public bool EngineUiVisible => engineUiVisible;
 
@@ -205,6 +209,9 @@ public class ReplayView : MonoBehaviour
 
     public void SetMeta(GameRecord record)
     {
+        whitePlayerName = record.White;
+        blackPlayerName = record.Black;
+        ApplyAccuracyNames();
         meta.text = FormatMeta(record);
     }
 
@@ -333,6 +340,21 @@ public class ReplayView : MonoBehaviour
             blackAccuracyGroup.SetActive(black != null);
         if (accuracyRow != null)
             accuracyRow.SetActive(engineHasAccuracy);
+    }
+
+    private void ApplyAccuracyNames()
+    {
+        if (whiteAccuracyName != null)
+            whiteAccuracyName.text = AccuracyName(whitePlayerName, "белые");
+        if (blackAccuracyName != null)
+            blackAccuracyName.text = AccuracyName(blackPlayerName, "чёрные");
+    }
+
+    private static string AccuracyName(string name, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return fallback;
+        return AllowWrap(name.Trim());
     }
 
     private void OnEngineToggled(bool on)
