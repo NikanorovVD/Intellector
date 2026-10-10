@@ -8,14 +8,18 @@ using UnityEngine;
 public class ReplayAnalysis
 {
     public event Action<MoveResult> Updated;
+    public event Action<int, MoveQuality> MoveJudged;
     public event Action<int, int> PreProgress;
     public event Action PreFinished;
 
     private const double SearchMs = 3_600_000;
+
+    private const int LiveJudgementDepth = 6;
     private readonly object preLock = new();
     private int generation;
     private int preGeneration;
     private Engine running;
+    private Engine anchor;
     private Engine preRunning;
     private bool enabled;
     private bool preAnalyzing;
@@ -26,6 +30,9 @@ public class ReplayAnalysis
     private MoveQuality[] moveQualities;
     private double? whiteAccuracy;
     private double? blackAccuracy;
+    private double[] liveMarks;
+    private int[] liveDepth;
+    private bool[] liveHas;
 
     public bool Enabled => enabled;
     public bool IsPreAnalyzing
@@ -74,10 +81,12 @@ public class ReplayAnalysis
         return false;
     }
 
-    public void Analyze(Board board)
+    public void Analyze(Board board, int ply, int positionCount, int firstPly, NotationBoard previous)
     {
         generation++;
         running?.RequestStop();
+        anchor?.RequestStop();
+        anchor = null;
         if (!enabled || board == null || preAnalyzing)
         {
             running = null;
@@ -92,10 +101,13 @@ public class ReplayAnalysis
         {
             running = null;
             Updated?.Invoke(terminal);
+            NoteLive(ply, terminal, positionCount, firstPly);
+            StartAnchor(previous, ply, positionCount, firstPly, gen);
             return;
         }
 
         running = engine;
+        StartAnchor(previous, ply, positionCount, firstPly, gen);
         engine.OnProgress += result =>
         {
             if (gen != generation) return;
@@ -104,6 +116,7 @@ public class ReplayAnalysis
             {
                 if (gen != generation) return;
                 Updated?.Invoke(result);
+                NoteLive(ply, result, positionCount, firstPly);
             });
         };
         Task.Run(() =>
@@ -169,6 +182,8 @@ public class ReplayAnalysis
         generation++;
         running?.RequestStop();
         running = null;
+        anchor?.RequestStop();
+        anchor = null;
     }
 
     public void Stop()
@@ -275,6 +290,123 @@ public class ReplayAnalysis
         moveQualities = null;
         whiteAccuracy = null;
         blackAccuracy = null;
+        ClearLiveLocked();
+    }
+
+    private void StartAnchor(NotationBoard previous, int ply, int positionCount, int firstPly, int gen)
+    {
+        if (ply <= 0 || previous == null || HasLive(ply - 1))
+            return;
+
+        int anchorPly = ply - 1;
+        bool blackToMove = (firstPly + anchorPly) % 2 == 1;
+        Engine engine = BoardToEngine.CreateEngine(previous, blackToMove);
+        if (engine.TryGetTerminalResult(out MoveResult terminal))
+        {
+            NoteLive(anchorPly, terminal, positionCount, firstPly);
+            return;
+        }
+
+        anchor = engine;
+        Task.Run(() =>
+        {
+            try
+            {
+                MoveResult result = engine.BestMoveByDepth(LiveJudgementDepth);
+                MainTasks.AddTask(() =>
+                {
+                    if (gen != generation) return;
+                    NoteLive(anchorPly, result, positionCount, firstPly);
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        });
+    }
+
+    private bool HasLive(int ply)
+    {
+        lock (preLock)
+            return liveHas != null && ply >= 0 && ply < liveHas.Length && liveHas[ply];
+    }
+
+    private void NoteLive(int ply, MoveResult result, int positionCount, int firstPly)
+    {
+        if (ply < 0 || positionCount < 2 || !IsStableEval(result))
+            return;
+
+        int depth = result.Depth >= LiveJudgementDepth ? result.Depth : int.MaxValue;
+        bool publishPrevious = false;
+        bool publishNext = false;
+        MoveQuality previous = default;
+        MoveQuality next = default;
+        int previousIndex = ply - 1;
+        int nextIndex = ply;
+        lock (preLock)
+        {
+            if (preAnalyzing || mainLineComplete)
+                return;
+            EnsureLiveLocked(positionCount);
+            if (ply >= liveMarks.Length)
+                return;
+            if (liveHas[ply] && depth < liveDepth[ply])
+                return;
+
+            bool changed = !liveHas[ply] || liveMarks[ply] != result.Mark;
+            liveMarks[ply] = result.Mark;
+            liveDepth[ply] = depth;
+            liveHas[ply] = true;
+            if (!changed)
+                return;
+
+            publishPrevious = TryJudgeLocked(previousIndex, firstPly, out previous);
+            publishNext = TryJudgeLocked(nextIndex, firstPly, out next);
+        }
+
+        if (publishPrevious)
+            MoveJudged?.Invoke(previousIndex, previous);
+        if (publishNext)
+            MoveJudged?.Invoke(nextIndex, next);
+    }
+
+    private bool TryJudgeLocked(int moveIndex, int firstPly, out MoveQuality quality)
+    {
+        quality = default;
+        if (moveIndex < 0 || liveHas == null || moveIndex + 1 >= liveHas.Length)
+            return false;
+        if (!liveHas[moveIndex] || !liveHas[moveIndex + 1])
+            return false;
+        bool blackMoved = (firstPly + moveIndex) % 2 == 1;
+        quality = MoveAccuracy.FromMarks(liveMarks[moveIndex], liveMarks[moveIndex + 1], blackMoved);
+        return true;
+    }
+
+    private static bool IsStableEval(MoveResult result)
+    {
+        if (double.IsNaN(result.Mark) || double.IsInfinity(result.Mark))
+            return false;
+        if (result.Depth >= LiveJudgementDepth)
+            return true;
+        // На гарантированном мате поиск останавливается на глубине 0 или 1.
+        return Engine.IsImmediateWin(result.Mark);
+    }
+
+    private void EnsureLiveLocked(int positionCount)
+    {
+        if (liveHas != null && liveHas.Length == positionCount)
+            return;
+        liveMarks = new double[positionCount];
+        liveDepth = new int[positionCount];
+        liveHas = new bool[positionCount];
+    }
+
+    private void ClearLiveLocked()
+    {
+        liveMarks = null;
+        liveDepth = null;
+        liveHas = null;
     }
 
     private void ComputeMoveQualityLocked()

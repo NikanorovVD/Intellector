@@ -73,6 +73,7 @@ public class ReplayController : MonoBehaviour
         board.MoveEndEvent += MoveEndHandler;
         analysis = new ReplayAnalysis();
         analysis.Updated += OnAnalysisUpdated;
+        analysis.MoveJudged += OnMoveJudged;
         analysis.PreProgress += OnPreProgress;
         analysis.PreFinished += OnPreFinished;
         AfterStep(false);
@@ -101,6 +102,7 @@ public class ReplayController : MonoBehaviour
         if (analysis != null)
         {
             analysis.Updated -= OnAnalysisUpdated;
+            analysis.MoveJudged -= OnMoveJudged;
             analysis.PreProgress -= OnPreProgress;
             analysis.PreFinished -= OnPreFinished;
             analysis.Stop();
@@ -475,7 +477,30 @@ public class ReplayController : MonoBehaviour
 
         ClearEngineBoard();
         view.ClearEngine();
-        analysis.Analyze(board);
+        int ply = onVariation ? -1 : mainIndex;
+        analysis.Analyze(
+            board,
+            ply,
+            (moves?.Count ?? 0) + 1,
+            firstPly,
+            ply > 0 ? PositionBoard(ply - 1) : null);
+    }
+
+    private NotationBoard PositionBoard(int ply)
+    {
+        NotationBoard notation = ReplayExpander.CreateStartBoard(record);
+        if (moves == null)
+            return notation;
+        for (int i = 0; i < ply && i < moves.Count; i++)
+            notation.Apply(moves[i]);
+        return notation;
+    }
+
+    private void OnMoveJudged(int moveIndex, MoveQuality quality)
+    {
+        if (view == null)
+            return;
+        view.ApplyMoveQuality(moveIndex, quality);
     }
 
     private void ClearEngineBoard()

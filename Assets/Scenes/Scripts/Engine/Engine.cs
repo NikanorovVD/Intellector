@@ -18,9 +18,9 @@ public class Engine
     private PruningEntry[][][] pruningHistory;
     private static int[][] hashKeys;
     private static int blackMoveKey;
-    private static bool hashReady;
     private Dictionary<int, int> positionHistory;
-    private static readonly Dictionary<int, int> playedOccurrences = new Dictionary<int, int>();
+    private readonly Dictionary<int, int> playedOccurrences = new Dictionary<int, int>();
+    private readonly Random random = new Random();
     private const int MaxPositionRepeats = 3;
     private const double DrawByRepetitionMark = 0;
 
@@ -33,7 +33,6 @@ public class Engine
     private int count = 0;
     private MoveResult bestMoveInfo;
 
-    private static readonly Random random = new Random();
     private const double HashWindowMargin = 1.0;
     private const double WinMarkThreshold = 0.9;
     private const double HistorySortScale = 1_000_000.0;
@@ -43,13 +42,32 @@ public class Engine
     // Информация о лучшем ходе, найденном на текущей глубине. Вызывается после каждой итерации IDS.
     public event Action<MoveResult> OnProgress;
 
+    static Engine()
+    {
+        var random = new Random();
+        var bytes = new byte[4];
+        int NextKey()
+        {
+            random.NextBytes(bytes);
+            return BitConverter.ToInt32(bytes, 0);
+        }
+
+        hashKeys = new int[59][];
+        for (int i = 0; i <= 58; i++)
+        {
+            hashKeys[i] = new int[13];
+            for (int j = 0; j <= 11; j++)
+                hashKeys[i][j] = NextKey();
+            hashKeys[i][(int)EngineFigure.Empty] = 0;
+        }
+        blackMoveKey = NextKey();
+    }
+
     public Engine(string position = null)
     {
         positionHistory = new Dictionary<int, int>();
         moveHistory = new List<MoveHistoryEntry>();
         fields = new EngineFigure[59];
-
-        InitializeHashKeys();
 
         if (position != null && TrySetPosition(position))
             return;
@@ -96,29 +114,6 @@ public class Engine
         positionHistory = new Dictionary<int, int> { { Hash(), 1 } };
     }
 
-    private static void InitializeHashKeys()
-    {
-        if (hashReady) return;
-
-        var bytes = new byte[4];
-        int NextKey()
-        {
-            random.NextBytes(bytes);
-            return BitConverter.ToInt32(bytes, 0);
-        }
-
-        hashKeys = new int[59][];
-        for (int i = 0; i <= 58; i++)
-        {
-            hashKeys[i] = new int[13];
-            for (int j = 0; j <= 11; j++)
-                hashKeys[i][j] = NextKey();
-            hashKeys[i][(int)EngineFigure.Empty] = 0;
-        }
-        blackMoveKey = NextKey();
-        hashReady = true;
-    }
-
     public int Hash()
     {
         int h = 0;
@@ -153,15 +148,21 @@ public class Engine
     // Запомнить, что позиция встречалась и вернуть количество повторений, нужно для учета троекратного повторения
     public int RememberPlayed(bool progressive)
     {
-        if (progressive) playedOccurrences.Clear();
+        if (progressive)
+            playedOccurrences.Clear();
         int h = Hash();
-        if (playedOccurrences.TryGetValue(h, out int n)) n++;
-        else n = 1;
+        if (playedOccurrences.TryGetValue(h, out int n))
+            n++;
+        else
+            n = 1;
         playedOccurrences[h] = n;
         return n;
     }
 
-    public static void ClearPlayedHistory() => playedOccurrences.Clear();
+    public void ClearPlayedHistory()
+    {
+        playedOccurrences.Clear();
+    }
 
     private void AdoptPlayedHistoryForSearch()
     {
@@ -782,7 +783,7 @@ public class Engine
         return false;
     }
 
-    private static bool IsImmediateWin(double mark)
+    public static bool IsImmediateWin(double mark)
     {
         return mark >= T.MarkOf(EngineFigure.WhiteIntellector) - 1
             || mark <= T.MarkOf(EngineFigure.BlackIntellector) + 1;

@@ -4,8 +4,21 @@ public static class BoardToEngine
 {
     public static Engine CreateEngine(Board board)
     {
+        var engine = new Engine();
+        Load(engine, board);
+        return engine;
+    }
+
+    public static void Load(Engine engine, Board board)
+    {
+        engine.Load(ToSquares(board), board.Turn ? EngineColor.Black : EngineColor.White);
+    }
+
+    private static EngineFigure[] ToSquares(Board board)
+    {
         var squares = new EngineFigure[59];
-        for (int i = 0; i < 59; i++) squares[i] = EngineFigure.Empty;
+        for (int i = 0; i < 59; i++)
+            squares[i] = EngineFigure.Empty;
 
         for (int x = 0; x < board.Pieces.Length; x++)
         {
@@ -19,9 +32,7 @@ public static class BoardToEngine
             }
         }
 
-        var engine = new Engine();
-        engine.Load(squares, board.Turn ? EngineColor.Black : EngineColor.White);
-        return engine;
+        return squares;
     }
 
     public static Engine CreateEngine(NotationBoard board, bool blackToMove)

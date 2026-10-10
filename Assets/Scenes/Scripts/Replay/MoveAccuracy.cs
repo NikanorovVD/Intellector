@@ -14,6 +14,7 @@ public struct MoveQuality
 {
     public double Accuracy;
     public MoveJudgement Judgement;
+    public bool Known;
 }
 
 public struct GameMoveQuality
@@ -91,7 +92,8 @@ public static class MoveAccuracy
         return new MoveQuality
         {
             Accuracy = AccuracyFromWinPercents(beforeWin, afterWin),
-            Judgement = JudgementFromDrop(blackMoved ? afterWc - beforeWc : beforeWc - afterWc)
+            Judgement = JudgementFromDrop(blackMoved ? afterWc - beforeWc : beforeWc - afterWc),
+            Known = true
         };
     }
 

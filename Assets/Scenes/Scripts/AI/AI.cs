@@ -12,6 +12,7 @@ public class AI : MonoBehaviour
     private bool AiTeam => !mainBoard.PlayerTeam;
 
     private bool lastMoveWasProgressive;
+    private Engine engine;
 
     private static readonly Dictionary<EngineFigure, int> figureToUnityType = new Dictionary<EngineFigure, int>
     {
@@ -33,6 +34,7 @@ public class AI : MonoBehaviour
     {
         if (Settings.Arrange.Editing || Settings.GameMode != GameMode.AI) return;
 
+        engine = new Engine();
         mainBoard.MoveStartEvent += (start, end, _) =>
         {
             lastMoveWasProgressive = EngineUtils.IsProgressiveMove(
@@ -41,11 +43,12 @@ public class AI : MonoBehaviour
         };
         mainBoard.MoveEndEvent += (_, _, _) =>
         {
-            BoardToEngine.CreateEngine(mainBoard).RememberPlayed(lastMoveWasProgressive);
+            BoardToEngine.Load(engine, mainBoard);
+            engine.RememberPlayed(lastMoveWasProgressive);
         };
         mainBoard.RestartEvent += () =>
         {
-            Engine.ClearPlayedHistory();
+            engine.ClearPlayedHistory();
             if (mainBoard.Turn == AiTeam)
                 _ = MakeAIMove();
         };
@@ -66,7 +69,7 @@ public class AI : MonoBehaviour
     private async Task MakeAIMove()
     {
         if (mainBoard.IsGameOver) return;
-        var engine = BoardToEngine.CreateEngine(mainBoard);
+        BoardToEngine.Load(engine, mainBoard);
         if (engine.TryGetTerminalResult(out _)) return;
         var result = await Task.Run(() => Search(engine));
         if (result.Move == null)

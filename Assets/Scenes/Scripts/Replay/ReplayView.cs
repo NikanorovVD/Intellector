@@ -58,7 +58,7 @@ public class ReplayView : MonoBehaviour
     public event Action<string> RenameConfirmed;
 
     private readonly List<ListCell> cells = new();
-    private IReadOnlyList<MoveQuality> mainQualities;
+    private MoveQuality[] mainQualities;
     private bool engineUiVisible;
     private bool engineHasAccuracy;
     private Coroutine copyIfenFeedback;
@@ -75,6 +75,8 @@ public class ReplayView : MonoBehaviour
     {
         public Image Image;
         public Image Frame;
+        public Text Label;
+        public string Notation;
         public bool Variation;
         public int Ply;
         public Color Idle;
@@ -217,7 +219,41 @@ public class ReplayView : MonoBehaviour
 
     public void SetMoveQualities(IReadOnlyList<MoveQuality> qualities)
     {
-        mainQualities = qualities;
+        if (qualities == null)
+        {
+            mainQualities = null;
+            return;
+        }
+
+        mainQualities = new MoveQuality[qualities.Count];
+        for (int i = 0; i < qualities.Count; i++)
+            mainQualities[i] = qualities[i];
+    }
+
+    public void ApplyMoveQuality(int moveIndex, MoveQuality quality)
+    {
+        if (moveIndex < 0)
+            return;
+        EnsureQualitySlot(moveIndex);
+        bool repaint = !mainQualities[moveIndex].Known || mainQualities[moveIndex].Judgement != quality.Judgement;
+        mainQualities[moveIndex] = quality;
+        if (!repaint)
+            return;
+
+        int ply = moveIndex + 1;
+        for (int i = 0; i < cells.Count; i++)
+        {
+            ListCell cell = cells[i];
+            if (cell.Variation || cell.Ply != ply)
+                continue;
+            Color color = ColorFor(quality.Judgement);
+            cell.Idle = color;
+            if (cell.Image != null)
+                cell.Image.color = color;
+            if (cell.Label != null)
+                cell.Label.text = WithGlyph(cell.Notation, quality);
+            cells[i] = cell;
+        }
     }
 
     public void RebuildList(
@@ -391,7 +427,7 @@ public class ReplayView : MonoBehaviour
         int number = firstFullmove;
         if (firstPly == 1 && moves.Count > 0)
         {
-            AddTurnRow(number, null, 0, false, MainNotation(moves, 0), 1, false, false);
+            AddTurnRow(number, null, 0, false, moves[0].Notation, 1, false, false);
             if (!variationPlaced && variationFrom <= 1)
             {
                 FillVariation(variation, firstPly, firstFullmove, variationFrom);
@@ -402,9 +438,9 @@ public class ReplayView : MonoBehaviour
         }
         for (; i < moves.Count; i += 2)
         {
-            string black = i + 1 < moves.Count ? MainNotation(moves, i + 1) : null;
+            string black = i + 1 < moves.Count ? moves[i + 1].Notation : null;
             int lastPly = black != null ? i + 2 : i + 1;
-            AddTurnRow(number, MainNotation(moves, i), i + 1, false, black, black != null ? i + 2 : 0, false, false);
+            AddTurnRow(number, moves[i].Notation, i + 1, false, black, black != null ? i + 2 : 0, false, false);
             if (!variationPlaced && variationFrom <= lastPly)
             {
                 FillVariation(variation, firstPly, firstFullmove, variationFrom);
@@ -465,12 +501,9 @@ public class ReplayView : MonoBehaviour
     {
         if (isVariation)
             return variationRowColor;
-        if (mainQualities == null || ply <= 0)
+        if (!TryMainQuality(ply - 1, out MoveQuality quality))
             return rowColor;
-        int index = ply - 1;
-        if (index >= mainQualities.Count)
-            return rowColor;
-        return ColorFor(mainQualities[index].Judgement);
+        return ColorFor(quality.Judgement);
     }
 
     private static Color ColorFor(MoveJudgement judgement)
@@ -484,13 +517,40 @@ public class ReplayView : MonoBehaviour
         };
     }
 
-    private string MainNotation(IReadOnlyList<ReplayMove> moves, int index)
+    private bool TryMainQuality(int index, out MoveQuality quality)
     {
-        string text = moves[index].Notation;
-        if (mainQualities == null || index < 0 || index >= mainQualities.Count)
-            return text;
-        string glyph = MoveAccuracy.Glyph(mainQualities[index].Judgement);
-        return glyph.Length == 0 ? text : text + glyph;
+        if (mainQualities == null || index < 0 || index >= mainQualities.Length || !mainQualities[index].Known)
+        {
+            quality = default;
+            return false;
+        }
+
+        quality = mainQualities[index];
+        return true;
+    }
+
+    private void EnsureQualitySlot(int moveIndex)
+    {
+        int needed = moveIndex + 1;
+        if (mainQualities != null && mainQualities.Length >= needed)
+            return;
+        var grown = new MoveQuality[needed];
+        if (mainQualities != null)
+            Array.Copy(mainQualities, grown, mainQualities.Length);
+        mainQualities = grown;
+    }
+
+    private string DisplayNotation(string notation, bool isVariation, int ply)
+    {
+        if (isVariation || !TryMainQuality(ply - 1, out MoveQuality quality))
+            return notation;
+        return WithGlyph(notation, quality);
+    }
+
+    private static string WithGlyph(string notation, MoveQuality quality)
+    {
+        string glyph = MoveAccuracy.Glyph(quality.Judgement);
+        return glyph.Length == 0 ? notation : notation + glyph;
     }
 
     private GameObject SpawnRow(bool indent)
@@ -551,9 +611,10 @@ public class ReplayView : MonoBehaviour
         copyIfenFeedback = null;
     }
 
-    private void BindCell(Transform cell, string text, bool isVariation, int ply)
+    private void BindCell(Transform cell, string notation, bool isVariation, int ply)
     {
-        cell.GetComponentInChildren<Text>().text = text;
+        Text label = cell.GetComponentInChildren<Text>();
+        label.text = DisplayNotation(notation, isVariation, ply);
         cell.GetComponent<Button>().onClick.AddListener(() => MoveClicked?.Invoke(ply, isVariation));
         Color idle = IdleColorFor(isVariation, ply);
         var image = cell.GetComponent<Image>();
@@ -564,6 +625,8 @@ public class ReplayView : MonoBehaviour
         {
             Image = image,
             Frame = frame,
+            Label = label,
+            Notation = notation,
             Variation = isVariation,
             Ply = ply,
             Idle = idle
