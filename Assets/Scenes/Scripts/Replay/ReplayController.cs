@@ -74,6 +74,7 @@ public class ReplayController : MonoBehaviour
         analysis = new ReplayAnalysis();
         analysis.Updated += OnAnalysisUpdated;
         analysis.MoveJudged += OnMoveJudged;
+        analysis.VariationJudged += OnVariationJudged;
         analysis.PreProgress += OnPreProgress;
         analysis.PreFinished += OnPreFinished;
         AfterStep(false);
@@ -103,6 +104,7 @@ public class ReplayController : MonoBehaviour
         {
             analysis.Updated -= OnAnalysisUpdated;
             analysis.MoveJudged -= OnMoveJudged;
+            analysis.VariationJudged -= OnVariationJudged;
             analysis.PreProgress -= OnPreProgress;
             analysis.PreFinished -= OnPreFinished;
             analysis.Stop();
@@ -305,6 +307,8 @@ public class ReplayController : MonoBehaviour
             }
             variationFrom = mainIndex;
             variation.Clear();
+            analysis.ResetVariation(variationFrom);
+            view.ClearVariationQualities(0);
             variation.Add(move);
             onVariation = true;
             varIndex = 1;
@@ -321,6 +325,8 @@ public class ReplayController : MonoBehaviour
         }
         if (varIndex < variation.Count)
             variation.RemoveRange(varIndex, variation.Count - varIndex);
+        analysis.TrimVariation(varIndex);
+        view.ClearVariationQualities(varIndex);
         variation.Add(move);
         varIndex = variation.Count;
         view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
@@ -475,13 +481,31 @@ public class ReplayController : MonoBehaviour
             view.ClearEngine();
         }
 
-        int ply = onVariation ? -1 : mainIndex;
+        if (onVariation)
+        {
+            analysis.AnalyzeVariation(
+                board,
+                varIndex,
+                variationFrom,
+                firstPly,
+                varIndex > 0 ? VariationPositionBoard(varIndex - 1) : null);
+            return;
+        }
+
         analysis.Analyze(
             board,
-            ply,
+            mainIndex,
             (moves?.Count ?? 0) + 1,
             firstPly,
-            ply > 0 ? PositionBoard(ply - 1) : null);
+            mainIndex > 0 ? PositionBoard(mainIndex - 1) : null);
+    }
+
+    private NotationBoard VariationPositionBoard(int varPos)
+    {
+        NotationBoard notation = PositionBoard(variationFrom);
+        for (int i = 0; i < varPos && i < variation.Count; i++)
+            notation.Apply(variation[i]);
+        return notation;
     }
 
     private void ShowAccuracyOnly()
@@ -533,6 +557,13 @@ public class ReplayController : MonoBehaviour
         if (view == null)
             return;
         view.ApplyMoveQuality(moveIndex, quality);
+    }
+
+    private void OnVariationJudged(int moveIndex, MoveQuality quality)
+    {
+        if (view == null)
+            return;
+        view.ApplyVariationQuality(moveIndex, quality);
     }
 
     private void ClearEngineBoard()

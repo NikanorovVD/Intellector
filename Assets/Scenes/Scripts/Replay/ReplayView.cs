@@ -59,6 +59,7 @@ public class ReplayView : MonoBehaviour
 
     private readonly List<ListCell> cells = new();
     private MoveQuality[] mainQualities;
+    private MoveQuality[] variationQualities;
     private bool engineUiVisible;
     private bool engineHasAccuracy;
     private Coroutine copyIfenFeedback;
@@ -254,6 +255,45 @@ public class ReplayView : MonoBehaviour
                 cell.Label.text = WithGlyph(cell.Notation, quality);
             cells[i] = cell;
         }
+    }
+
+    public void ApplyVariationQuality(int moveIndex, MoveQuality quality)
+    {
+        if (moveIndex < 0)
+            return;
+        EnsureVariationSlot(moveIndex);
+        bool repaint = !variationQualities[moveIndex].Known || variationQualities[moveIndex].Judgement != quality.Judgement;
+        variationQualities[moveIndex] = quality;
+        if (!repaint)
+            return;
+
+        int ply = moveIndex + 1;
+        for (int i = 0; i < cells.Count; i++)
+        {
+            ListCell cell = cells[i];
+            if (!cell.Variation || cell.Ply != ply)
+                continue;
+            Color color = ColorFor(quality.Judgement);
+            cell.Idle = color;
+            if (cell.Image != null)
+                cell.Image.color = color;
+            if (cell.Label != null)
+                cell.Label.text = WithGlyph(cell.Notation, quality);
+            cells[i] = cell;
+        }
+    }
+
+    public void ClearVariationQualities(int fromMoveIndex)
+    {
+        if (variationQualities == null || fromMoveIndex >= variationQualities.Length)
+            return;
+        if (fromMoveIndex <= 0)
+        {
+            variationQualities = null;
+            return;
+        }
+        for (int i = fromMoveIndex; i < variationQualities.Length; i++)
+            variationQualities[i] = default;
     }
 
     public void RebuildList(
@@ -545,10 +585,14 @@ public class ReplayView : MonoBehaviour
     private Color IdleColorFor(bool isVariation, int ply)
     {
         if (isVariation)
+        {
+            if (TryVariationQuality(ply - 1, out MoveQuality quality))
+                return ColorFor(quality.Judgement);
             return variationRowColor;
-        if (!TryMainQuality(ply - 1, out MoveQuality quality))
+        }
+        if (!TryMainQuality(ply - 1, out MoveQuality main))
             return rowColor;
-        return ColorFor(quality.Judgement);
+        return ColorFor(main.Judgement);
     }
 
     private static Color ColorFor(MoveJudgement judgement)
@@ -576,20 +620,48 @@ public class ReplayView : MonoBehaviour
 
     private void EnsureQualitySlot(int moveIndex)
     {
-        int needed = moveIndex + 1;
-        if (mainQualities != null && mainQualities.Length >= needed)
-            return;
+        mainQualities = GrowQualities(mainQualities, moveIndex + 1);
+    }
+
+    private void EnsureVariationSlot(int moveIndex)
+    {
+        variationQualities = GrowQualities(variationQualities, moveIndex + 1);
+    }
+
+    private static MoveQuality[] GrowQualities(MoveQuality[] qualities, int needed)
+    {
+        if (qualities != null && qualities.Length >= needed)
+            return qualities;
         var grown = new MoveQuality[needed];
-        if (mainQualities != null)
-            Array.Copy(mainQualities, grown, mainQualities.Length);
-        mainQualities = grown;
+        if (qualities != null)
+            Array.Copy(qualities, grown, qualities.Length);
+        return grown;
+    }
+
+    private bool TryVariationQuality(int index, out MoveQuality quality)
+    {
+        if (variationQualities == null || index < 0 || index >= variationQualities.Length || !variationQualities[index].Known)
+        {
+            quality = default;
+            return false;
+        }
+
+        quality = variationQualities[index];
+        return true;
     }
 
     private string DisplayNotation(string notation, bool isVariation, int ply)
     {
-        if (isVariation || !TryMainQuality(ply - 1, out MoveQuality quality))
+        if (!TryListedQuality(isVariation, ply - 1, out MoveQuality quality))
             return notation;
         return WithGlyph(notation, quality);
+    }
+
+    private bool TryListedQuality(bool isVariation, int index, out MoveQuality quality)
+    {
+        if (isVariation)
+            return TryVariationQuality(index, out quality);
+        return TryMainQuality(index, out quality);
     }
 
     private static string WithGlyph(string notation, MoveQuality quality)

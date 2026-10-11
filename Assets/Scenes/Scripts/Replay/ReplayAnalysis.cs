@@ -9,6 +9,7 @@ public class ReplayAnalysis
 {
     public event Action<MoveResult> Updated;
     public event Action<int, MoveQuality> MoveJudged;
+    public event Action<int, MoveQuality> VariationJudged;
     public event Action<int, int> PreProgress;
     public event Action PreFinished;
 
@@ -33,6 +34,10 @@ public class ReplayAnalysis
     private double[] liveMarks;
     private int[] liveDepth;
     private bool[] liveHas;
+    private int varFrom = -1;
+    private double[] varMarks;
+    private int[] varDepth;
+    private bool[] varHas;
 
     public bool Enabled => enabled;
     public bool IsPreAnalyzing
@@ -130,6 +135,79 @@ public class ReplayAnalysis
                 Debug.LogException(e);
             }
         });
+    }
+
+    public void AnalyzeVariation(Board board, int varPos, int variationFrom, int firstPly, NotationBoard previous)
+    {
+        generation++;
+        running?.RequestStop();
+        anchor?.RequestStop();
+        anchor = null;
+        if (!enabled || board == null || preAnalyzing)
+        {
+            running = null;
+            if (!preAnalyzing)
+                Updated?.Invoke(default);
+            return;
+        }
+
+        int gen = generation;
+        Engine engine = BoardToEngine.CreateEngine(board);
+        if (engine.TryGetTerminalResult(out MoveResult terminal))
+        {
+            running = null;
+            Updated?.Invoke(terminal);
+            NoteVariation(varPos, terminal, variationFrom, firstPly);
+            StartVariationAnchor(previous, varPos, variationFrom, firstPly, gen);
+            return;
+        }
+
+        running = engine;
+        StartVariationAnchor(previous, varPos, variationFrom, firstPly, gen);
+        engine.OnProgress += result =>
+        {
+            if (gen != generation) return;
+            if (double.IsInfinity(result.Mark)) return;
+            MainTasks.AddTask(() =>
+            {
+                if (gen != generation) return;
+                Updated?.Invoke(result);
+                NoteVariation(varPos, result, variationFrom, firstPly);
+            });
+        };
+        Task.Run(() =>
+        {
+            try
+            {
+                engine.BestMoveByTime(SearchMs);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        });
+    }
+
+    public void ResetVariation(int variationFrom)
+    {
+        lock (preLock)
+        {
+            varFrom = variationFrom;
+            varMarks = null;
+            varDepth = null;
+            varHas = null;
+        }
+    }
+
+    public void TrimVariation(int keepThrough)
+    {
+        lock (preLock)
+        {
+            if (varHas == null)
+                return;
+            for (int i = keepThrough + 1; i < varHas.Length; i++)
+                varHas[i] = false;
+        }
     }
 
     public void StartPreAnalyze(IReadOnlyList<ReplayMove> moves, NotationBoard start, int firstPly, int depth)
@@ -429,6 +507,151 @@ public class ReplayAnalysis
         bool blackMoved = (firstPly + moveIndex) % 2 == 1;
         quality = MoveAccuracy.FromMarks(liveMarks[moveIndex], liveMarks[moveIndex + 1], blackMoved);
         return true;
+    }
+
+    private void StartVariationAnchor(NotationBoard previous, int varPos, int variationFrom, int firstPly, int gen)
+    {
+        if (varPos <= 0 || previous == null || HasVarMark(varPos - 1, variationFrom))
+            return;
+
+        int anchorPos = varPos - 1;
+        bool blackToMove = (firstPly + variationFrom + anchorPos) % 2 == 1;
+        Engine engine = BoardToEngine.CreateEngine(previous, blackToMove);
+        if (engine.TryGetTerminalResult(out MoveResult terminal))
+        {
+            NoteVariation(anchorPos, terminal, variationFrom, firstPly);
+            return;
+        }
+
+        anchor = engine;
+        Task.Run(() =>
+        {
+            try
+            {
+                MoveResult result = engine.BestMoveByDepth(LiveJudgementDepth);
+                MainTasks.AddTask(() =>
+                {
+                    if (gen != generation) return;
+                    NoteVariation(anchorPos, result, variationFrom, firstPly);
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        });
+    }
+
+    private bool HasVarMark(int varPos, int variationFrom)
+    {
+        lock (preLock)
+            return TryVarMarkLocked(varPos, variationFrom, out _);
+    }
+
+    private void NoteVariation(int varPos, MoveResult result, int variationFrom, int firstPly)
+    {
+        if (varPos < 0 || !IsStableEval(result))
+            return;
+
+        int depth = result.Depth >= LiveJudgementDepth ? result.Depth : int.MaxValue;
+        bool publishPrevious = false;
+        bool publishNext = false;
+        MoveQuality previous = default;
+        MoveQuality next = default;
+        int previousIndex = varPos - 1;
+        int nextIndex = varPos;
+        lock (preLock)
+        {
+            if (preAnalyzing)
+                return;
+            if (varFrom != variationFrom)
+            {
+                varFrom = variationFrom;
+                varMarks = null;
+                varDepth = null;
+                varHas = null;
+            }
+            EnsureVarLocked(varPos + 1);
+            if (varHas[varPos] && depth < varDepth[varPos])
+                return;
+
+            bool changed = !varHas[varPos] || varMarks[varPos] != result.Mark;
+            varMarks[varPos] = result.Mark;
+            varDepth[varPos] = depth;
+            varHas[varPos] = true;
+            if (!changed)
+                return;
+
+            publishPrevious = TryJudgeVariationLocked(previousIndex, variationFrom, firstPly, out previous);
+            publishNext = TryJudgeVariationLocked(nextIndex, variationFrom, firstPly, out next);
+        }
+
+        if (publishPrevious)
+            VariationJudged?.Invoke(previousIndex, previous);
+        if (publishNext)
+            VariationJudged?.Invoke(nextIndex, next);
+    }
+
+    private bool TryJudgeVariationLocked(int moveIndex, int variationFrom, int firstPly, out MoveQuality quality)
+    {
+        quality = default;
+        if (moveIndex < 0 || !TryVarMarkLocked(moveIndex, variationFrom, out double before))
+            return false;
+        if (!TryVarMarkLocked(moveIndex + 1, variationFrom, out double after))
+            return false;
+        bool blackMoved = (firstPly + variationFrom + moveIndex) % 2 == 1;
+        quality = MoveAccuracy.FromMarks(before, after, blackMoved);
+        return true;
+    }
+
+    private bool TryVarMarkLocked(int varPos, int variationFrom, out double mark)
+    {
+        mark = 0;
+        if (varPos < 0)
+            return false;
+        if (varFrom == variationFrom && varHas != null && varPos < varHas.Length && varHas[varPos])
+        {
+            mark = varMarks[varPos];
+            return true;
+        }
+        if (varPos == 0)
+            return TryStoredMarkLocked(variationFrom, out mark);
+        return false;
+    }
+
+    private bool TryStoredMarkLocked(int ply, out double mark)
+    {
+        if (mainHas != null && ply >= 0 && ply < mainHas.Length && mainHas[ply])
+        {
+            mark = mainCache[ply].Mark;
+            return true;
+        }
+        if (liveHas != null && ply >= 0 && ply < liveHas.Length && liveHas[ply])
+        {
+            mark = liveMarks[ply];
+            return true;
+        }
+        mark = 0;
+        return false;
+    }
+
+    private void EnsureVarLocked(int positionCount)
+    {
+        if (varHas != null && varHas.Length >= positionCount)
+            return;
+        int old = varHas == null ? 0 : varHas.Length;
+        var grownMarks = new double[positionCount];
+        var grownDepth = new int[positionCount];
+        var grownHas = new bool[positionCount];
+        if (old > 0)
+        {
+            Array.Copy(varMarks, grownMarks, old);
+            Array.Copy(varDepth, grownDepth, old);
+            Array.Copy(varHas, grownHas, old);
+        }
+        varMarks = grownMarks;
+        varDepth = grownDepth;
+        varHas = grownHas;
     }
 
     private static bool IsStableEval(MoveResult result)
