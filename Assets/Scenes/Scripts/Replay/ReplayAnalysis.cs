@@ -660,8 +660,8 @@ public class ReplayAnalysis
             return false;
         if (result.Depth >= LiveJudgementDepth)
             return true;
-        // На гарантированном мате поиск останавливается на глубине 0 или 1.
-        return Engine.IsImmediateWin(result.Mark);
+        // При гарантированном мате поиск останавливается на текущей глубине.
+        return Engine.IsMateScore(result.Mark);
     }
 
     private void EnsureLiveLocked(int positionCount)

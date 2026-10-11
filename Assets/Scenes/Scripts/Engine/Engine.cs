@@ -783,10 +783,12 @@ public class Engine
         return false;
     }
 
-    public static bool IsImmediateWin(double mark)
+    public static bool IsMateScore(double mark)
     {
-        return mark >= T.MarkOf(EngineFigure.WhiteIntellector) - 1
-            || mark <= T.MarkOf(EngineFigure.BlackIntellector) + 1;
+        if (double.IsNaN(mark) || double.IsInfinity(mark))
+            return false;
+        double win = T.MarkOf(EngineFigure.WhiteIntellector);
+        return mark >= win * WinMarkThreshold || mark <= -win * WinMarkThreshold;
     }
 
     private (bool hasResult, double mark, EngineMove? move, double newAlpha, double newBeta)
@@ -1452,7 +1454,7 @@ public class Engine
                 res = searchAtDepth(i, double.NegativeInfinity, double.PositiveInfinity, 0, true);
 
             onComplete(i, res.move, res.mark, res.line);
-            if (res.move.HasValue && IsImmediateWin(res.mark))
+            if (IsMateScore(res.mark))
                 break;
             if (!res.move.HasValue && TryGetTerminalResult(out _))
                 break;
