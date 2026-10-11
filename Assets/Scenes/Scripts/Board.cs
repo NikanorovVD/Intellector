@@ -73,7 +73,7 @@ public class Board : MonoBehaviour
         (whiteTeamMaterial, blackTeamMaterial) = materialSelector.GetCurrentMaterials(Settings.PieceMaterials);
 
         GenerateAllTiles();
-        if (Settings.Arrange.Editing)
+        if (ArrangeSession.TryTakeEnter())
         {
             CreateEmptyPieces();
             Turn = false;

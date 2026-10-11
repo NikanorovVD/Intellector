@@ -32,9 +32,8 @@ public class AISetupMenu : MonoBehaviour
 
     private void Start()
     {
-        if (!Settings.Arrange.Resume) return;
-        Settings.Arrange.Resume = false;
-        Open(Settings.Arrange.Mode);
+        if (!ArrangeSession.TryTakeReturn(out GameMode mode)) return;
+        Open(mode);
     }
 
     private void OnValidate()
@@ -198,7 +197,7 @@ public class AISetupMenu : MonoBehaviour
 
     public void BeginArrange()
     {
-        Settings.Arrange.Backup = Settings.StartIfen;
+        string backup = Settings.StartIfen;
         string raw = (ifenInput.text ?? string.Empty).Trim();
         if (raw.Length == 0)
             Settings.ClearStartPosition();
@@ -208,9 +207,7 @@ public class AISetupMenu : MonoBehaviour
             return;
         }
 
-        Settings.Arrange.Editing = true;
-        Settings.Arrange.Resume = true;
-        Settings.Arrange.Mode = pendingMode;
+        ArrangeSession.Enter(pendingMode, backup);
         Settings.GameMode = GameMode.Local;
         SceneManager.LoadScene(1);
     }

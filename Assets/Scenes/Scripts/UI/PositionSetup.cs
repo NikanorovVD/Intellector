@@ -18,9 +18,14 @@ public class PositionSetup : MonoBehaviour
     private bool selectedBlack;
     private bool erase;
 
+    private void OnDestroy()
+    {
+        ArrangeSession.Clear();
+    }
+
     private void Start()
     {
-        if (!Settings.Arrange.Editing)
+        if (!ArrangeSession.Arranging)
         {
             if (view != null)
                 view.SetPanelActive(false);
@@ -115,16 +120,16 @@ public class PositionSetup : MonoBehaviour
 
     public void Cancel()
     {
-        if (string.IsNullOrEmpty(Settings.Arrange.Backup))
+        if (string.IsNullOrEmpty(ArrangeSession.Backup))
             Settings.ClearStartPosition();
         else
-            Settings.TrySetStartIfen(Settings.Arrange.Backup, out _);
+            Settings.TrySetStartIfen(ArrangeSession.Backup, out _);
         Leave();
     }
 
     private void Update()
     {
-        if (!Settings.Arrange.Editing || board == null) return;
+        if (!ArrangeSession.Arranging || board == null) return;
 
         Camera camera = Camera.main;
         if (camera == null) return;
@@ -191,7 +196,7 @@ public class PositionSetup : MonoBehaviour
 
     private void Leave()
     {
-        Settings.Arrange.Editing = false;
+        ArrangeSession.ReturnTo(ArrangeSession.Mode);
         SceneManager.LoadScene(0);
     }
 }
