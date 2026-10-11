@@ -16,8 +16,11 @@ public class HistoryMenu : MonoBehaviour
     [SerializeField] private GameObject renamePanel;
     [SerializeField] private InputField renameInput;
     [SerializeField] private Text renameError;
+    [SerializeField] private bool markOpenReplay;
 
     private static readonly Color currentRowColor = new Color(0.62f, 0.46f, 0.14f, 1f);
+    private static readonly Color renameIdleColor = new Color(0.25f, 0.25f, 0.25f, 1f);
+    private static readonly Color renameCheckColor = new Color(0.18f, 0.42f, 0.24f, 1f);
 
     private readonly List<GameObject> items = new();
     private string renamePath;
@@ -74,33 +77,112 @@ public class HistoryMenu : MonoBehaviour
             Destroy(item);
         items.Clear();
 
-        string directory = GameRecorder.GamesDirectory;
-        string[] files = Directory.Exists(directory)
-            ? Directory.GetFiles(directory, "*.ipgn")
-            : Array.Empty<string>();
-
-        var entries = new List<(string path, DateTime time)>(files.Length);
-        foreach (string path in files)
-            entries.Add((path, GameTime(path)));
-        entries.Sort((a, b) => b.time.CompareTo(a.time));
-
-        emptyLabel.SetActive(entries.Count == 0);
-        foreach ((string path, DateTime _) in entries)
+        List<string> games = ListGames();
+        emptyLabel.SetActive(games.Count == 0);
+        foreach (string path in games)
         {
             GameObject item = Instantiate(itemPrefab);
             item.transform.SetParent(content.transform, false);
             item.SetActive(true);
             item.transform.localScale = Vector3.one;
             string captured = path;
-            item.transform.Find("Name").GetComponent<Text>().text = Path.GetFileNameWithoutExtension(path);
             Image row = item.GetComponent<Image>();
             if (row != null && IsOpenReplay(path))
                 row.color = currentRowColor;
             item.GetComponent<Button>().onClick.AddListener(() => OpenReplay(captured));
-            item.transform.Find("Rename").GetComponent<Button>().onClick.AddListener(() => BeginRename(captured));
             item.transform.Find("Delete").GetComponent<Button>().onClick.AddListener(() => DeleteReplay(captured));
+            InputField input = item.transform.Find("Name").GetComponent<InputField>();
+            if (input != null)
+                BindInlineRename(input, item.transform.Find("Rename").GetComponent<Button>(), captured);
+            else
+            {
+                item.transform.Find("Name").GetComponent<Text>().text = Path.GetFileNameWithoutExtension(path);
+                item.transform.Find("Rename").GetComponent<Button>().onClick.AddListener(() => BeginRename(captured));
+            }
             items.Add(item);
         }
+    }
+
+    public void RefreshListed()
+    {
+        if (!IsOpen)
+            return;
+        Refresh();
+    }
+
+    private void BindInlineRename(InputField input, Button edit, string path)
+    {
+        string saved = Path.GetFileNameWithoutExtension(path);
+        input.text = saved;
+        input.interactable = false;
+        Image field = input.GetComponent<Image>();
+        if (field != null)
+        {
+            field.raycastTarget = false;
+            field.color = new Color(field.color.r, field.color.g, field.color.b, 0f);
+        }
+        Transform icon = edit.transform.Find("Icon");
+        Transform mark = edit.transform.Find("Check");
+        Image buttonImage = edit.GetComponent<Image>();
+        if (icon != null)
+            icon.gameObject.SetActive(true);
+        if (mark != null)
+            mark.gameObject.SetActive(false);
+        if (buttonImage != null)
+            buttonImage.color = renameIdleColor;
+        input.onValueChanged.AddListener(_ => ShowRenameError(string.Empty));
+        input.onSubmit.AddListener(_ => CommitInlineRename(path, input));
+        edit.onClick.AddListener(() =>
+        {
+            if (input.interactable)
+            {
+                CommitInlineRename(path, input);
+                return;
+            }
+            input.interactable = true;
+            if (field != null)
+            {
+                field.raycastTarget = true;
+                field.color = new Color(0.15f, 0.15f, 0.15f, 0.9f);
+            }
+            if (icon != null)
+                icon.gameObject.SetActive(false);
+            if (mark != null)
+                mark.gameObject.SetActive(true);
+            if (buttonImage != null)
+                buttonImage.color = renameCheckColor;
+            input.ActivateInputField();
+        });
+    }
+
+    private void CommitInlineRename(string path, InputField input)
+    {
+        string typed = (input.text ?? string.Empty).Trim();
+        if (string.Equals(typed, Path.GetFileNameWithoutExtension(path), StringComparison.Ordinal))
+        {
+            Refresh();
+            return;
+        }
+        if (!ReplayFile.TryRename(path, input.text, out string dest, out string error))
+        {
+            ShowRenameError(error);
+            return;
+        }
+        ShowRenameError(string.Empty);
+        if (IsOpenReplay(path))
+        {
+            Settings.ReplayFilePath = dest;
+            OpenReplayRenamed?.Invoke(dest);
+        }
+        Refresh();
+    }
+
+    private void ShowRenameError(string error)
+    {
+        if (renameError == null)
+            return;
+        renameError.text = error ?? string.Empty;
+        renameError.gameObject.SetActive(!string.IsNullOrEmpty(error));
     }
 
     private void BeginRename(string path)
@@ -117,7 +199,14 @@ public class HistoryMenu : MonoBehaviour
         bool current = IsOpenReplay(path);
         if (renamePath == path)
             renamePanel.SetActive(false);
+        // Следующая в списке, а если удалённая была последней — предыдущая.
+        string next = current ? NextReplay(path) : null;
         File.Delete(path);
+        if (current && next != null)
+        {
+            ShowReplay(next);
+            return;
+        }
         if (current)
         {
             Settings.ReplayFilePath = null;
@@ -126,8 +215,39 @@ public class HistoryMenu : MonoBehaviour
         Refresh();
     }
 
-    private static bool IsOpenReplay(string path)
+    private static string NextReplay(string path)
     {
+        List<string> games = ListGames();
+        int index = games.FindIndex(game => SamePath(game, path));
+        if (index < 0)
+            return games.Count > 0 ? games[0] : null;
+        if (index + 1 < games.Count)
+            return games[index + 1];
+        if (index > 0)
+            return games[index - 1];
+        return null;
+    }
+
+    private static List<string> ListGames()
+    {
+        string directory = GameRecorder.GamesDirectory;
+        string[] files = Directory.Exists(directory)
+            ? Directory.GetFiles(directory, "*.ipgn")
+            : Array.Empty<string>();
+        var entries = new List<(string path, DateTime time)>(files.Length);
+        foreach (string file in files)
+            entries.Add((file, GameTime(file)));
+        entries.Sort((a, b) => b.time.CompareTo(a.time));
+        var games = new List<string>(entries.Count);
+        foreach ((string file, DateTime _) in entries)
+            games.Add(file);
+        return games;
+    }
+
+    private bool IsOpenReplay(string path)
+    {
+        if (!markOpenReplay)
+            return false;
         return Settings.GameMode == GameMode.Replay && SamePath(path, Settings.ReplayFilePath);
     }
 
@@ -154,13 +274,23 @@ public class HistoryMenu : MonoBehaviour
     private void OpenReplay(string path)
     {
         if (IsOpenReplay(path))
-        {
-            Close();
             return;
-        }
+        ShowReplay(path);
+    }
+
+    private void ShowReplay(string path)
+    {
         Settings.GameMode = GameMode.Replay;
         Settings.ReplayFilePath = path;
         Settings.ClearStartPosition();
+        ReplayController[] replays = FindObjectsOfType<ReplayController>(true);
+        if (replays.Length > 0 && replays[0].enabled)
+        {
+            renamePanel.SetActive(false);
+            replays[0].ShowCurrent();
+            Refresh();
+            return;
+        }
         SceneManager.LoadScene(1);
     }
 }

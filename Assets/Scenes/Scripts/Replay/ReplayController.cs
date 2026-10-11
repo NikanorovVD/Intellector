@@ -43,6 +43,26 @@ public class ReplayController : MonoBehaviour
             history.OpenReplayRemoved += OnHistoryRemoved;
         }
 
+        view.MoveClicked += OnMoveClicked;
+        view.EngineToggled += OnEngineToggled;
+        view.CopyIfenClicked += OnCopyIfenClicked;
+        view.PreAnalyzeClicked += OnPreAnalyzeClicked;
+        view.RenameConfirmed += OnRenameConfirmed;
+        board.MoveStartEvent += MoveStartHandler;
+        board.MoveEndEvent += MoveEndHandler;
+        ShowCurrent();
+    }
+
+    public void ShowCurrent()
+    {
+        DetachAnalysis();
+        variation.Clear();
+        onVariation = false;
+        varIndex = 0;
+        variationFrom = 0;
+        pendingMove = null;
+        firstHalfmove = 0;
+
         string text = File.ReadAllText(Settings.ReplayFilePath);
         record = IpgnParser.Parse(text);
         if (record.SetUp == "1" && !string.IsNullOrEmpty(record.Ifen))
@@ -51,6 +71,9 @@ public class ReplayController : MonoBehaviour
             board.LoadPosition(start);
             firstHalfmove = start.HalfmoveClock;
         }
+        else
+            board.LoadPosition(IfenFormatter.Initial());
+        board.IsGameOver = false;
         moves = ReplayExpander.Expand(record);
         IpgnFormatter.GetMovetextOrigin(record, out firstPly, out firstFullmove);
         mainIndex = 0;
@@ -64,13 +87,6 @@ public class ReplayController : MonoBehaviour
         view.SetEngineVisible(false);
         view.SetPreAnalyzeRunning(false);
         view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
-        view.MoveClicked += OnMoveClicked;
-        view.EngineToggled += OnEngineToggled;
-        view.CopyIfenClicked += OnCopyIfenClicked;
-        view.PreAnalyzeClicked += OnPreAnalyzeClicked;
-        view.RenameConfirmed += OnRenameConfirmed;
-        board.MoveStartEvent += MoveStartHandler;
-        board.MoveEndEvent += MoveEndHandler;
         analysis = new ReplayAnalysis();
         analysis.Updated += OnAnalysisUpdated;
         analysis.MoveJudged += OnMoveJudged;
@@ -78,6 +94,19 @@ public class ReplayController : MonoBehaviour
         analysis.PreProgress += OnPreProgress;
         analysis.PreFinished += OnPreFinished;
         AfterStep(false);
+    }
+
+    private void DetachAnalysis()
+    {
+        if (analysis == null)
+            return;
+        analysis.Updated -= OnAnalysisUpdated;
+        analysis.MoveJudged -= OnMoveJudged;
+        analysis.VariationJudged -= OnVariationJudged;
+        analysis.PreProgress -= OnPreProgress;
+        analysis.PreFinished -= OnPreFinished;
+        analysis.Stop();
+        analysis = null;
     }
 
     private void OnDestroy()
@@ -100,15 +129,7 @@ public class ReplayController : MonoBehaviour
             board.MoveStartEvent -= MoveStartHandler;
             board.MoveEndEvent -= MoveEndHandler;
         }
-        if (analysis != null)
-        {
-            analysis.Updated -= OnAnalysisUpdated;
-            analysis.MoveJudged -= OnMoveJudged;
-            analysis.VariationJudged -= OnVariationJudged;
-            analysis.PreProgress -= OnPreProgress;
-            analysis.PreFinished -= OnPreFinished;
-            analysis.Stop();
-        }
+        DetachAnalysis();
     }
 
     private void Update()
@@ -363,6 +384,8 @@ public class ReplayController : MonoBehaviour
         Settings.ReplayFilePath = dest;
         view.SetFileName(Path.GetFileNameWithoutExtension(dest));
         view.CloseRename();
+        if (history != null)
+            history.RefreshListed();
     }
 
     private void OnHistoryRenamed(string path)
