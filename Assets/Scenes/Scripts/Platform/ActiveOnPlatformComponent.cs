@@ -9,21 +9,23 @@ public enum Platform
     Android
 }
 
-public class PlatformDependentComponent : MonoBehaviour
+public class ActiveOnPlatformComponent : MonoBehaviour
 {
     [SerializeField] private Platform platform;
+
     private void Awake()
     {
+        bool isAndroid;
 #if UNITY_EDITOR
+        isAndroid = AndroidSimulationMenu.IsAndroidSimulationOn();
+#else
+        isAndroid = Application.platform == RuntimePlatform.Android;
+#endif
         bool active = platform switch
         {
-            Platform.Android => AndroidSimulationMenu.IsAndroidSimulationOn(),
-            Platform.Desktop => !AndroidSimulationMenu.IsAndroidSimulationOn()
+            Platform.Android => isAndroid,
+            Platform.Desktop => !isAndroid
         };
         gameObject.SetActive(active);
-        return;
-#endif
-
-        gameObject.SetActive(Application.platform == RuntimePlatform.Android);
     }
 }
