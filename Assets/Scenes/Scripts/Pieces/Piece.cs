@@ -4,6 +4,20 @@ using UnityEngine;
 
 public abstract class Piece : IPiece
 {
+    public static Piece Create(PieceType type)
+    {
+        return type switch
+        {
+            PieceType.Progressor => new Progressor(),
+            PieceType.Liberator => new Liberator(),
+            PieceType.Intellector => new Intellector(),
+            PieceType.Dominator => new Dominator(),
+            PieceType.Defensor => new Defensor(),
+            PieceType.Agressor => new Agressor(),
+            _ => throw new System.ArgumentOutOfRangeException(nameof(type))
+        };
+    }
+
     public abstract PieceType Type { get; }
     public int X { get; set; }
     public int Y { get; set; }

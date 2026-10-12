@@ -196,8 +196,8 @@ public class Board : MonoBehaviour
 
     public IPiece GenerateSinglePiece(PieceType type, bool team, int x, int y)
     {
+        IPiece piece = Piece.Create(type);
         GameObject gameObject = Instantiate(piecesPrefabs[(int)type], transform);
-        IPiece piece = gameObject.GetComponent<IPiece>();
         piecesObjects[piece] = gameObject;
         piece.Team = team;
         piece.Board = Pieces;
