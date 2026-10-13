@@ -50,7 +50,17 @@ public class ReplayController : MonoBehaviour
         view.RenameConfirmed += OnRenameConfirmed;
         board.MoveStartEvent += MoveStartHandler;
         board.MoveEndEvent += MoveEndHandler;
-        ShowCurrent();
+        if (HasReplayFile())
+            ShowCurrent();
+        else
+            view.SetPanelActive(false);
+        if (history != null)
+            history.Open();
+    }
+
+    private static bool HasReplayFile()
+    {
+        return !string.IsNullOrEmpty(Settings.ReplayFilePath) && File.Exists(Settings.ReplayFilePath);
     }
 
     public void ShowCurrent()
@@ -318,6 +328,7 @@ public class ReplayController : MonoBehaviour
 
     private void AcceptUserMove(ReplayMove move)
     {
+        if (moves == null) return;
         if (!onVariation)
         {
             if (mainIndex < moves.Count && SameMove(move, moves[mainIndex]))

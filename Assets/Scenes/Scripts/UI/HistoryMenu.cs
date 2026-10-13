@@ -228,6 +228,12 @@ public class HistoryMenu : MonoBehaviour
         return null;
     }
 
+    public static string NewestPath()
+    {
+        List<string> games = ListGames();
+        return games.Count == 0 ? null : games[0];
+    }
+
     private static List<string> ListGames()
     {
         string directory = GameRecorder.GamesDirectory;

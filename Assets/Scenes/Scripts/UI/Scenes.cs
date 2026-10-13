@@ -18,11 +18,12 @@ public class Scenes: MonoBehaviour
         GetComponent<AISetupMenu>().Open(GameMode.AI);
     }
 
-    public void ShowHistory()
+    public void OpenReplay()
     {
-        HistoryMenu menu = HistoryMenu.FindInScene();
-        if (menu != null)
-            menu.Open();
+        Settings.GameMode = GameMode.Replay;
+        Settings.ReplayFilePath = HistoryMenu.NewestPath();
+        Settings.ClearStartPosition();
+        SceneManager.LoadScene(1);
     }
 
     public void Exit()

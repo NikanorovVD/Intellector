@@ -11426,9 +11426,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1840377944}
-        m_TargetAssemblyTypeName: Scenes, GameAssembly
-        m_MethodName: ShowHistory
+      - m_Target: {fileID: 2101009001}
+        m_TargetAssemblyTypeName: HistoryMenu, GameAssembly
+        m_MethodName: Open
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

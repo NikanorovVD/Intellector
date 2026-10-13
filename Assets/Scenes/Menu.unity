@@ -1845,7 +1845,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1016511042}
         m_TargetAssemblyTypeName: Scenes, GameAssembly
-        m_MethodName: ShowHistory
+        m_MethodName: OpenReplay
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
