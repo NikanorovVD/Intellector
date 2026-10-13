@@ -8,7 +8,6 @@ public class ReplayController : MonoBehaviour
     [SerializeField] private Board board;
     [SerializeField] private PromotionHint promotionHint;
     [SerializeField] private ReplayView view;
-    [SerializeField] private GameObject historyButton;
 
     private HistoryMenu history;
 
@@ -34,8 +33,6 @@ public class ReplayController : MonoBehaviour
             return;
         }
 
-        if (historyButton != null)
-            historyButton.SetActive(true);
         history = HistoryMenu.FindInScene();
         if (history != null)
         {

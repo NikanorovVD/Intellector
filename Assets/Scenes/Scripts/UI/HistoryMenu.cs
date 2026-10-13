@@ -16,6 +16,8 @@ public class HistoryMenu : MonoBehaviour
     [SerializeField] private GameObject renamePanel;
     [SerializeField] private InputField renameInput;
     [SerializeField] private Text renameError;
+    [SerializeField] private GameObject drawer;
+    [SerializeField] private Text drawerLabel;
     [SerializeField] private bool markOpenReplay;
 
     private static readonly Color currentRowColor = new Color(0.62f, 0.46f, 0.14f, 1f);
@@ -24,6 +26,7 @@ public class HistoryMenu : MonoBehaviour
 
     private readonly List<GameObject> items = new();
     private string renamePath;
+    private bool listed;
 
     public bool IsOpen => panel != null && panel.activeSelf;
 
@@ -38,15 +41,34 @@ public class HistoryMenu : MonoBehaviour
 
     public void Open()
     {
+        if (drawer != null)
+            drawer.SetActive(true);
         panel.SetActive(true);
         renamePanel.SetActive(false);
-        Refresh();
+        SetDrawerArrow();
+        if (!listed)
+            Refresh();
     }
 
     public void Close()
     {
         renamePanel.SetActive(false);
         panel.SetActive(false);
+        SetDrawerArrow();
+    }
+
+    public void Toggle()
+    {
+        if (IsOpen)
+            Close();
+        else
+            Open();
+    }
+
+    private void SetDrawerArrow()
+    {
+        if (drawerLabel != null)
+            drawerLabel.text = IsOpen ? ">" : "<";
     }
 
     public void ConfirmRename()
@@ -101,12 +123,11 @@ public class HistoryMenu : MonoBehaviour
             }
             items.Add(item);
         }
+        listed = true;
     }
 
     public void RefreshListed()
     {
-        if (!IsOpen)
-            return;
         Refresh();
     }
 
