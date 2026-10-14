@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -18,20 +19,43 @@ public class HistoryMenu : MonoBehaviour
     [SerializeField] private Text renameError;
     [SerializeField] private GameObject drawer;
     [SerializeField] private Text drawerLabel;
+    [SerializeField] private InputField searchInput;
     [SerializeField] private bool markOpenReplay;
 
     private static readonly Color currentRowColor = new Color(0.62f, 0.46f, 0.14f, 1f);
     private static readonly Color renameIdleColor = new Color(0.25f, 0.25f, 0.25f, 1f);
     private static readonly Color renameCheckColor = new Color(0.18f, 0.42f, 0.24f, 1f);
 
+    private const string NoGamesLabel = "Нет партий";
+    private const string NoMatchesLabel = "Ничего не найдено";
+
     private readonly List<GameObject> items = new();
     private string renamePath;
+    private string shownQuery = string.Empty;
+    private Coroutine pendingScroll;
     private bool listed;
 
     public bool IsOpen => panel != null && panel.activeSelf;
 
     public event Action<string> OpenReplayRenamed;
     public event Action OpenReplayRemoved;
+
+    private void OnEnable()
+    {
+        if (searchInput != null)
+            searchInput.onValueChanged.AddListener(OnSearchChanged);
+    }
+
+    private void OnDisable()
+    {
+        if (searchInput != null)
+            searchInput.onValueChanged.RemoveListener(OnSearchChanged);
+        if (pendingScroll != null)
+        {
+            StopCoroutine(pendingScroll);
+            pendingScroll = null;
+        }
+    }
 
     public static HistoryMenu FindInScene()
     {
@@ -93,6 +117,12 @@ public class HistoryMenu : MonoBehaviour
         renamePanel.SetActive(false);
     }
 
+    private void OnSearchChanged(string _)
+    {
+        if (listed)
+            Refresh();
+    }
+
     private void Refresh()
     {
         foreach (GameObject item in items)
@@ -100,7 +130,10 @@ public class HistoryMenu : MonoBehaviour
         items.Clear();
 
         List<string> games = ListGames();
-        emptyLabel.SetActive(games.Count == 0);
+        bool folderEmpty = games.Count == 0;
+        string query = SearchQuery();
+        ApplySearch(games);
+        ShowEmpty(games.Count == 0, folderEmpty);
         foreach (string path in games)
         {
             GameObject item = Instantiate(itemPrefab);
@@ -124,6 +157,11 @@ public class HistoryMenu : MonoBehaviour
             items.Add(item);
         }
         listed = true;
+        if (!string.Equals(shownQuery, query, StringComparison.Ordinal))
+        {
+            shownQuery = query;
+            QueueScrollToTop();
+        }
     }
 
     public void RefreshListed()
@@ -220,7 +258,7 @@ public class HistoryMenu : MonoBehaviour
         bool current = IsOpenReplay(path);
         if (renamePath == path)
             renamePanel.SetActive(false);
-        // Следующая в списке, а если удалённая была последней — предыдущая.
+        // Следующая в видимом списке, а если удалённая была последней — предыдущая.
         string next = current ? NextReplay(path) : null;
         File.Delete(path);
         if (current && next != null)
@@ -236,9 +274,10 @@ public class HistoryMenu : MonoBehaviour
         Refresh();
     }
 
-    private static string NextReplay(string path)
+    private string NextReplay(string path)
     {
         List<string> games = ListGames();
+        ApplySearch(games);
         int index = games.FindIndex(game => SamePath(game, path));
         if (index < 0)
             return games.Count > 0 ? games[0] : null;
@@ -253,6 +292,60 @@ public class HistoryMenu : MonoBehaviour
     {
         List<string> games = ListGames();
         return games.Count == 0 ? null : games[0];
+    }
+
+    private void QueueScrollToTop()
+    {
+        if (!isActiveAndEnabled || content == null)
+            return;
+        if (pendingScroll != null)
+            StopCoroutine(pendingScroll);
+        pendingScroll = StartCoroutine(ScrollToTop());
+    }
+
+    private IEnumerator ScrollToTop()
+    {
+        yield return null;
+        pendingScroll = null;
+        if (content == null)
+            yield break;
+        ScrollRect scroll = content.GetComponentInParent<ScrollRect>();
+        if (scroll != null)
+            scroll.verticalNormalizedPosition = 1f;
+    }
+
+    private void ShowEmpty(bool show, bool folderEmpty)
+    {
+        if (emptyLabel == null)
+            return;
+        emptyLabel.SetActive(show);
+        if (!show)
+            return;
+        Text label = emptyLabel.GetComponent<Text>();
+        if (label == null)
+            return;
+        label.text = folderEmpty ? NoGamesLabel : NoMatchesLabel;
+    }
+
+    private void ApplySearch(List<string> games)
+    {
+        string query = SearchQuery();
+        if (query.Length == 0)
+            return;
+        games.RemoveAll(path => !NameMatches(path, query));
+    }
+
+    private string SearchQuery()
+    {
+        if (searchInput == null)
+            return string.Empty;
+        return (searchInput.text ?? string.Empty).Trim();
+    }
+
+    private static bool NameMatches(string path, string query)
+    {
+        return Path.GetFileNameWithoutExtension(path)
+            .IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     private static List<string> ListGames()
