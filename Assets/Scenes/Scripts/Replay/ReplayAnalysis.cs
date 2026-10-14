@@ -647,6 +647,8 @@ public class ReplayAnalysis
 
             publishPrevious = TryJudgeLocked(previousIndex, firstPly, out previous);
             publishNext = TryJudgeLocked(nextIndex, firstPly, out next);
+            if (publishPrevious || publishNext)
+                ComputeKnownAccuracyLocked(firstPly);
         }
 
         if (publishPrevious)
@@ -843,22 +845,33 @@ public class ReplayAnalysis
 
     private void ComputeMoveQualityLocked()
     {
+        ComputeKnownAccuracyLocked(preFirstPly);
+    }
+
+    private void ComputeKnownAccuracyLocked(int firstPly)
+    {
         moveQualities = null;
         whiteAccuracy = null;
         blackAccuracy = null;
-        if (mainCache == null || mainHas == null || mainCache.Length < 2)
+
+        int count = 0;
+        if (mainHas != null)
+            count = mainHas.Length;
+        if (liveHas != null && liveHas.Length > count)
+            count = liveHas.Length;
+        if (count < 2)
             return;
 
-        int moveCount = mainCache.Length - 1;
+        int moveCount = count - 1;
         var moves = new MoveQuality[moveCount];
         var white = new List<double>();
         var black = new List<double>();
         for (int i = 0; i < moveCount; i++)
         {
-            if (!mainHas[i] || !mainHas[i + 1])
+            if (!TryAnyMarkLocked(i, out double before) || !TryAnyMarkLocked(i + 1, out double after))
                 continue;
-            bool blackMoved = (preFirstPly + i) % 2 == 1;
-            MoveQuality quality = MoveAccuracy.FromMarks(mainCache[i].Mark, mainCache[i + 1].Mark, blackMoved);
+            bool blackMoved = (firstPly + i) % 2 == 1;
+            MoveQuality quality = MoveAccuracy.FromMarks(before, after, blackMoved);
             moves[i] = quality;
             if (blackMoved)
                 black.Add(quality.Accuracy);
@@ -872,6 +885,22 @@ public class ReplayAnalysis
         moveQualities = moves;
         whiteAccuracy = MoveAccuracy.GameAccuracy(white);
         blackAccuracy = MoveAccuracy.GameAccuracy(black);
+    }
+
+    private bool TryAnyMarkLocked(int ply, out double mark)
+    {
+        if (mainHas != null && ply >= 0 && ply < mainHas.Length && mainHas[ply])
+        {
+            mark = mainCache[ply].Mark;
+            return true;
+        }
+        if (liveHas != null && ply >= 0 && ply < liveHas.Length && liveHas[ply])
+        {
+            mark = liveMarks[ply];
+            return true;
+        }
+        mark = 0;
+        return false;
     }
 
     public static string FormatMark(double mark)

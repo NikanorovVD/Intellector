@@ -652,6 +652,8 @@ public class ReplayController : MonoBehaviour
         if (view == null)
             return;
         view.ApplyMoveQuality(moveIndex, quality);
+        if (analysis != null && analysis.TryGetMoveQuality(out GameMoveQuality game))
+            view.SetPlayerAccuracy(game.WhiteAccuracy, game.BlackAccuracy);
     }
 
     private void OnVariationJudged(int moveIndex, MoveQuality quality)

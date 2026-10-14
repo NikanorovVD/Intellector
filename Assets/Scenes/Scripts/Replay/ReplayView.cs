@@ -522,6 +522,12 @@ public class ReplayView : MonoBehaviour
         RebuildPanelLayout();
     }
 
+    public void SetPlayerAccuracy(double? white, double? black)
+    {
+        SetAccuracy(white, black);
+        RebuildPanelLayout();
+    }
+
     private void SetAccuracy(double? white, double? black)
     {
         engineHasAccuracy = white != null || black != null;
