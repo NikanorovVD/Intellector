@@ -44,6 +44,8 @@ public class ReplayController : MonoBehaviour
         view.EngineToggled += OnEngineToggled;
         view.CopyIfenClicked += OnCopyIfenClicked;
         view.PreAnalyzeClicked += OnPreAnalyzeClicked;
+        view.SaveAnalysisClicked += OnSaveAnalysisClicked;
+        view.ClearAnalysisClicked += OnClearAnalysisClicked;
         view.RenameConfirmed += OnRenameConfirmed;
         board.MoveStartEvent += MoveStartHandler;
         board.MoveEndEvent += MoveEndHandler;
@@ -93,14 +95,22 @@ public class ReplayController : MonoBehaviour
         view.SetFileName(Path.GetFileNameWithoutExtension(Settings.ReplayFilePath));
         view.SetEngineVisible(false);
         view.SetPreAnalyzeRunning(false);
-        view.RebuildList(moves, variation, variationFrom, firstPly, firstFullmove);
         analysis = new ReplayAnalysis();
         analysis.Updated += OnAnalysisUpdated;
         analysis.MoveJudged += OnMoveJudged;
         analysis.VariationJudged += OnVariationJudged;
         analysis.PreProgress += OnPreProgress;
         analysis.PreFinished += OnPreFinished;
+        analysis.SaveableChanged += OnSaveableChanged;
+        if (record.Analysis != null)
+            analysis.Restore(record.Analysis, firstPly);
+        UpdateAnalysisButtons();
+        RefreshMoveQualities();
         AfterStep(false);
+        if (analysis.TryGetMain(mainIndex, out MoveResult opened))
+            ShowResult(opened);
+        else if (analysis.TryGetMoveQuality(out _))
+            ShowAccuracyOnly();
     }
 
     private void DetachAnalysis()
@@ -112,6 +122,7 @@ public class ReplayController : MonoBehaviour
         analysis.VariationJudged -= OnVariationJudged;
         analysis.PreProgress -= OnPreProgress;
         analysis.PreFinished -= OnPreFinished;
+        analysis.SaveableChanged -= OnSaveableChanged;
         analysis.Stop();
         analysis = null;
     }
@@ -129,6 +140,8 @@ public class ReplayController : MonoBehaviour
             view.EngineToggled -= OnEngineToggled;
             view.CopyIfenClicked -= OnCopyIfenClicked;
             view.PreAnalyzeClicked -= OnPreAnalyzeClicked;
+            view.SaveAnalysisClicked -= OnSaveAnalysisClicked;
+            view.ClearAnalysisClicked -= OnClearAnalysisClicked;
             view.RenameConfirmed -= OnRenameConfirmed;
         }
         if (board != null)
@@ -404,6 +417,8 @@ public class ReplayController : MonoBehaviour
     private void OnHistoryRemoved()
     {
         view.ClearFileName();
+        view.SetSaveAnalysisEnabled(false);
+        view.SetClearAnalysisEnabled(false);
     }
 
     private int CurrentFullmoveNumber()
@@ -460,6 +475,7 @@ public class ReplayController : MonoBehaviour
         view.SetPreAnalyzeRunning(true);
         view.SetPreAnalyzeProgress(0, total);
         analysis.StartPreAnalyze(moves, ReplayExpander.CreateStartBoard(record), firstPly, depth);
+        UpdateAnalysisButtons();
         RefreshEngine();
     }
 
@@ -472,8 +488,59 @@ public class ReplayController : MonoBehaviour
     private void OnPreFinished()
     {
         view.SetPreAnalyzeRunning(false);
+        UpdateAnalysisButtons();
         RefreshMoveQualities();
         RefreshEngine();
+    }
+
+    private void OnSaveAnalysisClicked()
+    {
+        if (analysis == null || record == null || !HasReplayFile())
+            return;
+        if (!analysis.TryExport(ReplayExpander.CreateStartBoard(record), moves, out List<PositionAnalysis> positions))
+            return;
+        record.Analysis = positions;
+        File.WriteAllText(Settings.ReplayFilePath, IpgnFormatter.Format(record));
+        view.ShowAnalysisSaved();
+        UpdateAnalysisButtons();
+    }
+
+    private void OnClearAnalysisClicked()
+    {
+        if (analysis == null || record == null)
+            return;
+        if (record.Analysis == null && !analysis.CanSave)
+            return;
+
+        bool removeFromFile = record.Analysis != null && HasReplayFile();
+        bool wasRunning = analysis.IsPreAnalyzing;
+        analysis.Discard();
+        record.Analysis = null;
+        if (removeFromFile)
+            File.WriteAllText(Settings.ReplayFilePath, IpgnFormatter.Format(record));
+        if (wasRunning)
+            view.SetPreAnalyzeRunning(false);
+        RefreshMoveQualities();
+        UpdateAnalysisButtons();
+        if (analysis.Enabled)
+            RefreshEngine();
+        else
+        {
+            view.HideEngine();
+            ClearEngineBoard();
+        }
+        view.ShowAnalysisCleared();
+    }
+
+    private void OnSaveableChanged()
+    {
+        UpdateAnalysisButtons();
+    }
+
+    private void UpdateAnalysisButtons()
+    {
+        view.SetSaveAnalysisEnabled(analysis != null && analysis.CanSave);
+        view.SetClearAnalysisEnabled(analysis != null && (analysis.CanSave || record != null && record.Analysis != null));
     }
 
     private void RefreshMoveQualities()

@@ -18,6 +18,8 @@ public class ReplayView : MonoBehaviour
 
     private const int VariationIndent = 16;
     private const string CopyIfenDoneLabel = "Скопировано";
+    private const string SaveAnalysisDoneLabel = "Сохранено";
+    private const string ClearAnalysisDoneLabel = "Удалено";
     private const string PreAnalyzeCancelLabel = "Отмена";
     public const int DefaultPreAnalyzeDepth = 8;
 
@@ -44,6 +46,10 @@ public class ReplayView : MonoBehaviour
     [SerializeField] private InputField depthInput;
     [SerializeField] private GameObject preAnalyzeProgress;
     [SerializeField] private RectTransform preAnalyzeProgressFill;
+    [SerializeField] private Button saveAnalysisButton;
+    [SerializeField] private Text saveAnalysisButtonText;
+    [SerializeField] private Button clearAnalysisButton;
+    [SerializeField] private Text clearAnalysisButtonText;
     [SerializeField] private LayoutElement fileNameLayout;
     [SerializeField] private GameObject renameRow;
     [SerializeField] private InputField renameInput;
@@ -55,6 +61,8 @@ public class ReplayView : MonoBehaviour
     public event Action<int, bool> MoveClicked;
     public event Action CopyIfenClicked;
     public event Action PreAnalyzeClicked;
+    public event Action SaveAnalysisClicked;
+    public event Action ClearAnalysisClicked;
     public event Action<string> RenameConfirmed;
 
     private readonly List<ListCell> cells = new();
@@ -63,7 +71,11 @@ public class ReplayView : MonoBehaviour
     private bool engineUiVisible;
     private bool engineHasAccuracy;
     private Coroutine copyIfenFeedback;
+    private Coroutine saveAnalysisFeedback;
+    private Coroutine clearAnalysisFeedback;
     private string copyIfenIdleLabel;
+    private string saveAnalysisIdleLabel;
+    private string clearAnalysisIdleLabel;
     private string preAnalyzeIdleLabel;
     private string currentFileName;
     private bool fileMissing;
@@ -89,12 +101,20 @@ public class ReplayView : MonoBehaviour
             copyIfenIdleLabel = copyIfenText.text;
         if (preAnalyzeButtonText != null)
             preAnalyzeIdleLabel = preAnalyzeButtonText.text;
+        if (saveAnalysisButtonText != null)
+            saveAnalysisIdleLabel = saveAnalysisButtonText.text;
+        if (clearAnalysisButtonText != null)
+            clearAnalysisIdleLabel = clearAnalysisButtonText.text;
         if (engineToggle != null)
             engineToggle.onValueChanged.AddListener(OnEngineToggled);
         if (copyIfenButton != null)
             copyIfenButton.onClick.AddListener(OnCopyIfenClicked);
         if (preAnalyzeButton != null)
             preAnalyzeButton.onClick.AddListener(OnPreAnalyzeClicked);
+        if (saveAnalysisButton != null)
+            saveAnalysisButton.onClick.AddListener(OnSaveAnalysisClicked);
+        if (clearAnalysisButton != null)
+            clearAnalysisButton.onClick.AddListener(OnClearAnalysisClicked);
         if (depthInput != null)
         {
             depthInput.onEndEdit.AddListener(OnDepthEndEdit);
@@ -118,6 +138,10 @@ public class ReplayView : MonoBehaviour
             copyIfenButton.onClick.RemoveListener(OnCopyIfenClicked);
         if (preAnalyzeButton != null)
             preAnalyzeButton.onClick.RemoveListener(OnPreAnalyzeClicked);
+        if (saveAnalysisButton != null)
+            saveAnalysisButton.onClick.RemoveListener(OnSaveAnalysisClicked);
+        if (clearAnalysisButton != null)
+            clearAnalysisButton.onClick.RemoveListener(OnClearAnalysisClicked);
         if (depthInput != null)
             depthInput.onEndEdit.RemoveListener(OnDepthEndEdit);
         if (renameInput != null)
@@ -132,8 +156,22 @@ public class ReplayView : MonoBehaviour
             StopCoroutine(copyIfenFeedback);
             copyIfenFeedback = null;
         }
+        if (saveAnalysisFeedback != null)
+        {
+            StopCoroutine(saveAnalysisFeedback);
+            saveAnalysisFeedback = null;
+        }
+        if (clearAnalysisFeedback != null)
+        {
+            StopCoroutine(clearAnalysisFeedback);
+            clearAnalysisFeedback = null;
+        }
         if (copyIfenText != null)
             copyIfenText.text = copyIfenIdleLabel;
+        if (saveAnalysisButtonText != null)
+            saveAnalysisButtonText.text = saveAnalysisIdleLabel;
+        if (clearAnalysisButtonText != null)
+            clearAnalysisButtonText.text = clearAnalysisIdleLabel;
         if (preAnalyzeButtonText != null)
             preAnalyzeButtonText.text = preAnalyzeIdleLabel;
         CloseRename();
@@ -208,6 +246,24 @@ public class ReplayView : MonoBehaviour
         if (copyIfenFeedback != null)
             StopCoroutine(copyIfenFeedback);
         copyIfenFeedback = StartCoroutine(CopyIfenFeedback());
+    }
+
+    public void ShowAnalysisSaved()
+    {
+        if (saveAnalysisButtonText == null)
+            return;
+        if (saveAnalysisFeedback != null)
+            StopCoroutine(saveAnalysisFeedback);
+        saveAnalysisFeedback = StartCoroutine(SaveAnalysisFeedback());
+    }
+
+    public void ShowAnalysisCleared()
+    {
+        if (clearAnalysisButtonText == null)
+            return;
+        if (clearAnalysisFeedback != null)
+            StopCoroutine(clearAnalysisFeedback);
+        clearAnalysisFeedback = StartCoroutine(ClearAnalysisFeedback());
     }
 
     public void SetMeta(GameRecord record)
@@ -357,6 +413,18 @@ public class ReplayView : MonoBehaviour
         if (depthInput == null || !int.TryParse(depthInput.text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth))
             return DefaultPreAnalyzeDepth;
         return Mathf.Max(1, depth);
+    }
+
+    public void SetSaveAnalysisEnabled(bool on)
+    {
+        if (saveAnalysisButton != null)
+            saveAnalysisButton.interactable = on;
+    }
+
+    public void SetClearAnalysisEnabled(bool on)
+    {
+        if (clearAnalysisButton != null)
+            clearAnalysisButton.interactable = on;
     }
 
     public void SetPreAnalyzeRunning(bool running)
@@ -694,6 +762,16 @@ public class ReplayView : MonoBehaviour
         PreAnalyzeClicked?.Invoke();
     }
 
+    private void OnSaveAnalysisClicked()
+    {
+        SaveAnalysisClicked?.Invoke();
+    }
+
+    private void OnClearAnalysisClicked()
+    {
+        ClearAnalysisClicked?.Invoke();
+    }
+
     private void OnRenameEdited(string _)
     {
         SetRenameError(string.Empty);
@@ -726,6 +804,22 @@ public class ReplayView : MonoBehaviour
         yield return new WaitForSeconds(1.2f);
         copyIfenText.text = copyIfenIdleLabel;
         copyIfenFeedback = null;
+    }
+
+    private IEnumerator SaveAnalysisFeedback()
+    {
+        saveAnalysisButtonText.text = SaveAnalysisDoneLabel;
+        yield return new WaitForSeconds(1.2f);
+        saveAnalysisButtonText.text = saveAnalysisIdleLabel;
+        saveAnalysisFeedback = null;
+    }
+
+    private IEnumerator ClearAnalysisFeedback()
+    {
+        clearAnalysisButtonText.text = ClearAnalysisDoneLabel;
+        yield return new WaitForSeconds(1.2f);
+        clearAnalysisButtonText.text = clearAnalysisIdleLabel;
+        clearAnalysisFeedback = null;
     }
 
     private void BindCell(Transform cell, string notation, bool isVariation, int ply)

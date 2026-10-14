@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 public static class IpgnParser
@@ -16,6 +17,7 @@ public static class IpgnParser
 
         var record = new GameRecord();
         bool inMovetext = false;
+        string analysisText = null;
 
         foreach (string rawLine in text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
         {
@@ -28,7 +30,7 @@ public static class IpgnParser
 
             if (!inMovetext && line[0] == '[')
             {
-                ApplyTag(record, line);
+                ApplyTag(record, line, ref analysisText);
                 continue;
             }
 
@@ -45,10 +47,11 @@ public static class IpgnParser
         else if (!string.IsNullOrEmpty(record.SetUp) && record.SetUp != "0")
             throw new FormatException($"Некорректное значение SetUp: {record.SetUp}");
 
+        record.Analysis = ParseAnalysis(analysisText, record.Moves.Count + 1);
         return record;
     }
 
-    private static void ApplyTag(GameRecord record, string line)
+    private static void ApplyTag(GameRecord record, string line, ref string analysisText)
     {
         Match match = tagRegex.Match(line);
         if (!match.Success)
@@ -71,7 +74,75 @@ public static class IpgnParser
             case "Termination": record.Termination = value; break;
             case "SetUp": record.SetUp = value; break;
             case "IFEN": record.Ifen = value; break;
+            case "Analysis": analysisText = value; break;
         }
+    }
+
+    private static List<PositionAnalysis> ParseAnalysis(string value, int positionCount)
+    {
+        if (string.IsNullOrWhiteSpace(value) || positionCount <= 0)
+            return null;
+
+        string[] tokens = value.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length != positionCount + 1)
+            return null;
+        if (tokens[0] != IpgnFormatter.AnalysisVersion.ToString(CultureInfo.InvariantCulture))
+            return null;
+
+        var positions = new List<PositionAnalysis>(positionCount);
+        bool any = false;
+        for (int i = 1; i < tokens.Length; i++)
+        {
+            if (tokens[i] == "-")
+            {
+                positions.Add(new PositionAnalysis());
+                continue;
+            }
+            PositionAnalysis position = ParseAnalysisPosition(tokens[i]);
+            if (position == null)
+                return null;
+            any = true;
+            positions.Add(position);
+        }
+        return any ? positions : null;
+    }
+
+    private static PositionAnalysis ParseAnalysisPosition(string token)
+    {
+        string[] parts = token.Split('/');
+        if (parts.Length != 2 && parts.Length != 3)
+            return null;
+        if (!double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double mark))
+            return null;
+        if (double.IsNaN(mark) || double.IsInfinity(mark))
+            return null;
+        if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth) || depth < 0)
+            return null;
+
+        RecordedMove best = null;
+        if (parts.Length == 3)
+        {
+            try
+            {
+                best = ParseMove(parts[2]);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return null;
+            }
+        }
+
+        return new PositionAnalysis
+        {
+            Mark = mark,
+            Depth = depth,
+            BestMove = best,
+            Known = true
+        };
     }
 
     private static void ParseMovetextLine(GameRecord record, string line)

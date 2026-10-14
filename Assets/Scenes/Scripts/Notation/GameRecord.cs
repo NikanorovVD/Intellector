@@ -18,6 +18,15 @@ public class GameRecord
     public string SetUp;
     public string Ifen;
     public List<RecordedMove> Moves = new();
+    public List<PositionAnalysis> Analysis;
 
     public bool IsFinished => Result != UnfinishedResult;
+}
+
+public class PositionAnalysis
+{
+    public double Mark;
+    public int Depth;
+    public RecordedMove BestMove;
+    public bool Known;
 }

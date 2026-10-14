@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
@@ -6,6 +7,8 @@ using UnityEngine;
 
 public static class IpgnFormatter
 {
+    public const int AnalysisVersion = 1;
+
     public static string Format(GameRecord record)
     {
         var builder = new StringBuilder(FormatHeader(record));
@@ -36,9 +39,50 @@ public static class IpgnFormatter
         }
         if (!string.IsNullOrEmpty(record.Termination))
             AppendTag(builder, "Termination", record.Termination);
+        if (TryFormatAnalysis(record.Analysis, out string analysis))
+            AppendTag(builder, "Analysis", analysis);
 
         builder.AppendLine();
         return builder.ToString();
+    }
+
+    private static bool TryFormatAnalysis(List<PositionAnalysis> positions, out string value)
+    {
+        value = null;
+        if (positions == null || positions.Count == 0)
+            return false;
+
+        var builder = new StringBuilder();
+        builder.Append(AnalysisVersion.ToString(CultureInfo.InvariantCulture));
+        bool any = false;
+        for (int i = 0; i < positions.Count; i++)
+        {
+            PositionAnalysis position = positions[i];
+            if (position == null)
+                return false;
+            builder.Append(' ');
+            if (!position.Known)
+            {
+                builder.Append('-');
+                continue;
+            }
+            if (double.IsNaN(position.Mark) || double.IsInfinity(position.Mark) || position.Depth < 0)
+                return false;
+            any = true;
+            builder.Append(position.Mark.ToString("R", CultureInfo.InvariantCulture));
+            builder.Append('/');
+            builder.Append(position.Depth.ToString(CultureInfo.InvariantCulture));
+            if (position.BestMove != null)
+            {
+                builder.Append('/');
+                builder.Append(FormatMove(position.BestMove));
+            }
+        }
+        if (!any)
+            return false;
+
+        value = builder.ToString();
+        return true;
     }
 
     public static string FormatMovetextEntry(RecordedMove move, int index)

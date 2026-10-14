@@ -12,6 +12,7 @@ public class ReplayAnalysis
     public event Action<int, MoveQuality> VariationJudged;
     public event Action<int, int> PreProgress;
     public event Action PreFinished;
+    public event Action SaveableChanged;
 
     private const double SearchMs = 3_600_000;
 
@@ -34,6 +35,7 @@ public class ReplayAnalysis
     private double[] liveMarks;
     private int[] liveDepth;
     private bool[] liveHas;
+    private MoveResult[] liveCache;
     private int varFrom = -1;
     private double[] varMarks;
     private int[] varDepth;
@@ -43,6 +45,20 @@ public class ReplayAnalysis
     public bool IsPreAnalyzing
     {
         get { lock (preLock) return preAnalyzing; }
+    }
+
+    public bool HasCompleteMainLine
+    {
+        get { lock (preLock) return mainLineComplete && !preAnalyzing; }
+    }
+
+    public bool CanSave
+    {
+        get
+        {
+            lock (preLock)
+                return !preAnalyzing && (HasAnyLocked(mainHas) || HasAnyLocked(liveHas));
+        }
     }
 
     public void SetEnabled(bool on)
@@ -84,6 +100,131 @@ public class ReplayAnalysis
         }
         quality = default;
         return false;
+    }
+
+    public bool TryExport(NotationBoard start, IReadOnlyList<ReplayMove> moves, out List<PositionAnalysis> positions)
+    {
+        positions = null;
+        MoveResult[] copy;
+        bool[] has;
+        lock (preLock)
+        {
+            if (preAnalyzing || start == null || moves == null)
+                return false;
+            int count = moves.Count + 1;
+            copy = new MoveResult[count];
+            has = new bool[count];
+            bool any = false;
+            for (int i = 0; i < count; i++)
+            {
+                if (TryStoredResultLocked(i, out MoveResult stored))
+                {
+                    copy[i] = stored;
+                    has[i] = true;
+                    any = true;
+                }
+            }
+            if (!any)
+                return false;
+        }
+
+        positions = new List<PositionAnalysis>(copy.Length);
+        for (int ply = 0; ply < copy.Length; ply++)
+        {
+            RecordedMove best = null;
+            if (has[ply] && copy[ply].Move.HasValue)
+                best = ToRecordedMove(copy[ply].Move.Value, start);
+            positions.Add(new PositionAnalysis
+            {
+                Mark = has[ply] ? copy[ply].Mark : 0,
+                Depth = has[ply] ? copy[ply].Depth : 0,
+                BestMove = best,
+                Known = has[ply]
+            });
+            if (ply < moves.Count)
+                start.Apply(moves[ply]);
+        }
+        return true;
+    }
+
+    private bool TryStoredResultLocked(int ply, out MoveResult result)
+    {
+        if (mainHas != null && ply >= 0 && ply < mainHas.Length && mainHas[ply] && IsFiniteMark(mainCache[ply].Mark))
+        {
+            result = mainCache[ply];
+            return true;
+        }
+        if (liveHas != null && ply >= 0 && ply < liveHas.Length && liveHas[ply] && IsFiniteMark(liveCache[ply].Mark))
+        {
+            result = liveCache[ply];
+            return true;
+        }
+        result = default;
+        return false;
+    }
+
+    private static bool HasAnyLocked(bool[] has)
+    {
+        if (has == null)
+            return false;
+        for (int i = 0; i < has.Length; i++)
+        {
+            if (has[i])
+                return true;
+        }
+        return false;
+    }
+
+    private static bool IsFiniteMark(double mark)
+    {
+        return !double.IsNaN(mark) && !double.IsInfinity(mark);
+    }
+
+    public bool Restore(IReadOnlyList<PositionAnalysis> positions, int firstPly)
+    {
+        if (positions == null || positions.Count == 0)
+            return false;
+
+        var cache = new MoveResult[positions.Count];
+        var has = new bool[positions.Count];
+        bool any = false;
+        bool all = true;
+        for (int ply = 0; ply < positions.Count; ply++)
+        {
+            PositionAnalysis position = positions[ply];
+            if (position == null || !position.Known)
+            {
+                all = false;
+                continue;
+            }
+            if (double.IsNaN(position.Mark) || double.IsInfinity(position.Mark) || position.Depth < 0)
+                return false;
+            EngineMove? engineMove = null;
+            if (position.BestMove != null)
+                engineMove = ToEngineMove(position.BestMove, (firstPly + ply) % 2 == 1);
+            cache[ply] = new MoveResult
+            {
+                Mark = position.Mark,
+                Depth = position.Depth,
+                Move = engineMove
+            };
+            has[ply] = true;
+            any = true;
+        }
+        if (!any)
+            return false;
+
+        lock (preLock)
+        {
+            if (preAnalyzing)
+                return false;
+            preFirstPly = firstPly;
+            mainCache = cache;
+            mainHas = has;
+            mainLineComplete = all;
+            ComputeMoveQualityLocked();
+        }
+        return true;
     }
 
     public void Analyze(Board board, int ply, int positionCount, int firstPly, NotationBoard previous)
@@ -253,6 +394,22 @@ public class ReplayAnalysis
         }
         if (notify)
             PreFinished?.Invoke();
+    }
+
+    public void Discard()
+    {
+        StopLive();
+        lock (preLock)
+        {
+            preGeneration++;
+            preRunning?.RequestStop();
+            preRunning = null;
+            preAnalyzing = false;
+            mainLineComplete = false;
+            mainCache = null;
+            mainHas = null;
+            ClearMoveQualityLocked();
+        }
     }
 
     public void StopLive()
@@ -484,6 +641,7 @@ public class ReplayAnalysis
             liveMarks[ply] = result.Mark;
             liveDepth[ply] = depth;
             liveHas[ply] = true;
+            liveCache[ply] = result;
             if (!changed)
                 return;
 
@@ -495,6 +653,7 @@ public class ReplayAnalysis
             MoveJudged?.Invoke(previousIndex, previous);
         if (publishNext)
             MoveJudged?.Invoke(nextIndex, next);
+        SaveableChanged?.Invoke();
     }
 
     private bool TryJudgeLocked(int moveIndex, int firstPly, out MoveQuality quality)
@@ -671,6 +830,7 @@ public class ReplayAnalysis
         liveMarks = new double[positionCount];
         liveDepth = new int[positionCount];
         liveHas = new bool[positionCount];
+        liveCache = new MoveResult[positionCount];
     }
 
     private void ClearLiveLocked()
@@ -678,32 +838,40 @@ public class ReplayAnalysis
         liveMarks = null;
         liveDepth = null;
         liveHas = null;
+        liveCache = null;
     }
 
     private void ComputeMoveQualityLocked()
     {
+        moveQualities = null;
+        whiteAccuracy = null;
+        blackAccuracy = null;
         if (mainCache == null || mainHas == null || mainCache.Length < 2)
-        {
-            ClearMoveQualityLocked();
             return;
-        }
 
         int moveCount = mainCache.Length - 1;
-        var marks = new double[moveCount + 1];
-        for (int ply = 0; ply <= moveCount; ply++)
+        var moves = new MoveQuality[moveCount];
+        var white = new List<double>();
+        var black = new List<double>();
+        for (int i = 0; i < moveCount; i++)
         {
-            if (!mainHas[ply])
-            {
-                ClearMoveQualityLocked();
-                return;
-            }
-            marks[ply] = mainCache[ply].Mark;
+            if (!mainHas[i] || !mainHas[i + 1])
+                continue;
+            bool blackMoved = (preFirstPly + i) % 2 == 1;
+            MoveQuality quality = MoveAccuracy.FromMarks(mainCache[i].Mark, mainCache[i + 1].Mark, blackMoved);
+            moves[i] = quality;
+            if (blackMoved)
+                black.Add(quality.Accuracy);
+            else
+                white.Add(quality.Accuracy);
         }
 
-        GameMoveQuality quality = MoveAccuracy.FromPositionMarks(marks, preFirstPly);
-        moveQualities = quality.Moves;
-        whiteAccuracy = quality.WhiteAccuracy;
-        blackAccuracy = quality.BlackAccuracy;
+        if (white.Count == 0 && black.Count == 0)
+            return;
+
+        moveQualities = moves;
+        whiteAccuracy = MoveAccuracy.GameAccuracy(white);
+        blackAccuracy = MoveAccuracy.GameAccuracy(black);
     }
 
     public static string FormatMark(double mark)
@@ -768,6 +936,38 @@ public class ReplayAnalysis
             Castling = target != null && target.Team == moving.Team,
             Transformation = resulting != moving.Type ? resulting : null
         };
+    }
+
+    private static RecordedMove ToRecordedMove(EngineMove move, NotationBoard board)
+    {
+        var (fromX, fromY) = EngineUtils.EngineIndexToUnity(move.From);
+        var (toX, toY) = EngineUtils.EngineIndexToUnity(move.To);
+        var from = new Vector2Int(fromX, fromY);
+        var to = new Vector2Int(toX, toY);
+        TileState? moving = board.Get(from);
+        if (moving == null)
+            return null;
+        TileState? target = board.Get(to);
+        PieceType resulting = ToPieceType(move.Figure);
+        return new RecordedMove
+        {
+            Piece = moving.Type,
+            From = from,
+            To = to,
+            Capture = target != null && target.Team != moving.Team,
+            Castling = target != null && target.Team == moving.Team,
+            Transformation = resulting != moving.Type ? resulting : null
+        };
+    }
+
+    private static EngineMove ToEngineMove(RecordedMove move, bool blackToMove)
+    {
+        PieceType resulting = move.Transformation ?? move.Piece;
+        EngineFigure figure = BoardToEngine.ToEngineFigure(new TileState { Type = resulting, Team = blackToMove });
+        return new EngineMove(
+            EngineUtils.GetEngineIndex(move.From.x, move.From.y),
+            EngineUtils.GetEngineIndex(move.To.x, move.To.y),
+            figure);
     }
 
     private static PieceType ToPieceType(EngineFigure figure)
