@@ -107,10 +107,7 @@ public class ReplayController : MonoBehaviour
         UpdateAnalysisButtons();
         RefreshMoveQualities();
         AfterStep(false);
-        if (analysis.TryGetMain(mainIndex, out MoveResult opened))
-            ShowResult(opened);
-        else if (analysis.TryGetMoveQuality(out _))
-            ShowAccuracyOnly();
+        view.SyncEngineToggle();
     }
 
     private void DetachAnalysis()

@@ -408,6 +408,11 @@ public class ReplayView : MonoBehaviour
             OnEngineToggled(on);
     }
 
+    public void SyncEngineToggle()
+    {
+        OnEngineToggled(engineToggle != null && engineToggle.isOn);
+    }
+
     public int GetDepth()
     {
         if (depthInput == null || !int.TryParse(depthInput.text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth))
