@@ -83,6 +83,21 @@ public class Settings
         }
     }
 
+    public static HdriMap Hdri
+    {
+        get
+        {
+            userConfig ??= UserConfig.Load();
+            return userConfig.Hdri;
+        }
+        set
+        {
+            userConfig ??= UserConfig.Load();
+            userConfig.Hdri = value;
+            userConfig.Save();
+        }
+    }
+
     public static bool AutoRotateCameraInLocalGame
     {
         get

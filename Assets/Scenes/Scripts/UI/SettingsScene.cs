@@ -12,6 +12,7 @@ public class SettingsScene : MonoBehaviour
     private Text errorText;
     private Text materialName;
     private Text autoRotateCameraText;
+    private Text hdriName;
 
     private void Awake()
     {
@@ -19,6 +20,7 @@ public class SettingsScene : MonoBehaviour
         errorText = uiContainer.transform.Find("Content/NameInput/ErrorMessage").GetComponent<Text>();
         materialName = uiContainer.transform.Find("Content/MaterialChoose/CurrentMaterialName").GetComponent<Text>();
         autoRotateCameraText = uiContainer.transform.Find("Content/AutorotateChoose/CurrentAutorotate").GetComponent<Text>();
+        hdriName = uiContainer.transform.Find("Content/HdriChoose/CurrentHdriName").GetComponent<Text>();
     }
 
     private void Start()
@@ -31,6 +33,7 @@ public class SettingsScene : MonoBehaviour
         nameInput.text = Settings.UserName;
         materialName.text = MaterialSelector.MaterialName(Settings.PieceMaterials);
         autoRotateCameraText.text = Settings.AutoRotateCameraInLocalGame ? "Да" : "Нет";
+        hdriName.text = HdriSelector.DisplayName(Settings.Hdri);
     }
 
     public void InputChanged() => CheckName();
@@ -71,6 +74,16 @@ public class SettingsScene : MonoBehaviour
     public void Exit()
     {
         SceneManager.LoadScene(0);
+    }
+
+    public void SwitchHdri(int direction)
+    {
+        int count = Enum.GetNames(typeof(HdriMap)).Length;
+        int next = ((int)Settings.Hdri + direction) % count;
+        if (next < 0)
+            next += count;
+        Settings.Hdri = (HdriMap)next;
+        hdriName.text = HdriSelector.DisplayName(Settings.Hdri);
     }
 
     public void SwitchCameraAutoRotation()

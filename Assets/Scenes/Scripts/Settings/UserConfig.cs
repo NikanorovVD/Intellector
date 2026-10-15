@@ -5,6 +5,7 @@ public class UserConfig
     public string UserName { get; set; }
     public PieceMaterials Material { get; set; }
     public bool AutoRotateCameraInLocalGame { get; set; }
+    public HdriMap Hdri { get; set; }
     public AISettings AI { get; set; }
 
     public void Save()
@@ -12,6 +13,7 @@ public class UserConfig
         PlayerPrefs.SetString(nameof(UserName), UserName);
         PlayerPrefs.SetInt(nameof(Material), (int)Material);
         PlayerPrefs.SetInt(nameof(AutoRotateCameraInLocalGame), AutoRotateCameraInLocalGame ? 1 : 0);
+        PlayerPrefs.SetInt(nameof(Hdri), (int)Hdri);
         PlayerPrefs.SetInt(nameof(AISearchMode), (int)AI.Mode);
         PlayerPrefs.SetInt("AIDepth", AI.Depth);
         PlayerPrefs.SetInt("AISearchTimeMs", AI.SearchTimeMs);
@@ -26,6 +28,7 @@ public class UserConfig
             UserName = PlayerPrefs.GetString(nameof(UserName), defaultValue: string.Empty),
             Material = (PieceMaterials)PlayerPrefs.GetInt(nameof(Material), defaultValue: 0),
             AutoRotateCameraInLocalGame = PlayerPrefs.GetInt(nameof(AutoRotateCameraInLocalGame), defaultValue: 1) == 1 ? true : false,
+            Hdri = (HdriMap)PlayerPrefs.GetInt(nameof(Hdri), defaultValue: (int)HdriMap.Cinema),
             AI = new AISettings
             {
                 Mode = (AISearchMode)PlayerPrefs.GetInt(nameof(AISearchMode), defaultValue: (int)AISearchMode.Depth),
