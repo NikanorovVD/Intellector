@@ -51,8 +51,24 @@ public static class LogWriter
 #endif
     }
 
+    private static string Normalize(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return message;
+
+        // Стек исключения в Unity содержит нулевые символы и лишний перевод строки перед кадрами
+        message = message.Replace("\0", string.Empty);
+        message = message.Replace("\r\n", "\n").Replace("\r", "\n");
+        while (message.Contains("\n\n"))
+            message = message.Replace("\n\n", "\n");
+
+        return message.Replace("\n", Environment.NewLine);
+    }
+
     private static void Append(LogLevel level, string message)
     {
+        message = Normalize(message);
+
         DateTime now = DateTime.Now;
         string line = $"{now:yyyy-MM-dd HH:mm:ss} [{level}] {message}";
         string path = Path.Combine(LogDirectory, $"{now:yyyy-MM-dd}.log");
