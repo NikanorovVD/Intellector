@@ -172,9 +172,7 @@ public class PositionSetupView : MonoBehaviour
                     previewPieces[j].SetActive(false);
 
             piece.transform.position = new Vector3(0f, -200f, 0f);
-            piece.transform.rotation = (PieceType)i == PieceType.Agressor && black
-                ? Quaternion.Euler(0f, 90f, 0f)
-                : Quaternion.identity;
+            piece.transform.rotation = Quaternion.identity;
 
             Renderer[] renderers = piece.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0)

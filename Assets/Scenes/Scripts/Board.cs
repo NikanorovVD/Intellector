@@ -205,11 +205,7 @@ public class Board : MonoBehaviour
         piece.Y = y;
 
         gameObject.transform.position = TransformCoordinates(x, y);
-        if ((type == PieceType.Agressor) && (team == true))
-        {
-            // FIXME: можно нормально повернутый префаб агрессора, пожалуйста?
-            gameObject.transform.rotation = Quaternion.Euler(0, 90, 0);
-        }
+        gameObject.transform.rotation = Quaternion.Euler(0, team ? 90 : -90, 0);
         ApplyPieceMaterial(gameObject, team);
         return piece;
     }

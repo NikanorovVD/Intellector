@@ -23,8 +23,7 @@ public class PromotionHint : MonoBehaviour
             ghost = Instantiate(piecesPrefabs[(int)type], board.transform);
             ghostType = type;
             ghostTeam = team;
-            if (type == PieceType.Agressor && team)
-                ghost.transform.rotation = Quaternion.Euler(0, 90, 0);
+            ghost.transform.rotation = Quaternion.Euler(0, team ? 90 : -90, 0);
             Collider[] colliders = ghost.GetComponentsInChildren<Collider>();
             for (int i = 0; i < colliders.Length; i++)
                 colliders[i].enabled = false;
