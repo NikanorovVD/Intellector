@@ -96,30 +96,30 @@ public class Board : MonoBehaviour
             for (int j = 0; j < Tiles[i].Length; j++)
             {
                 Vector2Int coor = new Vector2Int(i, j);
-                string layer;
+                TileLayer layer;
                 if (coor == currentSelect)
                 {
-                    if (coor == currentHover) layer = "HoverSelected";
-                    else layer = "SelectedTile";
+                    if (coor == currentHover) layer = TileLayer.HoverSelected;
+                    else layer = TileLayer.SelectedTile;
                 }
                 else if (availableMoves != null && availableMoves.Contains(coor))
                 {
-                    if (coor == currentHover) layer = "HoverAvailable";
-                    else layer = "Available";
+                    if (coor == currentHover) layer = TileLayer.HoverAvailable;
+                    else layer = TileLayer.Available;
                 }
                 else if (coor == hintMove1 || coor == hintMove2)
                 {
-                    if (coor == currentHover) layer = "HoverHint";
-                    else layer = "Hint";
+                    if (coor == currentHover) layer = TileLayer.HoverHint;
+                    else layer = TileLayer.Hint;
                 }
                 else if (coor == currentHover)
-                    layer = "HoverTile";
+                    layer = TileLayer.HoverTile;
                 else if (coor == lastMove1 || coor == lastMove2)
-                    layer = "SelectedTile";
+                    layer = TileLayer.SelectedTile;
                 else
-                    layer = "Tile";
+                    layer = TileLayer.Tile;
 
-                Tiles[coor.x][coor.y].layer = LayerMask.NameToLayer(layer);
+                Tiles[coor.x][coor.y].layer = TileLayers.Index(layer);
             }
     }
     public Vector3 TransformCoordinates(int x, int y)

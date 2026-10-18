@@ -9,11 +9,6 @@ public class PositionSetup : MonoBehaviour
     [SerializeField] private Board board;
     [SerializeField] private PositionSetupView view;
 
-    private static readonly string[] layersNames =
-    {
-        "Tile", "HoverTile", "SelectedTile", "Available", "HoverAvailable", "HoverSelected", "Hint", "HoverHint"
-    };
-
     private PieceType selectedType = PieceType.Progressor;
     private bool selectedBlack;
     private bool erase;
@@ -135,7 +130,7 @@ public class PositionSetup : MonoBehaviour
         if (camera == null) return;
 
         Ray ray = camera.ScreenPointToRay(Input.mousePosition);
-        bool hit = Physics.Raycast(ray, out RaycastHit info, 500, LayerMask.GetMask(layersNames));
+        bool hit = Physics.Raycast(ray, out RaycastHit info, 500, TileLayers.Mask);
         if (hit)
             board.HoverTile(board.LookUpTileIndex(info.transform.gameObject));
         else
