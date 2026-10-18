@@ -6,6 +6,7 @@ using UnityEngine;
 public class GameRecorder : MonoBehaviour
 {
     public const int NoTransformInfo = 200;
+    public const string AnalysisEvent = "Analysis";
 
     [SerializeField] private Board board;
 
@@ -152,8 +153,18 @@ public class GameRecorder : MonoBehaviour
 
     private static string CreateFilePath(GameMode mode)
     {
+        return CreateFilePath(mode.ToString());
+    }
+
+    public static string CreateAnalysisFilePath()
+    {
+        return CreateFilePath(AnalysisEvent);
+    }
+
+    private static string CreateFilePath(string name)
+    {
         Directory.CreateDirectory(GamesDirectory);
-        return Path.Combine(GamesDirectory, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{mode}.ipgn");
+        return Path.Combine(GamesDirectory, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{name}.ipgn");
     }
 
     public static string GamesDirectory => Path.Combine(Application.persistentDataPath, "Games");

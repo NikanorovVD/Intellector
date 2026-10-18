@@ -48,6 +48,8 @@ public class ReplayView : MonoBehaviour
     [SerializeField] private RectTransform preAnalyzeProgressFill;
     [SerializeField] private Button saveAnalysisButton;
     [SerializeField] private Text saveAnalysisButtonText;
+    [SerializeField] private Button saveVariationButton;
+    [SerializeField] private Text saveVariationButtonText;
     [SerializeField] private Button clearAnalysisButton;
     [SerializeField] private Text clearAnalysisButtonText;
     [SerializeField] private LayoutElement fileNameLayout;
@@ -62,6 +64,7 @@ public class ReplayView : MonoBehaviour
     public event Action CopyIfenClicked;
     public event Action PreAnalyzeClicked;
     public event Action SaveAnalysisClicked;
+    public event Action SaveVariationClicked;
     public event Action ClearAnalysisClicked;
     public event Action<string> RenameConfirmed;
 
@@ -72,9 +75,11 @@ public class ReplayView : MonoBehaviour
     private bool engineHasAccuracy;
     private Coroutine copyIfenFeedback;
     private Coroutine saveAnalysisFeedback;
+    private Coroutine saveVariationFeedback;
     private Coroutine clearAnalysisFeedback;
     private string copyIfenIdleLabel;
     private string saveAnalysisIdleLabel;
+    private string saveVariationIdleLabel;
     private string clearAnalysisIdleLabel;
     private string preAnalyzeIdleLabel;
     private string currentFileName;
@@ -103,6 +108,8 @@ public class ReplayView : MonoBehaviour
             preAnalyzeIdleLabel = preAnalyzeButtonText.text;
         if (saveAnalysisButtonText != null)
             saveAnalysisIdleLabel = saveAnalysisButtonText.text;
+        if (saveVariationButtonText != null)
+            saveVariationIdleLabel = saveVariationButtonText.text;
         if (clearAnalysisButtonText != null)
             clearAnalysisIdleLabel = clearAnalysisButtonText.text;
         if (engineToggle != null)
@@ -113,6 +120,8 @@ public class ReplayView : MonoBehaviour
             preAnalyzeButton.onClick.AddListener(OnPreAnalyzeClicked);
         if (saveAnalysisButton != null)
             saveAnalysisButton.onClick.AddListener(OnSaveAnalysisClicked);
+        if (saveVariationButton != null)
+            saveVariationButton.onClick.AddListener(OnSaveVariationClicked);
         if (clearAnalysisButton != null)
             clearAnalysisButton.onClick.AddListener(OnClearAnalysisClicked);
         if (depthInput != null)
@@ -140,6 +149,8 @@ public class ReplayView : MonoBehaviour
             preAnalyzeButton.onClick.RemoveListener(OnPreAnalyzeClicked);
         if (saveAnalysisButton != null)
             saveAnalysisButton.onClick.RemoveListener(OnSaveAnalysisClicked);
+        if (saveVariationButton != null)
+            saveVariationButton.onClick.RemoveListener(OnSaveVariationClicked);
         if (clearAnalysisButton != null)
             clearAnalysisButton.onClick.RemoveListener(OnClearAnalysisClicked);
         if (depthInput != null)
@@ -161,6 +172,11 @@ public class ReplayView : MonoBehaviour
             StopCoroutine(saveAnalysisFeedback);
             saveAnalysisFeedback = null;
         }
+        if (saveVariationFeedback != null)
+        {
+            StopCoroutine(saveVariationFeedback);
+            saveVariationFeedback = null;
+        }
         if (clearAnalysisFeedback != null)
         {
             StopCoroutine(clearAnalysisFeedback);
@@ -170,6 +186,8 @@ public class ReplayView : MonoBehaviour
             copyIfenText.text = copyIfenIdleLabel;
         if (saveAnalysisButtonText != null)
             saveAnalysisButtonText.text = saveAnalysisIdleLabel;
+        if (saveVariationButtonText != null)
+            saveVariationButtonText.text = saveVariationIdleLabel;
         if (clearAnalysisButtonText != null)
             clearAnalysisButtonText.text = clearAnalysisIdleLabel;
         if (preAnalyzeButtonText != null)
@@ -255,6 +273,15 @@ public class ReplayView : MonoBehaviour
         if (saveAnalysisFeedback != null)
             StopCoroutine(saveAnalysisFeedback);
         saveAnalysisFeedback = StartCoroutine(SaveAnalysisFeedback());
+    }
+
+    public void ShowVariationSaved()
+    {
+        if (saveVariationButtonText == null)
+            return;
+        if (saveVariationFeedback != null)
+            StopCoroutine(saveVariationFeedback);
+        saveVariationFeedback = StartCoroutine(SaveVariationFeedback());
     }
 
     public void ShowAnalysisCleared()
@@ -424,6 +451,12 @@ public class ReplayView : MonoBehaviour
     {
         if (saveAnalysisButton != null)
             saveAnalysisButton.interactable = on;
+    }
+
+    public void SetSaveVariationEnabled(bool on)
+    {
+        if (saveVariationButton != null)
+            saveVariationButton.interactable = on;
     }
 
     public void SetClearAnalysisEnabled(bool on)
@@ -778,6 +811,11 @@ public class ReplayView : MonoBehaviour
         SaveAnalysisClicked?.Invoke();
     }
 
+    private void OnSaveVariationClicked()
+    {
+        SaveVariationClicked?.Invoke();
+    }
+
     private void OnClearAnalysisClicked()
     {
         ClearAnalysisClicked?.Invoke();
@@ -823,6 +861,14 @@ public class ReplayView : MonoBehaviour
         yield return new WaitForSeconds(1.2f);
         saveAnalysisButtonText.text = saveAnalysisIdleLabel;
         saveAnalysisFeedback = null;
+    }
+
+    private IEnumerator SaveVariationFeedback()
+    {
+        saveVariationButtonText.text = SaveAnalysisDoneLabel;
+        yield return new WaitForSeconds(1.2f);
+        saveVariationButtonText.text = saveVariationIdleLabel;
+        saveVariationFeedback = null;
     }
 
     private IEnumerator ClearAnalysisFeedback()
@@ -952,11 +998,18 @@ public class ReplayView : MonoBehaviour
         if (mode != null)
             parts.Add(mode);
         if (!string.IsNullOrEmpty(record.Event) && record.Event != record.GameMode)
-            parts.Add(record.Event);
+            parts.Add(FormatEvent(record.Event));
         string clock = FormatTimeControl(record.TimeControl);
         if (clock != null)
             parts.Add(clock);
         return parts.Count == 0 ? null : string.Join(" · ", parts);
+    }
+
+    private static string FormatEvent(string value)
+    {
+        if (value == GameRecorder.AnalysisEvent)
+            return "Анализ";
+        return value;
     }
 
     private static string FormatGameMode(string value)

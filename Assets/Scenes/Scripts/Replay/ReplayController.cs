@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -45,6 +46,7 @@ public class ReplayController : MonoBehaviour
         view.CopyIfenClicked += OnCopyIfenClicked;
         view.PreAnalyzeClicked += OnPreAnalyzeClicked;
         view.SaveAnalysisClicked += OnSaveAnalysisClicked;
+        view.SaveVariationClicked += OnSaveVariationClicked;
         view.ClearAnalysisClicked += OnClearAnalysisClicked;
         view.RenameConfirmed += OnRenameConfirmed;
         board.MoveStartEvent += MoveStartHandler;
@@ -138,6 +140,7 @@ public class ReplayController : MonoBehaviour
             view.CopyIfenClicked -= OnCopyIfenClicked;
             view.PreAnalyzeClicked -= OnPreAnalyzeClicked;
             view.SaveAnalysisClicked -= OnSaveAnalysisClicked;
+            view.SaveVariationClicked -= OnSaveVariationClicked;
             view.ClearAnalysisClicked -= OnClearAnalysisClicked;
             view.RenameConfirmed -= OnRenameConfirmed;
         }
@@ -278,6 +281,7 @@ public class ReplayController : MonoBehaviour
         else
             board.HighlightLastMove(last.From, last.To);
         view.Highlight(mainIndex, varIndex, onVariation);
+        view.SetSaveVariationEnabled(variation.Count > 0 && HasReplayFile());
         if (restartEngine)
             RefreshEngine();
     }
@@ -415,6 +419,7 @@ public class ReplayController : MonoBehaviour
     {
         view.ClearFileName();
         view.SetSaveAnalysisEnabled(false);
+        view.SetSaveVariationEnabled(false);
         view.SetClearAnalysisEnabled(false);
     }
 
@@ -500,6 +505,80 @@ public class ReplayController : MonoBehaviour
         File.WriteAllText(Settings.ReplayFilePath, IpgnFormatter.Format(record));
         view.ShowAnalysisSaved();
         UpdateAnalysisButtons();
+    }
+
+    private void OnSaveVariationClicked()
+    {
+        if (record == null || variation.Count == 0 || !HasReplayFile())
+            return;
+        if (!TryBuildAnalysisRecord(out GameRecord saved))
+            return;
+
+        string path = GameRecorder.CreateAnalysisFilePath();
+        File.WriteAllText(path, IpgnFormatter.Format(saved));
+        if (history != null)
+            history.RefreshListed();
+        view.ShowVariationSaved();
+    }
+
+    private bool TryBuildAnalysisRecord(out GameRecord saved)
+    {
+        var line = new List<RecordedMove>();
+        int prefix = variationFrom;
+        if (prefix > record.Moves.Count)
+            prefix = record.Moves.Count;
+        for (int i = 0; i < prefix; i++)
+            line.Add(record.Moves[i]);
+        for (int i = 0; i < variation.Count; i++)
+        {
+            if (!TryToRecordedMove(variation[i], out RecordedMove move))
+            {
+                saved = null;
+                return false;
+            }
+            line.Add(move);
+        }
+
+        DateTime utcNow = DateTime.UtcNow;
+        saved = new GameRecord
+        {
+            Event = GameRecorder.AnalysisEvent,
+            Site = record.Site,
+            Date = utcNow.ToString("yyyy.MM.dd"),
+            UTCTime = utcNow.ToString("HH:mm:ss"),
+            White = record.White,
+            Black = record.Black,
+            Result = GameRecord.UnfinishedResult,
+            TimeControl = record.TimeControl,
+            GameMode = record.GameMode,
+            AppVersion = record.AppVersion,
+            SetUp = record.SetUp,
+            Ifen = record.Ifen,
+            Moves = line
+        };
+        return true;
+    }
+
+    private static bool TryToRecordedMove(ReplayMove move, out RecordedMove recorded)
+    {
+        recorded = null;
+        if (move?.FromBefore == null)
+            return false;
+
+        bool castling = move.ToBefore != null && move.ToBefore.Team == move.FromBefore.Team;
+        PieceType? transformation = null;
+        if (!castling && move.ToAfter != null && move.ToAfter.Type != move.FromBefore.Type)
+            transformation = move.ToAfter.Type;
+        recorded = new RecordedMove
+        {
+            Piece = move.FromBefore.Type,
+            From = move.From,
+            To = move.To,
+            Capture = move.ToBefore != null && !castling,
+            Castling = castling,
+            Transformation = transformation
+        };
+        return true;
     }
 
     private void OnClearAnalysisClicked()
