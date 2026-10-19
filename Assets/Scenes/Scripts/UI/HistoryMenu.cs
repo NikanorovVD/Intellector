@@ -19,6 +19,7 @@ public class HistoryMenu : MonoBehaviour
     [SerializeField] private Text renameError;
     [SerializeField] private GameObject drawer;
     [SerializeField] private Text drawerLabel;
+    [SerializeField] private RectTransform exitButton;
     [SerializeField] private InputField searchInput;
     [SerializeField] private bool markOpenReplay;
 
@@ -28,6 +29,8 @@ public class HistoryMenu : MonoBehaviour
 
     private const string NoGamesLabel = "Нет партий";
     private const string NoMatchesLabel = "Ничего не найдено";
+    private const float ExitMargin = 16f;
+    private const float ExitGap = 8f;
 
     private readonly List<GameObject> items = new();
     private string renamePath;
@@ -69,6 +72,7 @@ public class HistoryMenu : MonoBehaviour
             drawer.SetActive(true);
         panel.SetActive(true);
         renamePanel.SetActive(false);
+        PlaceChrome();
         SetDrawerArrow();
         if (!listed)
             Refresh();
@@ -78,6 +82,7 @@ public class HistoryMenu : MonoBehaviour
     {
         renamePanel.SetActive(false);
         panel.SetActive(false);
+        PlaceChrome();
         SetDrawerArrow();
     }
 
@@ -93,6 +98,30 @@ public class HistoryMenu : MonoBehaviour
     {
         if (drawerLabel != null)
             drawerLabel.text = IsOpen ? ">" : "<";
+    }
+
+    private void PlaceChrome()
+    {
+        if (exitButton != null)
+        {
+            float halfWidth = exitButton.sizeDelta.x * 0.5f;
+            float halfHeight = exitButton.sizeDelta.y * 0.5f;
+            float y = -(ExitMargin + halfHeight);
+            float x = -(ExitMargin + halfWidth);
+            if (IsOpen)
+            {
+                float panelWidth = panel.GetComponent<RectTransform>().sizeDelta.x;
+                x = -(panelWidth + ExitGap + halfWidth);
+            }
+            exitButton.anchoredPosition = new Vector2(x, y);
+        }
+        if (drawer == null)
+            return;
+        RectTransform drawerRect = drawer.GetComponent<RectTransform>();
+        if (IsOpen)
+            drawerRect.anchoredPosition = new Vector2(-4f, -4f);
+        else if (exitButton != null)
+            drawerRect.anchoredPosition = new Vector2(-4f, -(ExitMargin + exitButton.sizeDelta.y + ExitGap));
     }
 
     public void ConfirmRename()
