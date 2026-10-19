@@ -23,16 +23,16 @@ public class Board : MonoBehaviour
     [SerializeField] private EndGame endGame;
 
     [NonSerialized] public bool NetworkGame;
-    [NonSerialized] public bool PlayerTeam;
+    [NonSerialized] public Side PlayerTeam;
 
     public delegate void MoveDelegate(Vector2Int start, Vector2Int end, int transformInfo);
-    public delegate void EndGameDelegate(bool? winner, EndGameReason reason);
+    public delegate void EndGameDelegate(Side? winner, EndGameReason reason);
     public event MoveDelegate MoveStartEvent;
     public event MoveDelegate MoveEndEvent;
     public event Action RestartEvent;
     public event EndGameDelegate EndGameEvent;
 
-    [NonSerialized] public bool Turn;
+    [NonSerialized] public Side Turn;
     [NonSerialized] public bool IsGameOver;
     [NonSerialized] public bool IsWaitingForTransformation;
     public IPiece[][] Pieces;
@@ -68,7 +68,7 @@ public class Board : MonoBehaviour
         }
         else
         {
-            PlayerTeam = false;
+            PlayerTeam = Side.White;
         }
         (whiteTeamMaterial, blackTeamMaterial) = materialSelector.GetCurrentMaterials(Settings.PieceMaterials);
 
@@ -76,7 +76,7 @@ public class Board : MonoBehaviour
         if (ArrangeSession.TryTakeEnter())
         {
             CreateEmptyPieces();
-            Turn = false;
+            Turn = Side.White;
             IsGameOver = false;
             if (Settings.StartPosition != null)
                 LoadPosition(Settings.StartPosition);
@@ -84,7 +84,7 @@ public class Board : MonoBehaviour
         else
         {
             GenerateAllPieces();
-            Turn = false;
+            Turn = Side.White;
             IsGameOver = false;
             ApplyConfiguredStart();
         }
@@ -149,29 +149,29 @@ public class Board : MonoBehaviour
     {
         CreateEmptyPieces();
 
-        Pieces[0][0] = GenerateSinglePiece(PieceType.Dominator, false, 0, 0);
-        Pieces[1][0] = GenerateSinglePiece(PieceType.Liberator, false, 1, 0);
-        Pieces[2][0] = GenerateSinglePiece(PieceType.Agressor, false, 2, 0);
-        Pieces[3][0] = GenerateSinglePiece(PieceType.Defensor, false, 3, 0);
-        Pieces[4][0] = GenerateSinglePiece(PieceType.Intellector, false, 4, 0);
-        Pieces[5][0] = GenerateSinglePiece(PieceType.Defensor, false, 5, 0);
-        Pieces[6][0] = GenerateSinglePiece(PieceType.Agressor, false, 6, 0);
-        Pieces[7][0] = GenerateSinglePiece(PieceType.Liberator, false, 7, 0);
-        Pieces[8][0] = GenerateSinglePiece(PieceType.Dominator, false, 8, 0);
+        Pieces[0][0] = GenerateSinglePiece(PieceType.Dominator, Side.White, 0, 0);
+        Pieces[1][0] = GenerateSinglePiece(PieceType.Liberator, Side.White, 1, 0);
+        Pieces[2][0] = GenerateSinglePiece(PieceType.Agressor, Side.White, 2, 0);
+        Pieces[3][0] = GenerateSinglePiece(PieceType.Defensor, Side.White, 3, 0);
+        Pieces[4][0] = GenerateSinglePiece(PieceType.Intellector, Side.White, 4, 0);
+        Pieces[5][0] = GenerateSinglePiece(PieceType.Defensor, Side.White, 5, 0);
+        Pieces[6][0] = GenerateSinglePiece(PieceType.Agressor, Side.White, 6, 0);
+        Pieces[7][0] = GenerateSinglePiece(PieceType.Liberator, Side.White, 7, 0);
+        Pieces[8][0] = GenerateSinglePiece(PieceType.Dominator, Side.White, 8, 0);
         for (int i = 0; i < 9; i += 2)
-            Pieces[i][1] = GenerateSinglePiece(PieceType.Progressor, false, i, 1);
+            Pieces[i][1] = GenerateSinglePiece(PieceType.Progressor, Side.White, i, 1);
 
-        Pieces[0][6] = GenerateSinglePiece(PieceType.Dominator, true, 0, 6);
-        Pieces[1][5] = GenerateSinglePiece(PieceType.Liberator, true, 1, 5);
-        Pieces[2][6] = GenerateSinglePiece(PieceType.Agressor, true, 2, 6);
-        Pieces[3][5] = GenerateSinglePiece(PieceType.Defensor, true, 3, 5);
-        Pieces[4][6] = GenerateSinglePiece(PieceType.Intellector, true, 4, 6);
-        Pieces[5][5] = GenerateSinglePiece(PieceType.Defensor, true, 5, 5);
-        Pieces[6][6] = GenerateSinglePiece(PieceType.Agressor, true, 6, 6);
-        Pieces[7][5] = GenerateSinglePiece(PieceType.Liberator, true, 7, 5);
-        Pieces[8][6] = GenerateSinglePiece(PieceType.Dominator, true, 8, 6);
+        Pieces[0][6] = GenerateSinglePiece(PieceType.Dominator, Side.Black, 0, 6);
+        Pieces[1][5] = GenerateSinglePiece(PieceType.Liberator, Side.Black, 1, 5);
+        Pieces[2][6] = GenerateSinglePiece(PieceType.Agressor, Side.Black, 2, 6);
+        Pieces[3][5] = GenerateSinglePiece(PieceType.Defensor, Side.Black, 3, 5);
+        Pieces[4][6] = GenerateSinglePiece(PieceType.Intellector, Side.Black, 4, 6);
+        Pieces[5][5] = GenerateSinglePiece(PieceType.Defensor, Side.Black, 5, 5);
+        Pieces[6][6] = GenerateSinglePiece(PieceType.Agressor, Side.Black, 6, 6);
+        Pieces[7][5] = GenerateSinglePiece(PieceType.Liberator, Side.Black, 7, 5);
+        Pieces[8][6] = GenerateSinglePiece(PieceType.Dominator, Side.Black, 8, 6);
         for (int i = 0; i < 9; i += 2)
-            Pieces[i][5] = GenerateSinglePiece(PieceType.Progressor, true, i, 5);
+            Pieces[i][5] = GenerateSinglePiece(PieceType.Progressor, Side.Black, i, 5);
     }
 
     public void CreateEmptyPieces()
@@ -194,7 +194,7 @@ public class Board : MonoBehaviour
         SetTileState(pos, state);
     }
 
-    public IPiece GenerateSinglePiece(PieceType type, bool team, int x, int y)
+    public IPiece GenerateSinglePiece(PieceType type, Side team, int x, int y)
     {
         IPiece piece = Piece.Create(type);
         GameObject gameObject = Instantiate(piecesPrefabs[(int)type], transform);
@@ -205,12 +205,12 @@ public class Board : MonoBehaviour
         piece.Y = y;
 
         gameObject.transform.position = TransformCoordinates(x, y);
-        gameObject.transform.rotation = Quaternion.Euler(0, team ? 90 : -90, 0);
+        gameObject.transform.rotation = Quaternion.Euler(0, team == Side.Black ? 90 : -90, 0);
         ApplyPieceMaterial(gameObject, team);
         return piece;
     }
 
-    public GameObject CreatePalettePiece(PieceType type, bool team)
+    public GameObject CreatePalettePiece(PieceType type, Side team)
     {
         GameObject piece = Instantiate(piecesPrefabs[(int)type]);
         Collider[] colliders = piece.GetComponentsInChildren<Collider>();
@@ -220,9 +220,9 @@ public class Board : MonoBehaviour
         return piece;
     }
 
-    public void ApplyPieceMaterial(GameObject piece, bool team)
+    public void ApplyPieceMaterial(GameObject piece, Side team)
     {
-        Material material = team ? blackTeamMaterial : whiteTeamMaterial;
+        Material material = team == Side.Black ? blackTeamMaterial : whiteTeamMaterial;
         MeshRenderer[] renderers = piece.GetComponentsInChildren<MeshRenderer>();
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -291,14 +291,14 @@ public class Board : MonoBehaviour
         for (int x = 0; x < Pieces.Length; x++)
             for (int y = 0; y < Pieces[x].Length; y++)
                 SetTileState(new Vector2Int(x, y), position.Pieces[x][y]);
-        Turn = position.BlackToMove;
+        Turn = position.SideToMove;
     }
 
     public RecordedPosition ToRecordedPosition(int halfmoveClock, int fullmoveNumber)
     {
         var position = new RecordedPosition
         {
-            BlackToMove = Turn,
+            SideToMove = Turn,
             HalfmoveClock = halfmoveClock,
             FullmoveNumber = fullmoveNumber
         };
@@ -327,11 +327,11 @@ public class Board : MonoBehaviour
         {
             DeleteAllPieces();
             GenerateAllPieces();
-            Turn = false;
+            Turn = Side.White;
         }
         if (Settings.GameMode == GameMode.Network)
         {
-            PlayerTeam = !PlayerTeam;
+            PlayerTeam = Sides.Opposite(PlayerTeam);
         }
         IsGameOver = false;
         endGame.Hide();
@@ -437,7 +437,7 @@ public class Board : MonoBehaviour
     private bool ChekAndAskForTransformaton(Vector2Int start, Vector2Int end)
     {
         if ((Pieces[start.x][start.y].Type == PieceType.Progressor) && // Если ходил прогрессор
-        ((Pieces[start.x][start.y].Team == false && (end.y == 6)) || (Pieces[start.x][start.y].Team == true && (end.y == 0) && (end.x % 2 == 0))) // И он дошёл до поля превращения
+        ((Pieces[start.x][start.y].Team == Side.White && (end.y == 6)) || (Pieces[start.x][start.y].Team == Side.Black && (end.y == 0) && (end.x % 2 == 0))) // И он дошёл до поля превращения
         && ((Pieces[end.x][end.y] == null) || (Pieces[end.x][end.y].Type != PieceType.Intellector))) // И мы не съели интеллектора
         {
             progressorPromotionDialog.SetActive(true);
@@ -471,7 +471,7 @@ public class Board : MonoBehaviour
         MoveStartEvent?.Invoke(start, end, transformInfo);
 
         // Переключение очерёдности хода
-        Turn = !Turn;
+        Turn = Sides.Opposite(Turn);
 
         // Сохранение последнего хода
         lastMove1 = start;
@@ -533,8 +533,8 @@ public class Board : MonoBehaviour
         // Достижение интеллектором базовой линии
         if ((Pieces[end.x][end.y].Type == PieceType.Intellector) &&
             (
-                ((Pieces[end.x][end.y].Team == false) && (end.y == 6)) ||
-                ((Pieces[end.x][end.y].Team == true) && (end.y == 0) && (end.x % 2 == 0))
+                ((Pieces[end.x][end.y].Team == Side.White) && (end.y == 6)) ||
+                ((Pieces[end.x][end.y].Team == Side.Black) && (end.y == 0) && (end.x % 2 == 0))
             ))
         {
             GameOver(Pieces[end.x][end.y].Team, EndGameReason.IntellectorReachLustRank);
@@ -585,7 +585,7 @@ public class Board : MonoBehaviour
     }
 
     // Конец игры
-    public void GameOver(bool? winner, EndGameReason reason)
+    public void GameOver(Side? winner, EndGameReason reason)
     {
         if (Settings.GameMode == GameMode.Replay) return;
         if (IsGameOver) return;

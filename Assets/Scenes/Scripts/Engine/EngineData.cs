@@ -18,12 +18,6 @@ public enum EngineFigure
     Empty = 12
 }
 
-public enum EngineColor
-{
-    White = 0,
-    Black = 1
-}
-
 public enum MoveGenMode { All, CapturesOnly }
 
 public static class EngineChars

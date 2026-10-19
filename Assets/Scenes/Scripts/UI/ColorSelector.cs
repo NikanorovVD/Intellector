@@ -44,13 +44,13 @@ public class ColorSelector : MonoBehaviour
         }
     }
 
-    public static bool ResolveTeam(ColorChoice color)
+    public static Side ResolveTeam(ColorChoice color)
     {
         return color switch
         {
-            ColorChoice.White => false,
-            ColorChoice.Black => true,
-            ColorChoice.Random => UnityEngine.Random.Range(0, 2) == 1,
+            ColorChoice.White => Side.White,
+            ColorChoice.Black => Side.Black,
+            ColorChoice.Random => UnityEngine.Random.Range(0, 2) == 1 ? Side.Black : Side.White,
             _ => throw new ArgumentOutOfRangeException(nameof(color), color, null)
         };
     }

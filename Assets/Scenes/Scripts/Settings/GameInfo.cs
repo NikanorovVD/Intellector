@@ -6,7 +6,7 @@ public class GameInfo
     public string Name { get; set; }
     public TimeControl TimeControl { get; set; }
     public ColorChoice Color { get; set; }
-    public bool Team { get; set; }
+    public Side Team { get; set; }
 
     public void Save()
     {

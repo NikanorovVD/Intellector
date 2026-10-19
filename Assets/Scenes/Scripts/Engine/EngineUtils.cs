@@ -2,7 +2,7 @@ using System;
 
 public static class EngineUtils
 {
-    public static EngineColor GetColor(EngineFigure f) => (EngineColor)((int)f & 1);
+    public static Side GetColor(EngineFigure f) => (Side)((int)f & 1);
     public static EngineFigure OppositeFigure(EngineFigure f) => (EngineFigure)((int)f ^ 1);
     public static bool IsIntellector(EngineFigure f) =>
         f == EngineFigure.WhiteIntellector || f == EngineFigure.BlackIntellector;
@@ -10,9 +10,8 @@ public static class EngineUtils
         f == EngineFigure.WhiteProgressor || f == EngineFigure.BlackProgressor;
     public static bool IsProgressiveMove(EngineFigure fromFig, EngineFigure toFig) =>
         IsProgressor(fromFig) || toFig != EngineFigure.Empty;
-    public static EngineFigure WithColor(EngineFigure whiteFigure, EngineColor color) =>
+    public static EngineFigure WithColor(EngineFigure whiteFigure, Side color) =>
         (EngineFigure)((int)whiteFigure + (int)color);
-    public static EngineColor Opposite(EngineColor color) => (EngineColor)((int)color ^ 1);
 
     private static readonly int[] columnStart = { 0, 7, 13, 20, 26, 33, 39, 46, 52 };
     private static readonly (int x, int y)[] unityFromEngine = new (int x, int y)[59];
@@ -78,8 +77,8 @@ public static class EngineUtils
         }
     }
 
-    public static EngineColor CharToColor(char letter) =>
-        (letter == EngineChars.WhiteToMove) ? EngineColor.White : EngineColor.Black;
+    public static Side CharToColor(char letter) =>
+        (letter == EngineChars.WhiteToMove) ? Side.White : Side.Black;
 
     public static int GetEngineIndex(int x, int y) => columnStart[x] + y;
 

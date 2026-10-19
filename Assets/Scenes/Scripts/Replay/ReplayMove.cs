@@ -1,7 +1,7 @@
 public class TileState
 {
     public PieceType Type;
-    public bool Team;
+    public Side Team;
 }
 
 public class ReplayMove

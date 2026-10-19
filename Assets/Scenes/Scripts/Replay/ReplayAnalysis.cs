@@ -201,7 +201,7 @@ public class ReplayAnalysis
                 return false;
             EngineMove? engineMove = null;
             if (position.BestMove != null)
-                engineMove = ToEngineMove(position.BestMove, (firstPly + ply) % 2 == 1);
+                engineMove = ToEngineMove(position.BestMove, Sides.ToMove(firstPly + ply));
             cache[ply] = new MoveResult
             {
                 Mark = position.Mark,
@@ -442,8 +442,8 @@ public class ReplayAnalysis
             {
                 if (!IsCurrentPre(gen)) return;
 
-                bool blackToMove = (firstPly + ply) % 2 == 1;
-                Engine engine = BoardToEngine.CreateEngine(board, blackToMove);
+                Side sideToMove = Sides.ToMove(firstPly + ply);
+                Engine engine = BoardToEngine.CreateEngine(board, sideToMove);
                 MoveResult result;
                 if (!engine.TryGetTerminalResult(out result))
                 {
@@ -576,8 +576,8 @@ public class ReplayAnalysis
             return;
 
         int anchorPly = ply - 1;
-        bool blackToMove = (firstPly + anchorPly) % 2 == 1;
-        Engine engine = BoardToEngine.CreateEngine(previous, blackToMove);
+        Side sideToMove = Sides.ToMove(firstPly + anchorPly);
+        Engine engine = BoardToEngine.CreateEngine(previous, sideToMove);
         if (engine.TryGetTerminalResult(out MoveResult terminal))
         {
             NoteLive(anchorPly, terminal, positionCount, firstPly);
@@ -665,8 +665,8 @@ public class ReplayAnalysis
             return false;
         if (!liveHas[moveIndex] || !liveHas[moveIndex + 1])
             return false;
-        bool blackMoved = (firstPly + moveIndex) % 2 == 1;
-        quality = MoveAccuracy.FromMarks(liveMarks[moveIndex], liveMarks[moveIndex + 1], blackMoved);
+        Side moved = Sides.ToMove(firstPly + moveIndex);
+        quality = MoveAccuracy.FromMarks(liveMarks[moveIndex], liveMarks[moveIndex + 1], moved);
         return true;
     }
 
@@ -676,8 +676,8 @@ public class ReplayAnalysis
             return;
 
         int anchorPos = varPos - 1;
-        bool blackToMove = (firstPly + variationFrom + anchorPos) % 2 == 1;
-        Engine engine = BoardToEngine.CreateEngine(previous, blackToMove);
+        Side sideToMove = Sides.ToMove(firstPly + variationFrom + anchorPos);
+        Engine engine = BoardToEngine.CreateEngine(previous, sideToMove);
         if (engine.TryGetTerminalResult(out MoveResult terminal))
         {
             NoteVariation(anchorPos, terminal, variationFrom, firstPly);
@@ -760,8 +760,8 @@ public class ReplayAnalysis
             return false;
         if (!TryVarMarkLocked(moveIndex + 1, variationFrom, out double after))
             return false;
-        bool blackMoved = (firstPly + variationFrom + moveIndex) % 2 == 1;
-        quality = MoveAccuracy.FromMarks(before, after, blackMoved);
+        Side moved = Sides.ToMove(firstPly + variationFrom + moveIndex);
+        quality = MoveAccuracy.FromMarks(before, after, moved);
         return true;
     }
 
@@ -870,10 +870,10 @@ public class ReplayAnalysis
         {
             if (!TryAnyMarkLocked(i, out double before) || !TryAnyMarkLocked(i + 1, out double after))
                 continue;
-            bool blackMoved = (firstPly + i) % 2 == 1;
-            MoveQuality quality = MoveAccuracy.FromMarks(before, after, blackMoved);
+            Side moved = Sides.ToMove(firstPly + i);
+            MoveQuality quality = MoveAccuracy.FromMarks(before, after, moved);
             moves[i] = quality;
-            if (blackMoved)
+            if (moved == Side.Black)
                 black.Add(quality.Accuracy);
             else
                 white.Add(quality.Accuracy);
@@ -989,10 +989,10 @@ public class ReplayAnalysis
         };
     }
 
-    private static EngineMove ToEngineMove(RecordedMove move, bool blackToMove)
+    private static EngineMove ToEngineMove(RecordedMove move, Side sideToMove)
     {
         PieceType resulting = move.Transformation ?? move.Piece;
-        EngineFigure figure = BoardToEngine.ToEngineFigure(new TileState { Type = resulting, Team = blackToMove });
+        EngineFigure figure = BoardToEngine.ToEngineFigure(new TileState { Type = resulting, Team = sideToMove });
         return new EngineMove(
             EngineUtils.GetEngineIndex(move.From.x, move.From.y),
             EngineUtils.GetEngineIndex(move.To.x, move.To.y),

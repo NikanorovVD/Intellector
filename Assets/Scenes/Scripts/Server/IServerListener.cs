@@ -9,5 +9,5 @@ public interface IServerListener
     void TimeReceived(int time);
     void ExitReceived();
     void RematchReceived();
-    void TimeOutReceived(bool exitTeam);
+    void TimeOutReceived(Side winner);
 }

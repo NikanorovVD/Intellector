@@ -63,7 +63,7 @@ public class TimeController : MonoBehaviour
 
     private void TimeReceived(int time)
     {
-        if (board.Turn)
+        if (board.Turn == Side.Black)
         {
             WhiteTime = time;
             view.DisplayBlackTurn();

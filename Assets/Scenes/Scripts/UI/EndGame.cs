@@ -31,26 +31,25 @@ public class EndGame : MonoBehaviour
         networkManager.RematchEvent += () => DisplayRematchRequest();
     }
 
-    public void DisplayResult(bool isNetwork, bool? winner, bool playerTeam, EndGameReason reason)
+    public void DisplayResult(bool isNetwork, Side? winner, Side playerTeam, EndGameReason reason)
     {
         endGameWindow.SetActive(true);
 
         if (isNetwork)
         {
+            topText.text = winner == null
+                ? "НИЧЬЯ"
+                : winner == playerTeam ? "ВЫ ВЫИГРАЛИ" : "ВЫ ПРОИГРАЛИ";
+        }
+        else
+        {
             topText.text = winner switch
             {
-                false => (winner == playerTeam) ? "ВЫ ВЫИГРАЛИ" : "ВЫ ПРОИГРАЛИ",
-                true => (winner == playerTeam) ? "ВЫ ВЫИГРАЛИ" : "ВЫ ПРОИГРАЛИ",
+                Side.White => "ПОБЕДИЛИ БЕЛЫЕ",
+                Side.Black => "ПОБЕДИЛИ ЧЕРНЫЕ",
                 null => "НИЧЬЯ"
             };
         }
-
-        else topText.text = winner switch
-        {
-            false => "ПОБЕДИЛИ БЕЛЫЕ",
-            true => "ПОБЕДИЛИ ЧЕРНЫЕ",
-            null => "НИЧЬЯ"
-        };
 
         lowText.text = reason switch
         {

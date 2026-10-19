@@ -14,7 +14,7 @@ public class Settings
     }
 
     public static GameMode GameMode { get; set; }
-    public static bool PlayerTeam { get; set; }
+    public static Side PlayerTeam { get; set; }
 
     public static bool Playing => GameMode != GameMode.Replay && !ArrangeSession.Arranging;
     public static string ReplayFilePath { get; set; }

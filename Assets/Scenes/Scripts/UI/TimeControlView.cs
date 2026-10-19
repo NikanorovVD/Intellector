@@ -27,12 +27,12 @@ public class TimeControlView : MonoBehaviour
     private Thread myTimeRunner;
     private Thread opponentTimeRunner;
 
-    public bool Team
+    public Side Team
     {
         set
         {
-            turn = !value;
-            if (value)
+            turn = value == Side.White;
+            if (value == Side.Black)
             {
                 DisplayWhiteTime = DisplayOpponentTime;
                 DisplayBlackTime = DisplayMyTime;

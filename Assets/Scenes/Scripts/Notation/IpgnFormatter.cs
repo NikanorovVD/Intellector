@@ -172,12 +172,12 @@ public static class IpgnFormatter
         return text;
     }
 
-    public static string FormatResult(bool? winner)
+    public static string FormatResult(Side? winner)
     {
         return winner switch
         {
-            false => "1-0",
-            true => "0-1",
+            Side.White => "1-0",
+            Side.Black => "0-1",
             null => "1/2-1/2"
         };
     }
@@ -244,7 +244,7 @@ public static class IpgnFormatter
         if (record == null || record.SetUp != "1" || string.IsNullOrEmpty(record.Ifen))
             return;
         RecordedPosition position = IfenParser.Parse(record.Ifen);
-        firstPly = position.BlackToMove ? 1 : 0;
+        firstPly = position.SideToMove == Side.Black ? 1 : 0;
         firstFullmove = position.FullmoveNumber;
     }
 }

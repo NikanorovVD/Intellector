@@ -45,11 +45,12 @@ public class ServerListener : IServerListener
                 case ExitCode:
                     ExitReceived();
                     break;
+                // Побеждает соперник того, у кого истекло время
                 case WhiteTimeOutCode:
-                    TimeOutReceived(true);
+                    TimeOutReceived(Side.Black);
                     break;
                 case BlackTimeOutCode:
-                    TimeOutReceived(false);
+                    TimeOutReceived(Side.White);
                     break;
                 case RematchCode:
                     RematchReceived();
@@ -69,9 +70,9 @@ public class ServerListener : IServerListener
     {
         foreach (var observer in observers) observer.OnRematchReceived();
     }
-    public void TimeOutReceived(bool exitTeam)
+    public void TimeOutReceived(Side winner)
     {
-        foreach (var observer in observers) observer.OnTimeOutReceived(exitTeam);
+        foreach (var observer in observers) observer.OnTimeOutReceived(winner);
     }
     public void TimeReceived(int time)
     {

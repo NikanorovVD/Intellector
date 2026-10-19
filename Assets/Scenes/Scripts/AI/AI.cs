@@ -9,7 +9,7 @@ public class AI : MonoBehaviour
     [SerializeField] private Board mainBoard;
     public const int AiMoveDelayMs = 0;
 
-    private bool AiTeam => !mainBoard.PlayerTeam;
+    private Side AiTeam => Sides.Opposite(mainBoard.PlayerTeam);
 
     private bool lastMoveWasProgressive;
     private Engine engine;

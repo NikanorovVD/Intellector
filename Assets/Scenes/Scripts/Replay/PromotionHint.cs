@@ -8,9 +8,9 @@ public class PromotionHint : MonoBehaviour
 
     private GameObject ghost;
     private PieceType? ghostType;
-    private bool ghostTeam;
+    private Side ghostTeam;
 
-    public void Show(Vector2Int square, PieceType type, bool team)
+    public void Show(Vector2Int square, PieceType type, Side team)
     {
         if (board == null || !OnBoard(square))
         {
@@ -23,7 +23,7 @@ public class PromotionHint : MonoBehaviour
             ghost = Instantiate(piecesPrefabs[(int)type], board.transform);
             ghostType = type;
             ghostTeam = team;
-            ghost.transform.rotation = Quaternion.Euler(0, team ? 90 : -90, 0);
+            ghost.transform.rotation = Quaternion.Euler(0, team == Side.Black ? 90 : -90, 0);
             Collider[] colliders = ghost.GetComponentsInChildren<Collider>();
             for (int i = 0; i < colliders.Length; i++)
                 colliders[i].enabled = false;

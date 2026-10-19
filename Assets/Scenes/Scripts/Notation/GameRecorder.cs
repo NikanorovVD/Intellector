@@ -91,7 +91,7 @@ public class GameRecorder : MonoBehaviour
             AppendMove(recordedMove);
     }
 
-    private void EndGameHandler(bool? winner, EndGameReason reason)
+    private void EndGameHandler(Side? winner, EndGameReason reason)
     {
         record.Result = IpgnFormatter.FormatResult(winner);
         record.Termination = IpgnFormatter.FormatTermination(reason);
@@ -108,13 +108,13 @@ public class GameRecorder : MonoBehaviour
         File.WriteAllText(filePath, IpgnFormatter.Format(gameRecord));
     }
 
-    private static (string white, string black) ResolvePlayerNames(GameMode mode, bool playerTeam)
+    private static (string white, string black) ResolvePlayerNames(GameMode mode, Side playerTeam)
     {
         string userName = string.IsNullOrEmpty(Settings.UserName) ? "Player" : Settings.UserName;
 
         if (mode == GameMode.AI)
         {
-            if (!playerTeam)
+            if (playerTeam == Side.White)
                 return (userName, Settings.AI.DisplayName);
             return (Settings.AI.DisplayName, userName);
         }
@@ -129,7 +129,7 @@ public class GameRecorder : MonoBehaviour
             */
             if (!string.IsNullOrEmpty(gameInfo.Name) && gameInfo.Name != userName)
                 opponent = gameInfo.Name;
-            if (playerTeam)
+            if (playerTeam == Side.Black)
                 return (opponent, userName);
             return (userName, opponent);
         }

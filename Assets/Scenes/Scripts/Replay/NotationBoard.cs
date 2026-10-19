@@ -54,32 +54,32 @@ public class NotationBoard
 
     private void PlaceInitial()
     {
-        Place(0, 0, PieceType.Dominator, false);
-        Place(1, 0, PieceType.Liberator, false);
-        Place(2, 0, PieceType.Agressor, false);
-        Place(3, 0, PieceType.Defensor, false);
-        Place(4, 0, PieceType.Intellector, false);
-        Place(5, 0, PieceType.Defensor, false);
-        Place(6, 0, PieceType.Agressor, false);
-        Place(7, 0, PieceType.Liberator, false);
-        Place(8, 0, PieceType.Dominator, false);
+        Place(0, 0, PieceType.Dominator, Side.White);
+        Place(1, 0, PieceType.Liberator, Side.White);
+        Place(2, 0, PieceType.Agressor, Side.White);
+        Place(3, 0, PieceType.Defensor, Side.White);
+        Place(4, 0, PieceType.Intellector, Side.White);
+        Place(5, 0, PieceType.Defensor, Side.White);
+        Place(6, 0, PieceType.Agressor, Side.White);
+        Place(7, 0, PieceType.Liberator, Side.White);
+        Place(8, 0, PieceType.Dominator, Side.White);
         for (int i = 0; i < 9; i += 2)
-            Place(i, 1, PieceType.Progressor, false);
+            Place(i, 1, PieceType.Progressor, Side.White);
 
-        Place(0, 6, PieceType.Dominator, true);
-        Place(1, 5, PieceType.Liberator, true);
-        Place(2, 6, PieceType.Agressor, true);
-        Place(3, 5, PieceType.Defensor, true);
-        Place(4, 6, PieceType.Intellector, true);
-        Place(5, 5, PieceType.Defensor, true);
-        Place(6, 6, PieceType.Agressor, true);
-        Place(7, 5, PieceType.Liberator, true);
-        Place(8, 6, PieceType.Dominator, true);
+        Place(0, 6, PieceType.Dominator, Side.Black);
+        Place(1, 5, PieceType.Liberator, Side.Black);
+        Place(2, 6, PieceType.Agressor, Side.Black);
+        Place(3, 5, PieceType.Defensor, Side.Black);
+        Place(4, 6, PieceType.Intellector, Side.Black);
+        Place(5, 5, PieceType.Defensor, Side.Black);
+        Place(6, 6, PieceType.Agressor, Side.Black);
+        Place(7, 5, PieceType.Liberator, Side.Black);
+        Place(8, 6, PieceType.Dominator, Side.Black);
         for (int i = 0; i < 9; i += 2)
-            Place(i, 5, PieceType.Progressor, true);
+            Place(i, 5, PieceType.Progressor, Side.Black);
     }
 
-    private void Place(int x, int y, PieceType type, bool team)
+    private void Place(int x, int y, PieceType type, Side team)
     {
         tiles[x][y] = new TileState { Type = type, Team = team };
     }

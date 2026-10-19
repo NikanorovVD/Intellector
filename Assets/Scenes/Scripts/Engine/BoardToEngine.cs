@@ -11,7 +11,7 @@ public static class BoardToEngine
 
     public static void Load(Engine engine, Board board)
     {
-        engine.Load(ToSquares(board), board.Turn ? EngineColor.Black : EngineColor.White);
+        engine.Load(ToSquares(board), board.Turn);
     }
 
     private static EngineFigure[] ToSquares(Board board)
@@ -35,7 +35,7 @@ public static class BoardToEngine
         return squares;
     }
 
-    public static Engine CreateEngine(NotationBoard board, bool blackToMove)
+    public static Engine CreateEngine(NotationBoard board, Side sideToMove)
     {
         var squares = new EngineFigure[59];
         for (int i = 0; i < 59; i++) squares[i] = EngineFigure.Empty;
@@ -52,26 +52,26 @@ public static class BoardToEngine
         }
 
         var engine = new Engine();
-        engine.Load(squares, blackToMove ? EngineColor.Black : EngineColor.White);
+        engine.Load(squares, sideToMove);
         return engine;
     }
 
     public static EngineFigure ToEngineFigure(IPiece piece) =>
-        piece == null ? EngineFigure.Empty : ToEngineFigure(piece.Type, piece.Team ? EngineColor.Black : EngineColor.White);
+        piece == null ? EngineFigure.Empty : ToEngineFigure(piece.Type, piece.Team);
 
     public static EngineFigure ToEngineFigure(TileState tile) =>
-        tile == null ? EngineFigure.Empty : ToEngineFigure(tile.Type, tile.Team ? EngineColor.Black : EngineColor.White);
+        tile == null ? EngineFigure.Empty : ToEngineFigure(tile.Type, tile.Team);
 
-    private static EngineFigure ToEngineFigure(PieceType type, EngineColor color)
+    private static EngineFigure ToEngineFigure(PieceType type, Side side)
     {
         return type switch
         {
-            PieceType.Progressor => EngineUtils.WithColor(EngineFigure.WhiteProgressor, color),
-            PieceType.Liberator => EngineUtils.WithColor(EngineFigure.WhiteLiberator, color),
-            PieceType.Intellector => EngineUtils.WithColor(EngineFigure.WhiteIntellector, color),
-            PieceType.Dominator => EngineUtils.WithColor(EngineFigure.WhiteDominator, color),
-            PieceType.Defensor => EngineUtils.WithColor(EngineFigure.WhiteDefensor, color),
-            PieceType.Agressor => EngineUtils.WithColor(EngineFigure.WhiteAgressor, color),
+            PieceType.Progressor => EngineUtils.WithColor(EngineFigure.WhiteProgressor, side),
+            PieceType.Liberator => EngineUtils.WithColor(EngineFigure.WhiteLiberator, side),
+            PieceType.Intellector => EngineUtils.WithColor(EngineFigure.WhiteIntellector, side),
+            PieceType.Dominator => EngineUtils.WithColor(EngineFigure.WhiteDominator, side),
+            PieceType.Defensor => EngineUtils.WithColor(EngineFigure.WhiteDefensor, side),
+            PieceType.Agressor => EngineUtils.WithColor(EngineFigure.WhiteAgressor, side),
             _ => EngineFigure.Empty
         };
     }

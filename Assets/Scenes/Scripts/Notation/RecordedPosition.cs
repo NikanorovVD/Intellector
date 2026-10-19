@@ -1,7 +1,7 @@
 public class RecordedPosition
 {
     public TileState?[][] Pieces;
-    public bool BlackToMove;
+    public Side SideToMove;
     public int HalfmoveClock;
     public int FullmoveNumber = 1;
 

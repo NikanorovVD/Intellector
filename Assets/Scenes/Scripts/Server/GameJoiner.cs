@@ -25,8 +25,7 @@ public class GameJoiner : IGameJoiner
         byte ans = RecvCode(stream);
         if (ans == NoSuchGameAns) return (false, null);
 
-        bool team = ans != 0;
-        gameInfo.Team = team;
+        gameInfo.Team = ans != 0 ? Side.Black : Side.White;
 
         return (true, gameInfo);
     }

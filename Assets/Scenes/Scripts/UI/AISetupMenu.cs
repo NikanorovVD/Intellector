@@ -152,7 +152,7 @@ public class AISetupMenu : MonoBehaviour
         }
         else
         {
-            Settings.PlayerTeam = false;
+            Settings.PlayerTeam = Side.White;
         }
         Settings.GameMode = pendingMode;
         SceneManager.LoadScene(1);

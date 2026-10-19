@@ -10,7 +10,7 @@ public class Engine
     private int? whiteIntellectorSquare;
     private int? blackIntellectorSquare;
     private EngineFigure[] fields;
-    private EngineColor sideToMove;
+    private Side sideToMove;
 
     private List<MoveHistoryEntry> moveHistory;
     private Dictionary<int, List<HashRecord>> hash;
@@ -89,7 +89,7 @@ public class Engine
         fields[25] = fields[38] = EngineFigure.BlackDefensor;
         fields[32] = EngineFigure.BlackIntellector;
 
-        sideToMove = EngineColor.White;
+        sideToMove = Side.White;
         whiteIntellectorSquare = 26;
         blackIntellectorSquare = 32;
 
@@ -97,7 +97,7 @@ public class Engine
         positionHistory[h] = 1;
     }
 
-    public void Load(EngineFigure[] board, EngineColor sideToMove)
+    public void Load(EngineFigure[] board, Side sideToMove)
     {
         if (board == null || board.Length != 59)
             throw new ArgumentException("Ожидается массив из 59 клеток.", nameof(board));
@@ -117,7 +117,7 @@ public class Engine
     public int Hash()
     {
         int h = 0;
-        if (sideToMove == EngineColor.Black) h ^= blackMoveKey;
+        if (sideToMove == Side.Black) h ^= blackMoveKey;
         for (int i = 0; i <= 58; i++)
         {
             EngineFigure fig = fields[i];
@@ -232,7 +232,7 @@ public class Engine
             fields[move.To] = move.Figure;
         }
 
-        sideToMove = U.Opposite(sideToMove);
+        sideToMove = Sides.Opposite(sideToMove);
 
         if (hashVal.HasValue)
         {
@@ -267,7 +267,7 @@ public class Engine
         if (m.ToFigure == EngineFigure.WhiteIntellector) whiteIntellectorSquare = m.To;
         else if (m.ToFigure == EngineFigure.BlackIntellector) blackIntellectorSquare = m.To;
 
-        sideToMove = U.Opposite(sideToMove);
+        sideToMove = Sides.Opposite(sideToMove);
 
         if (hashVal.HasValue)
         {
@@ -290,7 +290,7 @@ public class Engine
     {
         var moves = new List<EngineMove>();
         bool all = mode == MoveGenMode.All;
-        EngineColor color = sideToMove;
+        Side color = sideToMove;
 
         void AddDominatorMoves(int coord)
         {
@@ -322,7 +322,7 @@ public class Engine
                         moves.Add(new EngineMove(coord, line[n], figure));
                         if (beatFig != U.OppositeFigure(figure) && !U.IsIntellector(beatFig))
                         {
-                            int? intellectorSquare = (color == EngineColor.White) ? whiteIntellectorSquare : blackIntellectorSquare;
+                            int? intellectorSquare = (color == Side.White) ? whiteIntellectorSquare : blackIntellectorSquare;
                             if (intellectorSquare.HasValue && Array.IndexOf(T.Near[coord], intellectorSquare.Value) >= 0)
                                 moves.Add(new EngineMove(coord, line[n], U.OppositeFigure(beatFig)));
                         }
@@ -361,7 +361,7 @@ public class Engine
                         moves.Add(new EngineMove(coord, line[n], figure));
                         if (beatFig != U.OppositeFigure(figure) && !U.IsIntellector(beatFig))
                         {
-                            int? intellectorSquare = (color == EngineColor.White) ? whiteIntellectorSquare : blackIntellectorSquare;
+                            int? intellectorSquare = (color == Side.White) ? whiteIntellectorSquare : blackIntellectorSquare;
                             if (intellectorSquare.HasValue && Array.IndexOf(T.Near[coord], intellectorSquare.Value) >= 0)
                                 moves.Add(new EngineMove(coord, line[n], U.OppositeFigure(beatFig)));
                         }
@@ -388,7 +388,7 @@ public class Engine
                     {
                         if (beatFig != U.OppositeFigure(figure) && !U.IsIntellector(beatFig))
                         {
-                            int? intellectorSquare = (color == EngineColor.White) ? whiteIntellectorSquare : blackIntellectorSquare;
+                            int? intellectorSquare = (color == Side.White) ? whiteIntellectorSquare : blackIntellectorSquare;
                             if (intellectorSquare.HasValue && Array.IndexOf(T.Near[coord], intellectorSquare.Value) >= 0)
                                 moves.Add(new EngineMove(coord, field, U.OppositeFigure(beatFig)));
                         }
@@ -405,7 +405,7 @@ public class Engine
                         moves.Add(new EngineMove(coord, targets[j], figure));
                         if (beatFig != U.OppositeFigure(figure) && !U.IsIntellector(beatFig))
                         {
-                            int? intellectorSquare = (color == EngineColor.White) ? whiteIntellectorSquare : blackIntellectorSquare;
+                            int? intellectorSquare = (color == Side.White) ? whiteIntellectorSquare : blackIntellectorSquare;
                             if (intellectorSquare.HasValue && Array.IndexOf(T.Near[coord], intellectorSquare.Value) >= 0)
                                 moves.Add(new EngineMove(coord, targets[j], U.OppositeFigure(beatFig)));
                         }
@@ -423,7 +423,7 @@ public class Engine
             {
                 foreach (int field in targets)
                 {
-                    if (fields[field] == EngineFigure.Empty || U.GetColor(fields[field]) == EngineColor.Black)
+                    if (fields[field] == EngineFigure.Empty || U.GetColor(fields[field]) == Side.Black)
                     {
                         if (field != 6 && field != 19 && field != 32 && field != 45 && field != 58)
                             moves.Add(new EngineMove(coord, field, EngineFigure.WhiteProgressor));
@@ -466,7 +466,7 @@ public class Engine
             {
                 foreach (int field in targets)
                 {
-                    if (fields[field] == EngineFigure.Empty || U.GetColor(fields[field]) == EngineColor.White)
+                    if (fields[field] == EngineFigure.Empty || U.GetColor(fields[field]) == Side.White)
                     {
                         if (field != 0 && field != 13 && field != 26 && field != 39 && field != 52)
                             moves.Add(new EngineMove(coord, field, EngineFigure.BlackProgressor));
@@ -518,7 +518,7 @@ public class Engine
                     {
                         if (beatFig != U.OppositeFigure(figure) && !U.IsIntellector(beatFig))
                         {
-                            int? intellectorSquare = (color == EngineColor.White) ? whiteIntellectorSquare : blackIntellectorSquare;
+                            int? intellectorSquare = (color == Side.White) ? whiteIntellectorSquare : blackIntellectorSquare;
                             if (intellectorSquare.HasValue && Array.IndexOf(T.Near[coord], intellectorSquare.Value) >= 0)
                                 moves.Add(new EngineMove(coord, field, U.OppositeFigure(beatFig)));
                         }
@@ -541,7 +541,7 @@ public class Engine
                         moves.Add(new EngineMove(coord, targets[j], figure));
                         if (beatFig != U.OppositeFigure(figure) && !U.IsIntellector(beatFig))
                         {
-                            int? intellectorSquare = (color == EngineColor.White) ? whiteIntellectorSquare : blackIntellectorSquare;
+                            int? intellectorSquare = (color == Side.White) ? whiteIntellectorSquare : blackIntellectorSquare;
                             if (intellectorSquare.HasValue && Array.IndexOf(T.Near[coord], intellectorSquare.Value) >= 0)
                                 moves.Add(new EngineMove(coord, targets[j], U.OppositeFigure(beatFig)));
                         }
@@ -555,15 +555,15 @@ public class Engine
             if (!all) return;
 
             EngineFigure figure = fields[coord];
-            EngineColor figColor = U.GetColor(figure);
+            Side figColor = U.GetColor(figure);
 
             foreach (int field in T.IMoves[coord])
             {
                 if (fields[field] == EngineFigure.Empty)
                     moves.Add(new EngineMove(coord, field, figure));
 
-                if ((figColor == EngineColor.White && fields[field] == EngineFigure.WhiteDefensor) ||
-                    (figColor == EngineColor.Black && fields[field] == EngineFigure.BlackDefensor))
+                if ((figColor == Side.White && fields[field] == EngineFigure.WhiteDefensor) ||
+                    (figColor == Side.Black && fields[field] == EngineFigure.BlackDefensor))
                     moves.Add(new EngineMove(coord, field, figure));
             }
         }
@@ -617,7 +617,7 @@ public class Engine
             double standPat = mark ?? FastMark();
             if (Math.Abs(standPat) > WinMarkThreshold * T.MarkOf(EngineFigure.WhiteIntellector)) return standPat;
 
-            if (sideToMove == EngineColor.White)
+            if (sideToMove == Side.White)
             {
                 if (standPat >= b) return standPat;
                 if (a < standPat) a = standPat;
@@ -704,8 +704,8 @@ public class Engine
     private bool IsCheck()
     {
         if (whiteIntellectorSquare == null || blackIntellectorSquare == null) return false;
-        int field = (sideToMove == EngineColor.White) ? whiteIntellectorSquare.Value : blackIntellectorSquare.Value;
-        EngineColor opp = U.Opposite(sideToMove);
+        int field = (sideToMove == Side.White) ? whiteIntellectorSquare.Value : blackIntellectorSquare.Value;
+        Side opp = Sides.Opposite(sideToMove);
 
         foreach (int f in T.DMoves[field])
             if (fields[f] == U.WithColor(EngineFigure.WhiteDefensor, opp)) return true;
@@ -713,11 +713,11 @@ public class Engine
         foreach (int f in T.LLongMoves[field])
             if (fields[f] == U.WithColor(EngineFigure.WhiteLiberator, opp)) return true;
 
-        if (opp == EngineColor.White)
+        if (opp == Side.White)
             foreach (int f in T.PMovesBlack[field])
                 if (fields[f] == EngineFigure.WhiteProgressor) return true;
 
-        if (opp == EngineColor.Black)
+        if (opp == Side.Black)
             foreach (int f in T.PMovesWhite[field])
                 if (fields[f] == EngineFigure.BlackProgressor) return true;
 
@@ -773,7 +773,7 @@ public class Engine
         {
             result = new MoveResult
             {
-                Mark = sideToMove == EngineColor.White
+                Mark = sideToMove == Side.White
                     ? T.MarkOf(EngineFigure.BlackIntellector)
                     : T.MarkOf(EngineFigure.WhiteIntellector)
             };
@@ -851,7 +851,7 @@ public class Engine
     private void SortMoves(List<EngineMove> moves)
     {
         int parentHash = Hash();
-        EngineColor side = this.sideToMove;
+        Side side = this.sideToMove;
         int len = moves.Count;
         double[] scores = new double[len];
 
@@ -878,10 +878,10 @@ public class Engine
                         if (rec.Depth > depth2)
                         {
                             if (rec.Mark > rec.Alpha && rec.Mark < rec.Beta)
-                                scores[i] = rec.Mark + rec.Depth * T.MarkOf(side == EngineColor.White ? EngineFigure.WhiteProgressor : EngineFigure.BlackProgressor);
-                            else if (side == EngineColor.White && rec.Mark >= rec.Beta)
+                                scores[i] = rec.Mark + rec.Depth * T.MarkOf(side == Side.White ? EngineFigure.WhiteProgressor : EngineFigure.BlackProgressor);
+                            else if (side == Side.White && rec.Mark >= rec.Beta)
                                 scores[i] = rec.Beta + rec.Depth * T.MarkOf(EngineFigure.WhiteProgressor);
-                            else if (side == EngineColor.Black && rec.Mark <= rec.Alpha)
+                            else if (side == Side.Black && rec.Mark <= rec.Alpha)
                                 scores[i] = rec.Alpha + rec.Depth * T.MarkOf(EngineFigure.BlackProgressor);
                             depth2 = rec.Depth;
                         }
@@ -893,15 +893,15 @@ public class Engine
             if (scores[i] == 0 && fields[mv.To] == EngineFigure.Empty)
             {
                 double rec2 = history[mv.From][mv.To][(int)mv.Figure];
-                scores[i] = (side == EngineColor.White) ? T.MarkOf(EngineFigure.BlackIntellector) : T.MarkOf(EngineFigure.WhiteIntellector);
-                if (side == EngineColor.White) scores[i] += rec2 / HistorySortScale;
+                scores[i] = (side == Side.White) ? T.MarkOf(EngineFigure.BlackIntellector) : T.MarkOf(EngineFigure.WhiteIntellector);
+                if (side == Side.White) scores[i] += rec2 / HistorySortScale;
                 else scores[i] -= rec2 / HistorySortScale;
             }
 
             if (scores[i] == 0)
             {
                 double d = -T.MarkOf(fields[mv.To]) - T.MarkOf(fields[mv.From]);
-                scores[i] = (side == EngineColor.White) ? T.MarkOf(EngineFigure.BlackIntellector) + d : T.MarkOf(EngineFigure.WhiteIntellector) + d;
+                scores[i] = (side == Side.White) ? T.MarkOf(EngineFigure.BlackIntellector) + d : T.MarkOf(EngineFigure.WhiteIntellector) + d;
             }
         }
 
@@ -914,7 +914,7 @@ public class Engine
         int[] order = new int[len];
         for (int i = 0; i < len; i++) order[i] = i;
 
-        bool whiteMaximizes = sideToMove == EngineColor.White;
+        bool whiteMaximizes = sideToMove == Side.White;
         Array.Sort(order, (a, b) =>
         {
             int cmp = scores[a].CompareTo(scores[b]);
@@ -1019,7 +1019,7 @@ public class Engine
     {
         if (abortRequested)
         {
-            double abort = (sideToMove == EngineColor.White) ? double.PositiveInfinity : double.NegativeInfinity;
+            double abort = (sideToMove == Side.White) ? double.PositiveInfinity : double.NegativeInfinity;
             return new AlphaBetaResult { Move = null, Mark = abort, Line = ctx.TrackLine ? new List<EngineMove>() : null };
         }
 
@@ -1028,12 +1028,12 @@ public class Engine
             if (ctx.AbortMode == SearchAbortMode.Time &&
                 Stopwatch.GetTimestamp() * 1000L / Stopwatch.Frequency > finishMs)
             {
-                double abort = (sideToMove == EngineColor.White) ? double.PositiveInfinity : double.NegativeInfinity;
+                double abort = (sideToMove == Side.White) ? double.PositiveInfinity : double.NegativeInfinity;
                 return new AlphaBetaResult { Move = null, Mark = abort, Line = ctx.TrackLine ? new List<EngineMove>() : null };
             }
             if (ctx.AbortMode == SearchAbortMode.Count && countLimit - count <= 0)
             {
-                double abort = (sideToMove == EngineColor.White) ? double.PositiveInfinity : double.NegativeInfinity;
+                double abort = (sideToMove == Side.White) ? double.PositiveInfinity : double.NegativeInfinity;
                 return new AlphaBetaResult { Move = null, Mark = abort, Line = null };
             }
         }
@@ -1083,20 +1083,20 @@ public class Engine
 
         if (depth == 1)
         {
-            sideToMove = U.Opposite(sideToMove);
+            sideToMove = Sides.Opposite(sideToMove);
             bool isNull = false;
             double nullMark = 0;
-            if (sideToMove == EngineColor.Black && beta < double.PositiveInfinity)
+            if (sideToMove == Side.Black && beta < double.PositiveInfinity)
             {
                 nullMark = AlphaBeta(beta - 1, beta, depth - 1, extension, maxDepth, null, ctx).Mark;
                 if (nullMark >= beta) isNull = true;
             }
-            else if (sideToMove == EngineColor.White && alpha > double.NegativeInfinity)
+            else if (sideToMove == Side.White && alpha > double.NegativeInfinity)
             {
                 nullMark = AlphaBeta(alpha, alpha + 1, depth - 1, extension, maxDepth, null, ctx).Mark;
                 if (nullMark <= alpha) isNull = true;
             }
-            sideToMove = U.Opposite(sideToMove);
+            sideToMove = Sides.Opposite(sideToMove);
             if (isNull)
                 return new AlphaBetaResult { Move = null, Mark = nullMark, Line = ctx.TrackLine ? new List<EngineMove>() : null };
         }
@@ -1109,7 +1109,7 @@ public class Engine
         {
             result = Quiesce(alpha, beta);
         }
-        else if (sideToMove == EngineColor.White)
+        else if (sideToMove == Side.White)
         {
             double value = T.MarkOf(EngineFigure.BlackIntellector);
             var moves = GetMoves();
@@ -1420,8 +1420,8 @@ public class Engine
 
     private (double a, double b) AspirationWindow(int depth, double hypothesis, double point)
     {
-        EngineColor lastSide = (depth % 2 == 0) ? U.Opposite(sideToMove) : sideToMove;
-        if (lastSide == EngineColor.White)
+        Side lastSide = (depth % 2 == 0) ? Sides.Opposite(sideToMove) : sideToMove;
+        if (lastSide == Side.White)
             return (hypothesis - AspirationNarrow * point, hypothesis + AspirationWide * point);
         return (hypothesis - AspirationWide * point, hypothesis + AspirationNarrow * point);
     }

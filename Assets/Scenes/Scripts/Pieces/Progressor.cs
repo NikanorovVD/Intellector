@@ -33,14 +33,14 @@ public class Progressor : Piece
                 // Есть фигура, и она союзная
                 if (Board[i][j] != null && Board[i][j].Team == Team) continue;
 
-                // Перемещение чёрных
-                if (!Team)
+                // Перемещение белых
+                if (Team == Side.White)
                 {
                     if (X % 2 == 0 && Y - 1 == j) continue;
                     if (X % 2 == 1 && Y + 1 != j) continue;
                 }
-                // Перемещение белых
-                if (Team)
+                // Перемещение чёрных
+                if (Team == Side.Black)
                 {
                     if (X % 2 == 0 && Y - 1 != j) continue;
                     if (X % 2 == 1 && Y + 1 == j) continue;

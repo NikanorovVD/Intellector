@@ -104,7 +104,7 @@ public class PositionSetupView : MonoBehaviour
             status.text = text ?? string.Empty;
     }
 
-    public void ShowSelection(int pieceIndex, bool erase, bool blackPieces, bool blackToMove)
+    public void ShowSelection(int pieceIndex, bool erase, Side pieces, Side toMove)
     {
         if (pieceFrames != null)
         {
@@ -114,14 +114,14 @@ public class PositionSetupView : MonoBehaviour
                 pieceFrames[i].color = !erase && pieceIndex == i ? selectedColor : pieceIdleColor;
             }
         }
-        Paint(whiteTeamFrame, !erase && !blackPieces);
-        Paint(blackTeamFrame, !erase && blackPieces);
+        Paint(whiteTeamFrame, !erase && pieces == Side.White);
+        Paint(blackTeamFrame, !erase && pieces == Side.Black);
         Paint(eraseFrame, erase);
-        Paint(whiteMoveFrame, !blackToMove);
-        Paint(blackMoveFrame, blackToMove);
+        Paint(whiteMoveFrame, toMove == Side.White);
+        Paint(blackMoveFrame, toMove == Side.Black);
     }
 
-    public void BuildPreviews(Board board, bool black)
+    public void BuildPreviews(Board board, Side side)
     {
         if (board == null || previewCamera == null || previewRoot == null || pieceFrames == null || pieceFrames.Length == 0)
             return;
@@ -131,7 +131,7 @@ public class PositionSetupView : MonoBehaviour
         previewTextures = new RenderTexture[pieceFrames.Length];
         for (int i = 0; i < pieceFrames.Length; i++)
         {
-            previewPieces[i] = board.CreatePalettePiece((PieceType)i, black);
+            previewPieces[i] = board.CreatePalettePiece((PieceType)i, side);
             SetLayer(previewPieces[i], PreviewLayer);
             previewPieces[i].transform.SetParent(previewRoot, true);
             previewTextures[i] = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32);
@@ -151,10 +151,10 @@ public class PositionSetupView : MonoBehaviour
             }
         }
 
-        RenderPreviews(board, black);
+        RenderPreviews(board, side);
     }
 
-    public void RenderPreviews(Board board, bool black)
+    public void RenderPreviews(Board board, Side side)
     {
         if (board == null || previewCamera == null || previewPieces == null)
             return;
@@ -165,7 +165,7 @@ public class PositionSetupView : MonoBehaviour
             if (piece == null)
                 continue;
 
-            board.ApplyPieceMaterial(piece, black);
+            board.ApplyPieceMaterial(piece, side);
             piece.SetActive(true);
             for (int j = 0; j < previewPieces.Length; j++)
                 if (j != i && previewPieces[j] != null)

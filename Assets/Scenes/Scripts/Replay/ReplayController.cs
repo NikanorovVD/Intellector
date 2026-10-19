@@ -296,7 +296,7 @@ public class ReplayController : MonoBehaviour
     private void SyncTurn()
     {
         int ply = onVariation ? variationFrom + varIndex : mainIndex;
-        board.Turn = (firstPly + ply) % 2 == 1;
+        board.Turn = Sides.ToMove(firstPly + ply);
     }
 
     private void MoveStartHandler(Vector2Int start, Vector2Int end, int transformInfo)

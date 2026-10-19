@@ -100,8 +100,8 @@ public class NetworkManager : MonoBehaviour, IServerListenerObserver
         MainTasks.AddTask(() => RematchEvent?.Invoke());
     }
 
-    public void OnTimeOutReceived(bool exitTeam)
+    public void OnTimeOutReceived(Side winner)
     {
-        MainTasks.AddTask(() => board.GameOver(exitTeam, EndGameReason.TimesUp));
+        MainTasks.AddTask(() => board.GameOver(winner, EndGameReason.TimesUp));
     }
 }

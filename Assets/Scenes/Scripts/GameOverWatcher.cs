@@ -69,14 +69,14 @@ public class GameOverWatcher : MonoBehaviour
 
         if (IsAllPiecesBlocked())
         {
-            board.GameOver(!board.Turn, EndGameReason.AllPiecesBlocked);
+            board.GameOver(Sides.Opposite(board.Turn), EndGameReason.AllPiecesBlocked);
             return;
         }
     }
 
     private bool IsAllPiecesBlocked()
     {
-        bool teamToMove = board.Turn;
+        Side teamToMove = board.Turn;
         foreach (IPiece[] pieces in board.Pieces)
         {
             foreach (IPiece piece in pieces)

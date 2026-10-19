@@ -13,7 +13,7 @@ public static class IfenParser
 
         var position = new RecordedPosition();
         ParsePlacement(position.Pieces, fields[0]);
-        position.BlackToMove = ParseSide(fields[1]);
+        position.SideToMove = ParseSide(fields[1]);
         position.HalfmoveClock = ParseNonNegativeInt(fields[2], "полуходов без прогресса");
         position.FullmoveNumber = ParseFullmove(fields[3]);
         return position;
@@ -80,7 +80,7 @@ public static class IfenParser
             return new TileState
             {
                 Type = IpgnFormatter.PieceFromLetter(letter),
-                Team = char.IsLower(letter)
+                Team = char.IsLower(letter) ? Side.Black : Side.White
             };
         }
         catch (ArgumentOutOfRangeException)
@@ -89,10 +89,10 @@ public static class IfenParser
         }
     }
 
-    private static bool ParseSide(string text)
+    private static Side ParseSide(string text)
     {
-        if (text == "w") return false;
-        if (text == "b") return true;
+        if (text == "w") return Side.White;
+        if (text == "b") return Side.Black;
         throw new FormatException($"Некорректная очередь хода: {text}");
     }
 

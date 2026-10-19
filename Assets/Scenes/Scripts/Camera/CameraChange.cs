@@ -13,7 +13,7 @@ public class CameraChange : MonoBehaviour
 
     [SerializeField] private Board board;
 
-    private bool currentTeam;
+    private Side currentTeam;
     private bool topCameraOn;
 
     private const int CameraAutoRotationDelayMs = 200;
@@ -37,7 +37,7 @@ public class CameraChange : MonoBehaviour
             {
                 if (board.IsGameOver) return;
                 await Task.Delay(CameraAutoRotationDelayMs);
-                currentTeam = !currentTeam;
+                currentTeam = Sides.Opposite(currentTeam);
                 SwitchCamera();
             };
         }
@@ -64,7 +64,7 @@ public class CameraChange : MonoBehaviour
 
     public void RotateCamera()
     {
-        currentTeam = !currentTeam;
+        currentTeam = Sides.Opposite(currentTeam);
         SwitchCamera();
     }
 
@@ -72,7 +72,7 @@ public class CameraChange : MonoBehaviour
     {
         if (topCameraOn)
         {
-            if (currentTeam == false)
+            if (currentTeam == Side.White)
             {
                 SwitchToTopCamera();
                 RotateTopCameraToWhite();
@@ -85,7 +85,7 @@ public class CameraChange : MonoBehaviour
         }
         else
         {
-            if (currentTeam == false)
+            if (currentTeam == Side.White)
             {
                 SwitchToWhiteMainCamera();
             }

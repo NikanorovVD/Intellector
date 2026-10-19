@@ -6,5 +6,5 @@ public interface IServerListenerObserver
     void OnTimeReceived(int time);
     void OnExitReceived();
     void OnRematchReceived();
-    void OnTimeOutReceived(bool exitTeam);
+    void OnTimeOutReceived(Side winner);
 }

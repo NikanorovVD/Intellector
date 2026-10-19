@@ -77,13 +77,13 @@ public static class MoveAccuracy
         return MoveJudgement.None;
     }
 
-    public static MoveQuality FromMarks(double beforeMark, double afterMark, bool blackMoved)
+    public static MoveQuality FromMarks(double beforeMark, double afterMark, Side moved)
     {
         double beforeWin = WinPercent(beforeMark);
         double afterWin = WinPercent(afterMark);
         double beforeWc = WinningChances(beforeMark);
         double afterWc = WinningChances(afterMark);
-        if (blackMoved)
+        if (moved == Side.Black)
         {
             beforeWin = 100.0 - beforeWin;
             afterWin = 100.0 - afterWin;
@@ -92,7 +92,7 @@ public static class MoveAccuracy
         return new MoveQuality
         {
             Accuracy = AccuracyFromWinPercents(beforeWin, afterWin),
-            Judgement = JudgementFromDrop(blackMoved ? afterWc - beforeWc : beforeWc - afterWc),
+            Judgement = JudgementFromDrop(moved == Side.Black ? afterWc - beforeWc : beforeWc - afterWc),
             Known = true
         };
     }
@@ -134,10 +134,10 @@ public static class MoveAccuracy
         var black = new List<double>();
         for (int i = 0; i < moveCount; i++)
         {
-            bool blackMoved = (firstPly + i) % 2 == 1;
-            MoveQuality quality = FromMarks(marks[i], marks[i + 1], blackMoved);
+            Side moved = Sides.ToMove(firstPly + i);
+            MoveQuality quality = FromMarks(marks[i], marks[i + 1], moved);
             moves[i] = quality;
-            if (blackMoved)
+            if (moved == Side.Black)
                 black.Add(quality.Accuracy);
             else
                 white.Add(quality.Accuracy);

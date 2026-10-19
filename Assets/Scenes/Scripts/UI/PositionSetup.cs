@@ -10,7 +10,7 @@ public class PositionSetup : MonoBehaviour
     [SerializeField] private PositionSetupView view;
 
     private PieceType selectedType = PieceType.Progressor;
-    private bool selectedBlack;
+    private Side selectedSide;
     private bool erase;
 
     private void OnDestroy()
@@ -33,7 +33,7 @@ public class PositionSetup : MonoBehaviour
         int full = Settings.StartPosition != null ? Settings.StartPosition.FullmoveNumber : 1;
         view.SetClocks(half, full);
         view.AddClockListener(_ => RefreshPreview());
-        view.BuildPreviews(board, selectedBlack);
+        view.BuildPreviews(board, selectedSide);
         RefreshSelection();
         RefreshPreview();
     }
@@ -48,16 +48,16 @@ public class PositionSetup : MonoBehaviour
     public void SelectWhite()
     {
         erase = false;
-        selectedBlack = false;
-        view.RenderPreviews(board, selectedBlack);
+        selectedSide = Side.White;
+        view.RenderPreviews(board, selectedSide);
         RefreshSelection();
     }
 
     public void SelectBlack()
     {
         erase = false;
-        selectedBlack = true;
-        view.RenderPreviews(board, selectedBlack);
+        selectedSide = Side.Black;
+        view.RenderPreviews(board, selectedSide);
         RefreshSelection();
     }
 
@@ -69,14 +69,14 @@ public class PositionSetup : MonoBehaviour
 
     public void SelectWhiteMove()
     {
-        board.Turn = false;
+        board.Turn = Side.White;
         RefreshSelection();
         RefreshPreview();
     }
 
     public void SelectBlackMove()
     {
-        board.Turn = true;
+        board.Turn = Side.Black;
         RefreshSelection();
         RefreshPreview();
     }
@@ -142,15 +142,15 @@ public class PositionSetup : MonoBehaviour
         Vector2Int pos = board.LookUpTileIndex(info.transform.gameObject);
         TileState current = board.GetTileState(pos);
         TileState next = null;
-        if (!erase && !(current != null && current.Type == selectedType && current.Team == selectedBlack))
-            next = new TileState { Type = selectedType, Team = selectedBlack };
+        if (!erase && !(current != null && current.Type == selectedType && current.Team == selectedSide))
+            next = new TileState { Type = selectedType, Team = selectedSide };
         board.SetPiece(pos, next);
         RefreshPreview();
     }
 
     private void RefreshSelection()
     {
-        view.ShowSelection((int)selectedType, erase, selectedBlack, board.Turn);
+        view.ShowSelection((int)selectedType, erase, selectedSide, board.Turn);
     }
 
     private void RefreshPreview()
