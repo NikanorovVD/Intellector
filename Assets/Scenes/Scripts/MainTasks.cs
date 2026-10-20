@@ -1,35 +1,26 @@
 using System;
-using System.Collections.Generic;
+using System.Threading;
 
 using UnityEngine;
 
-// FIXME: костыльный инструмент маршализации, хочется верить что в Unity есть встроенные средства для этого
-public class MainTasks : MonoBehaviour
+public static class MainTasks
 {
-    private static readonly object tasksLock = new();
-    private static Queue<Action> tasks  = new Queue<Action>();
+    private static SynchronizationContext context;
 
-    private void Update()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Capture()
     {
-        try
-        {
-            Action task = null;
-            lock (tasksLock)
-            {
-                if (tasks.Count != 0)
-                    task = tasks.Dequeue();
-            }
-            task?.Invoke();
-        }
-        catch (Exception e)
-        {
-            LogWriter.Error(e);
-        }
+        context = SynchronizationContext.Current;
     }
 
     public static void AddTask(Action task)
     {
-        lock (tasksLock)
-            tasks.Enqueue(task);
+        if (context != null && SynchronizationContext.Current == context)
+        {
+            task();
+            return;
+        }
+
+        context.Post(_ => task(), null);
     }
 }
