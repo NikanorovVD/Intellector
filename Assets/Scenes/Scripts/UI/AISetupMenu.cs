@@ -19,10 +19,11 @@ public class AISetupMenu : MonoBehaviour
     [SerializeField] private Text errorText;
     [SerializeField] private GameObject[] aiControls;
     [SerializeField] private ColorSelector colorSelector;
+    [SerializeField] private LocalSetupMenu localSetup;
 
     private AISettings ai;
     private bool refreshing;
-    private GameMode pendingMode = GameMode.AI;
+    private bool open;
 
     private void Awake()
     {
@@ -32,8 +33,8 @@ public class AISetupMenu : MonoBehaviour
 
     private void Start()
     {
-        if (!ArrangeSession.TryTakeReturn(out GameMode mode)) return;
-        Open(mode);
+        if (ArrangeSession.TryTakeReturn(GameMode.AI))
+            Open();
     }
 
     private void OnValidate()
@@ -55,33 +56,39 @@ public class AISetupMenu : MonoBehaviour
 
     public void Open()
     {
-        Open(GameMode.AI);
-    }
-
-    public void Open(GameMode mode)
-    {
-        pendingMode = mode;
-        if (mode == GameMode.AI)
-            ai = Settings.AI;
+        open = true;
+        if (localSetup != null)
+            localSetup.HideControls();
+        ai = Settings.AI;
         Refresh();
         panel.SetActive(true);
         panel.transform.SetAsLastSibling();
-        if (mode == GameMode.AI)
-        {
-            EnsureColorSelector();
-            if (colorSelector != null)
-                colorSelector.SetColor(ai.Color);
-        }
+        EnsureColorSelector();
+        if (colorSelector != null)
+            colorSelector.SetColor(ai.Color);
+    }
+
+    public void HideControls()
+    {
+        open = false;
+        for (int i = 0; i < aiControls.Length; i++)
+            aiControls[i].SetActive(false);
     }
 
     public void Close()
     {
+        if (!open)
+            return;
+
+        open = false;
         panel.SetActive(false);
     }
 
     public void SwitchMode(int direction)
     {
-        if (pendingMode != GameMode.AI) return;
+        if (!open)
+            return;
+
         int count = Enum.GetNames(typeof(AISearchMode)).Length;
         int next = ((int)ai.Mode + direction) % count;
         if (next < 0)
@@ -92,7 +99,9 @@ public class AISetupMenu : MonoBehaviour
 
     public void ChangeValue(int delta)
     {
-        if (pendingMode != GameMode.AI) return;
+        if (!open)
+            return;
+
         if (!TryReadInput(out _))
         {
             Refresh();
@@ -118,7 +127,7 @@ public class AISetupMenu : MonoBehaviour
 
     public void InputChanged()
     {
-        if (refreshing)
+        if (!open || refreshing)
             return;
 
         string raw = valueInput.text ?? string.Empty;
@@ -137,43 +146,35 @@ public class AISetupMenu : MonoBehaviour
 
     public void StartGame()
     {
-        if (pendingMode == GameMode.AI && !TryReadInput(out _))
+        if (!open)
+            return;
+        if (!TryReadInput(out _))
             return;
         if (!TryReadIfen(out _))
             return;
 
-        if (pendingMode == GameMode.AI)
-        {
-            EnsureColorSelector();
-            if (colorSelector != null)
-                ai.Color = colorSelector.Color;
-            Settings.AI = ai;
-            Settings.PlayerTeam = ColorSelector.ResolveTeam(ai.Color);
-        }
-        else
-        {
-            Settings.PlayerTeam = Side.White;
-        }
-        Settings.GameMode = pendingMode;
+        EnsureColorSelector();
+        if (colorSelector != null)
+            ai.Color = colorSelector.Color;
+        Settings.AI = ai;
+        Settings.PlayerTeam = ColorSelector.ResolveTeam(ai.Color);
+        new GameInfo { TimeControl = TimeControl.Unlimited }.Save();
+        Settings.GameMode = GameMode.AI;
         SceneManager.LoadScene(1);
     }
 
     private void Refresh()
     {
         refreshing = true;
-        title.text = pendingMode == GameMode.Local ? "Локальная игра" : "Игра против ИИ";
-        bool aiUi = pendingMode == GameMode.AI;
+        title.text = "Игра против ИИ";
         for (int i = 0; i < aiControls.Length; i++)
-            aiControls[i].SetActive(aiUi);
-        if (aiUi)
-        {
-            modeName.text = ModeTitle(ai.Mode);
-            valueLabel.text = ValueTitle(ai.Mode);
-            valueInput.keyboardType = ai.Mode == AISearchMode.Time
-                ? TouchScreenKeyboardType.DecimalPad
-                : TouchScreenKeyboardType.NumberPad;
-            valueInput.text = FormatInputValue();
-        }
+            aiControls[i].SetActive(true);
+        modeName.text = ModeTitle(ai.Mode);
+        valueLabel.text = ValueTitle(ai.Mode);
+        valueInput.keyboardType = ai.Mode == AISearchMode.Time
+            ? TouchScreenKeyboardType.DecimalPad
+            : TouchScreenKeyboardType.NumberPad;
+        valueInput.text = FormatInputValue();
         ifenInput.text = Settings.StartIfen ?? string.Empty;
         bool custom = !string.IsNullOrEmpty(Settings.StartIfen);
         customStartToggle.SetIsOnWithoutNotify(custom);
@@ -184,7 +185,9 @@ public class AISetupMenu : MonoBehaviour
 
     public void CustomStartChanged(bool on)
     {
-        if (refreshing) return;
+        if (!open || refreshing)
+            return;
+
         SetIfenVisible(on);
         errorText.text = string.Empty;
     }
@@ -197,6 +200,9 @@ public class AISetupMenu : MonoBehaviour
 
     public void BeginArrange()
     {
+        if (!open)
+            return;
+
         string backup = Settings.StartIfen;
         string raw = (ifenInput.text ?? string.Empty).Trim();
         if (raw.Length == 0)
@@ -207,7 +213,7 @@ public class AISetupMenu : MonoBehaviour
             return;
         }
 
-        ArrangeSession.Enter(pendingMode, backup);
+        ArrangeSession.Enter(GameMode.AI, backup);
         Settings.GameMode = GameMode.Local;
         SceneManager.LoadScene(1);
     }

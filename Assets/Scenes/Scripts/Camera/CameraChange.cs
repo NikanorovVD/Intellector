@@ -16,6 +16,10 @@ public class CameraChange : MonoBehaviour
     private Side currentTeam;
     private bool topCameraOn;
 
+    public event Action<Side> ViewSideChanged;
+
+    public Side ViewSide => currentTeam;
+
     private const int CameraAutoRotationDelayMs = 200;
 
     private void Start()
@@ -94,6 +98,8 @@ public class CameraChange : MonoBehaviour
                 SwitchToBlackMainCamera();
             }
         }
+
+        ViewSideChanged?.Invoke(currentTeam);
     }
 
     private void SwitchToWhiteMainCamera()

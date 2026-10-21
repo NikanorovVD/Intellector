@@ -44,16 +44,12 @@ public static class ArrangeSession
         returnMode = mode;
     }
 
-    public static bool TryTakeReturn(out GameMode mode)
+    public static bool TryTakeReturn(GameMode mode)
     {
-        if (!hasReturn)
-        {
-            mode = default;
+        if (!hasReturn || returnMode != mode)
             return false;
-        }
 
         hasReturn = false;
-        mode = returnMode;
         return true;
     }
 }

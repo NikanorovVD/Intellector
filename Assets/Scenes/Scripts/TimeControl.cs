@@ -22,7 +22,7 @@ public class TimeControl
 
     public override string ToString()
     {
-        if (IsUnlimited) return "Unlimit";
+        if (IsUnlimited) return "Без ограничения";
 
         int minutes = BaseMilliseconds / 60000;
         int extraSeconds = (BaseMilliseconds % 60000) / 1000;

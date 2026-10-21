@@ -10,12 +10,12 @@ public class Scenes: MonoBehaviour
 
     public void LocalGame()
     {
-        GetComponent<AISetupMenu>().Open(GameMode.Local);
+        GetComponent<LocalSetupMenu>().Open();
     }
 
     public void AIGame()
     {
-        GetComponent<AISetupMenu>().Open(GameMode.AI);
+        GetComponent<AISetupMenu>().Open();
     }
 
     public void OpenReplay()
