@@ -83,4 +83,9 @@ server_connection.json
 server_connection.json.meta
 
 # Packages
-Packages/
+/[Pp]ackages/*
+!/[Pp]ackages/manifest.json
+!/[Pp]ackages/packages-lock.json
+
+# ProjectSettings
+/ProjectSettings/Packages/com.unity.testtools.codecoverage/
