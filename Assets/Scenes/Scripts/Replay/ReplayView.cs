@@ -58,6 +58,8 @@ public class ReplayView : MonoBehaviour
     [SerializeField] private Button renameCheck;
     [SerializeField] private Text renameError;
     [SerializeField] private Text fileDeleted;
+    [SerializeField] private GameObject drawer;
+    [SerializeField] private Text drawerLabel;
 
     public event Action<bool> EngineToggled;
     public event Action<int, bool> MoveClicked;
@@ -86,6 +88,8 @@ public class ReplayView : MonoBehaviour
     private bool fileMissing;
     private string whitePlayerName;
     private string blackPlayerName;
+    private bool panelPresent;
+    private bool collapsed;
 
     public bool EngineUiVisible => engineUiVisible;
 
@@ -197,9 +201,28 @@ public class ReplayView : MonoBehaviour
 
     public void SetPanelActive(bool on)
     {
+        panelPresent = on;
+        ApplyPanel();
+    }
+
+    public void Toggle()
+    {
+        if (!panelPresent)
+            return;
+        collapsed = !collapsed;
+        ApplyPanel();
+    }
+
+    private void ApplyPanel()
+    {
+        bool open = panelPresent && !collapsed;
         if (panel != null)
-            panel.SetActive(on);
-        if (!on)
+            panel.SetActive(open);
+        if (drawer != null)
+            drawer.SetActive(panelPresent);
+        if (drawerLabel != null)
+            drawerLabel.text = open ? "<" : ">";
+        if (!open)
             CloseRename();
     }
 
