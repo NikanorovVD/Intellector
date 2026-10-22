@@ -6335,6 +6335,7 @@ GameObject:
   - component: {fileID: 1482000103}
   - component: {fileID: 1482000102}
   - component: {fileID: 1482000104}
+  - component: {fileID: 1482000106}
   - component: {fileID: 1482000105}
   m_Layer: 5
   m_Name: ReplayMovesPanel
@@ -6369,7 +6370,7 @@ RectTransform:
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 286, y: 0}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &1482000102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6422,6 +6423,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   desktopScale: 1
   androidScale: 1.8
+--- !u!114 &1482000106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1482000100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7e4c2a91f6d4e83a0c5d8b21e9f4736, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1482000105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12238,6 +12251,7 @@ GameObject:
   - component: {fileID: 1482001203}
   - component: {fileID: 1482001202}
   - component: {fileID: 1482001204}
+  - component: {fileID: 1482001209}
   m_Layer: 0
   m_Name: MovesDrawer
   m_TagString: Untagged
@@ -12245,6 +12259,20 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
+--- !u!114 &1482001209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1482001200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  desktopScale: 1
+  androidScale: 1.8
 --- !u!224 &1482001201
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12450,6 +12478,8 @@ GameObject:
   - component: {fileID: 2101000103}
   - component: {fileID: 2101000102}
   - component: {fileID: 2101009001}
+  - component: {fileID: 2101009002}
+  - component: {fileID: 2101009003}
   m_Layer: 0
   m_Name: HistoryPanel
   m_TagString: Untagged
@@ -12482,7 +12512,7 @@ RectTransform:
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 320, y: 0}
-  m_Pivot: {x: 1, y: 0.5}
+  m_Pivot: {x: 1, y: 1}
 --- !u!114 &2101000102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12916,6 +12946,7 @@ GameObject:
   - component: {fileID: 2101000124}
   - component: {fileID: 2101000123}
   - component: {fileID: 2101000122}
+  - component: {fileID: 2101000129}
   m_Layer: 0
   m_Name: Drawer
   m_TagString: Untagged
@@ -12923,6 +12954,20 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
+--- !u!114 &2101000129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2101000120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  desktopScale: 1
+  androidScale: 1.8
 --- !u!224 &2101000121
 RectTransform:
   m_ObjectHideFlags: 0
@@ -15613,6 +15658,32 @@ MonoBehaviour:
   exitButton: {fileID: 1845664213}
   searchInput: {fileID: 2101000404}
   markOpenReplay: 1
+--- !u!114 &2101009002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2101000100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec17281b2af4a9b48a4ba638f578cdc2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  desktopScale: 1
+  androidScale: 1.8
+--- !u!114 &2101009003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2101000100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7e4c2a91f6d4e83a0c5d8b21e9f4736, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2103000001
 GameObject:
   m_ObjectHideFlags: 0

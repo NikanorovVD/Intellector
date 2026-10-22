@@ -110,7 +110,8 @@ public class HistoryMenu : MonoBehaviour
             float x = -(ExitMargin + halfWidth);
             if (IsOpen)
             {
-                float panelWidth = panel.GetComponent<RectTransform>().sizeDelta.x;
+                RectTransform panelRect = panel.GetComponent<RectTransform>();
+                float panelWidth = panelRect.sizeDelta.x * panelRect.localScale.x;
                 x = -(panelWidth + ExitGap + halfWidth);
             }
             exitButton.anchoredPosition = new Vector2(x, y);
