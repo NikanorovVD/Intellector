@@ -120,9 +120,9 @@ public class HistoryMenu : MonoBehaviour
             return;
         RectTransform drawerRect = drawer.GetComponent<RectTransform>();
         if (IsOpen)
-            drawerRect.anchoredPosition = new Vector2(-4f, -4f);
+            drawerRect.anchoredPosition = Vector2.zero;
         else if (exitButton != null)
-            drawerRect.anchoredPosition = new Vector2(-4f, -(ExitMargin + exitButton.sizeDelta.y + ExitGap));
+            drawerRect.anchoredPosition = new Vector2(0f, -(ExitMargin + exitButton.sizeDelta.y + ExitGap));
     }
 
     public void ConfirmRename()
