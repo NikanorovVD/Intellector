@@ -31,27 +31,25 @@ public class ReplayView : MonoBehaviour
     [SerializeField] private Text evalText;
     [SerializeField] private Text bestMoveText;
     [SerializeField] private GameObject accuracyRow;
-    [SerializeField] private GameObject whiteAccuracyGroup;
-    [SerializeField] private GameObject blackAccuracyGroup;
-    [SerializeField] private Text whiteAccuracyName;
-    [SerializeField] private Text blackAccuracyName;
-    [SerializeField] private Text whiteAccuracyText;
-    [SerializeField] private Text blackAccuracyText;
+    [SerializeField] private Text accuracyText;
+    [SerializeField] private TooltipTrigger accuracyTooltip;
     [SerializeField] private GameObject evalBar;
     [SerializeField] private RectTransform evalBarFill;
     [SerializeField] private Button copyIfenButton;
-    [SerializeField] private Text copyIfenText;
+    [SerializeField] private TooltipTrigger copyIfenTooltip;
     [SerializeField] private Button preAnalyzeButton;
-    [SerializeField] private Text preAnalyzeButtonText;
+    [SerializeField] private TooltipTrigger preAnalyzeTooltip;
+    [SerializeField] private Image preAnalyzeIcon;
+    [SerializeField] private Sprite preAnalyzeCancelSprite;
     [SerializeField] private InputField depthInput;
     [SerializeField] private GameObject preAnalyzeProgress;
     [SerializeField] private RectTransform preAnalyzeProgressFill;
     [SerializeField] private Button saveAnalysisButton;
-    [SerializeField] private Text saveAnalysisButtonText;
+    [SerializeField] private TooltipTrigger saveAnalysisTooltip;
     [SerializeField] private Button saveVariationButton;
-    [SerializeField] private Text saveVariationButtonText;
+    [SerializeField] private TooltipTrigger saveVariationTooltip;
     [SerializeField] private Button clearAnalysisButton;
-    [SerializeField] private Text clearAnalysisButtonText;
+    [SerializeField] private TooltipTrigger clearAnalysisTooltip;
     [SerializeField] private LayoutElement fileNameLayout;
     [SerializeField] private GameObject renameRow;
     [SerializeField] private InputField renameInput;
@@ -74,7 +72,6 @@ public class ReplayView : MonoBehaviour
     private MoveQuality[] mainQualities;
     private MoveQuality[] variationQualities;
     private bool engineUiVisible;
-    private bool engineHasAccuracy;
     private Coroutine copyIfenFeedback;
     private Coroutine saveAnalysisFeedback;
     private Coroutine saveVariationFeedback;
@@ -84,6 +81,7 @@ public class ReplayView : MonoBehaviour
     private string saveVariationIdleLabel;
     private string clearAnalysisIdleLabel;
     private string preAnalyzeIdleLabel;
+    private Sprite preAnalyzeIdleSprite;
     private string currentFileName;
     private bool fileMissing;
     private string whitePlayerName;
@@ -106,16 +104,18 @@ public class ReplayView : MonoBehaviour
 
     private void OnEnable()
     {
-        if (copyIfenText != null)
-            copyIfenIdleLabel = copyIfenText.text;
-        if (preAnalyzeButtonText != null)
-            preAnalyzeIdleLabel = preAnalyzeButtonText.text;
-        if (saveAnalysisButtonText != null)
-            saveAnalysisIdleLabel = saveAnalysisButtonText.text;
-        if (saveVariationButtonText != null)
-            saveVariationIdleLabel = saveVariationButtonText.text;
-        if (clearAnalysisButtonText != null)
-            clearAnalysisIdleLabel = clearAnalysisButtonText.text;
+        if (copyIfenTooltip != null)
+            copyIfenIdleLabel = copyIfenTooltip.Text;
+        if (preAnalyzeTooltip != null)
+            preAnalyzeIdleLabel = preAnalyzeTooltip.Text;
+        if (preAnalyzeIcon != null)
+            preAnalyzeIdleSprite = preAnalyzeIcon.sprite;
+        if (saveAnalysisTooltip != null)
+            saveAnalysisIdleLabel = saveAnalysisTooltip.Text;
+        if (saveVariationTooltip != null)
+            saveVariationIdleLabel = saveVariationTooltip.Text;
+        if (clearAnalysisTooltip != null)
+            clearAnalysisIdleLabel = clearAnalysisTooltip.Text;
         if (engineToggle != null)
             engineToggle.onValueChanged.AddListener(OnEngineToggled);
         if (copyIfenButton != null)
@@ -186,16 +186,30 @@ public class ReplayView : MonoBehaviour
             StopCoroutine(clearAnalysisFeedback);
             clearAnalysisFeedback = null;
         }
-        if (copyIfenText != null)
-            copyIfenText.text = copyIfenIdleLabel;
-        if (saveAnalysisButtonText != null)
-            saveAnalysisButtonText.text = saveAnalysisIdleLabel;
-        if (saveVariationButtonText != null)
-            saveVariationButtonText.text = saveVariationIdleLabel;
-        if (clearAnalysisButtonText != null)
-            clearAnalysisButtonText.text = clearAnalysisIdleLabel;
-        if (preAnalyzeButtonText != null)
-            preAnalyzeButtonText.text = preAnalyzeIdleLabel;
+        if (copyIfenTooltip != null)
+        {
+            copyIfenTooltip.Unpin();
+            copyIfenTooltip.Text = copyIfenIdleLabel;
+        }
+        if (saveAnalysisTooltip != null)
+        {
+            saveAnalysisTooltip.Unpin();
+            saveAnalysisTooltip.Text = saveAnalysisIdleLabel;
+        }
+        if (saveVariationTooltip != null)
+        {
+            saveVariationTooltip.Unpin();
+            saveVariationTooltip.Text = saveVariationIdleLabel;
+        }
+        if (clearAnalysisTooltip != null)
+        {
+            clearAnalysisTooltip.Unpin();
+            clearAnalysisTooltip.Text = clearAnalysisIdleLabel;
+        }
+        if (preAnalyzeTooltip != null)
+            preAnalyzeTooltip.Text = preAnalyzeIdleLabel;
+        if (preAnalyzeIcon != null)
+            preAnalyzeIcon.sprite = preAnalyzeIdleSprite;
         CloseRename();
     }
 
@@ -283,7 +297,7 @@ public class ReplayView : MonoBehaviour
 
     public void ShowCopyIfenCopied()
     {
-        if (copyIfenText == null) return;
+        if (copyIfenTooltip == null) return;
         if (copyIfenFeedback != null)
             StopCoroutine(copyIfenFeedback);
         copyIfenFeedback = StartCoroutine(CopyIfenFeedback());
@@ -291,7 +305,7 @@ public class ReplayView : MonoBehaviour
 
     public void ShowAnalysisSaved()
     {
-        if (saveAnalysisButtonText == null)
+        if (saveAnalysisTooltip == null)
             return;
         if (saveAnalysisFeedback != null)
             StopCoroutine(saveAnalysisFeedback);
@@ -300,7 +314,7 @@ public class ReplayView : MonoBehaviour
 
     public void ShowVariationSaved()
     {
-        if (saveVariationButtonText == null)
+        if (saveVariationTooltip == null)
             return;
         if (saveVariationFeedback != null)
             StopCoroutine(saveVariationFeedback);
@@ -309,7 +323,7 @@ public class ReplayView : MonoBehaviour
 
     public void ShowAnalysisCleared()
     {
-        if (clearAnalysisButtonText == null)
+        if (clearAnalysisTooltip == null)
             return;
         if (clearAnalysisFeedback != null)
             StopCoroutine(clearAnalysisFeedback);
@@ -490,8 +504,10 @@ public class ReplayView : MonoBehaviour
 
     public void SetPreAnalyzeRunning(bool running)
     {
-        if (preAnalyzeButtonText != null)
-            preAnalyzeButtonText.text = running ? PreAnalyzeCancelLabel : preAnalyzeIdleLabel;
+        if (preAnalyzeTooltip != null)
+            preAnalyzeTooltip.Text = running ? PreAnalyzeCancelLabel : preAnalyzeIdleLabel;
+        if (preAnalyzeIcon != null)
+            preAnalyzeIcon.sprite = running ? preAnalyzeCancelSprite : preAnalyzeIdleSprite;
         if (depthInput != null)
             depthInput.interactable = !running;
         if (preAnalyzeProgress != null)
@@ -586,32 +602,30 @@ public class ReplayView : MonoBehaviour
 
     private void SetAccuracy(double? white, double? black)
     {
-        engineHasAccuracy = white != null || black != null;
-        if (whiteAccuracyText != null)
-            whiteAccuracyText.text = white != null ? MoveAccuracy.FormatPercent(white.Value) : string.Empty;
-        if (blackAccuracyText != null)
-            blackAccuracyText.text = black != null ? MoveAccuracy.FormatPercent(black.Value) : string.Empty;
-        if (whiteAccuracyGroup != null)
-            whiteAccuracyGroup.SetActive(white != null);
-        if (blackAccuracyGroup != null)
-            blackAccuracyGroup.SetActive(black != null);
+        if (accuracyText != null)
+            accuracyText.text = "Точность: " + FormatAccuracy(white) + " / " + FormatAccuracy(black);
+        ApplyAccuracyNames();
         if (accuracyRow != null)
-            accuracyRow.SetActive(engineHasAccuracy);
+            accuracyRow.SetActive(white != null || black != null);
     }
 
     private void ApplyAccuracyNames()
     {
-        if (whiteAccuracyName != null)
-            whiteAccuracyName.text = AccuracyName(whitePlayerName, "белые");
-        if (blackAccuracyName != null)
-            blackAccuracyName.text = AccuracyName(blackPlayerName, "чёрные");
+        if (accuracyTooltip == null)
+            return;
+        accuracyTooltip.Text = AccuracyCaption(whitePlayerName, "белые") + " / " + AccuracyCaption(blackPlayerName, "чёрные");
     }
 
-    private static string AccuracyName(string name, string fallback)
+    private static string FormatAccuracy(double? value)
+    {
+        return value != null ? MoveAccuracy.FormatPercent(value.Value) : "—";
+    }
+
+    private static string AccuracyCaption(string name, string fallback)
     {
         if (string.IsNullOrWhiteSpace(name))
             return fallback;
-        return AllowWrap(name.Trim());
+        return name.Trim();
     }
 
     private void OnEngineToggled(bool on)
@@ -872,33 +886,41 @@ public class ReplayView : MonoBehaviour
 
     private IEnumerator CopyIfenFeedback()
     {
-        copyIfenText.text = CopyIfenDoneLabel;
+        copyIfenTooltip.Text = CopyIfenDoneLabel;
+        copyIfenTooltip.Pin();
         yield return new WaitForSeconds(1.2f);
-        copyIfenText.text = copyIfenIdleLabel;
+        copyIfenTooltip.Text = copyIfenIdleLabel;
+        copyIfenTooltip.Unpin();
         copyIfenFeedback = null;
     }
 
     private IEnumerator SaveAnalysisFeedback()
     {
-        saveAnalysisButtonText.text = SaveAnalysisDoneLabel;
+        saveAnalysisTooltip.Text = SaveAnalysisDoneLabel;
+        saveAnalysisTooltip.Pin();
         yield return new WaitForSeconds(1.2f);
-        saveAnalysisButtonText.text = saveAnalysisIdleLabel;
+        saveAnalysisTooltip.Text = saveAnalysisIdleLabel;
+        saveAnalysisTooltip.Unpin();
         saveAnalysisFeedback = null;
     }
 
     private IEnumerator SaveVariationFeedback()
     {
-        saveVariationButtonText.text = SaveAnalysisDoneLabel;
+        saveVariationTooltip.Text = SaveAnalysisDoneLabel;
+        saveVariationTooltip.Pin();
         yield return new WaitForSeconds(1.2f);
-        saveVariationButtonText.text = saveVariationIdleLabel;
+        saveVariationTooltip.Text = saveVariationIdleLabel;
+        saveVariationTooltip.Unpin();
         saveVariationFeedback = null;
     }
 
     private IEnumerator ClearAnalysisFeedback()
     {
-        clearAnalysisButtonText.text = ClearAnalysisDoneLabel;
+        clearAnalysisTooltip.Text = ClearAnalysisDoneLabel;
+        clearAnalysisTooltip.Pin();
         yield return new WaitForSeconds(1.2f);
-        clearAnalysisButtonText.text = clearAnalysisIdleLabel;
+        clearAnalysisTooltip.Text = clearAnalysisIdleLabel;
+        clearAnalysisTooltip.Unpin();
         clearAnalysisFeedback = null;
     }
 
