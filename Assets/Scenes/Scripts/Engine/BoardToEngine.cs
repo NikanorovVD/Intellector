@@ -11,10 +11,15 @@ public static class BoardToEngine
 
     public static void Load(Engine engine, Board board)
     {
-        engine.Load(ToSquares(board), board.Turn);
+        engine.Load(CopySquares(board), board.Turn);
     }
 
-    private static EngineFigure[] ToSquares(Board board)
+    public static void Load(Engine engine, NotationBoard board, Side sideToMove)
+    {
+        engine.Load(CopySquares(board), sideToMove);
+    }
+
+    public static EngineFigure[] CopySquares(Board board)
     {
         var squares = new EngineFigure[59];
         for (int i = 0; i < 59; i++)
@@ -37,6 +42,13 @@ public static class BoardToEngine
 
     public static Engine CreateEngine(NotationBoard board, Side sideToMove)
     {
+        var engine = new Engine();
+        Load(engine, board, sideToMove);
+        return engine;
+    }
+
+    public static EngineFigure[] CopySquares(NotationBoard board)
+    {
         var squares = new EngineFigure[59];
         for (int i = 0; i < 59; i++) squares[i] = EngineFigure.Empty;
 
@@ -51,9 +63,7 @@ public static class BoardToEngine
             }
         }
 
-        var engine = new Engine();
-        engine.Load(squares, sideToMove);
-        return engine;
+        return squares;
     }
 
     public static EngineFigure ToEngineFigure(IPiece piece) =>

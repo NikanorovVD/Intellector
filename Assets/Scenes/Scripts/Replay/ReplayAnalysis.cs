@@ -18,9 +18,12 @@ public class ReplayAnalysis
 
     private const int LiveJudgementDepth = 6;
     private readonly object preLock = new();
+    private readonly object engineLock = new();
+    private readonly Engine engine = new();
+    private Task engineTask;
+    private bool liveOwnsEngine;
     private int generation;
     private int preGeneration;
-    private Engine running;
     private Engine anchor;
     private Engine preRunning;
     private bool enabled;
@@ -230,102 +233,60 @@ public class ReplayAnalysis
     public void Analyze(Board board, int ply, int positionCount, int firstPly, NotationBoard previous)
     {
         generation++;
-        running?.RequestStop();
+        StopOwnedSearch();
         anchor?.RequestStop();
         anchor = null;
         if (!enabled || board == null || preAnalyzing)
         {
-            running = null;
             if (!preAnalyzing)
                 Updated?.Invoke(default);
             return;
         }
 
         int gen = generation;
-        Engine engine = BoardToEngine.CreateEngine(board);
-        if (engine.TryGetTerminalResult(out MoveResult terminal))
+        if (TryTerminal(board, out MoveResult terminal))
         {
-            running = null;
             Updated?.Invoke(terminal);
             NoteLive(ply, terminal, positionCount, firstPly);
             StartAnchor(previous, ply, positionCount, firstPly, gen);
             return;
         }
 
-        running = engine;
         StartAnchor(previous, ply, positionCount, firstPly, gen);
-        engine.OnProgress += result =>
+        StartLiveSearch(board, gen, result =>
         {
-            if (gen != generation) return;
-            if (double.IsInfinity(result.Mark)) return;
-            MainTasks.AddTask(() =>
-            {
-                if (gen != generation) return;
-                Updated?.Invoke(result);
-                NoteLive(ply, result, positionCount, firstPly);
-            });
-        };
-        Task.Run(() =>
-        {
-            try
-            {
-                engine.BestMoveByTime(SearchMs);
-            }
-            catch (Exception e)
-            {
-                LogWriter.Error(e);
-            }
+            Updated?.Invoke(result);
+            NoteLive(ply, result, positionCount, firstPly);
         });
     }
 
     public void AnalyzeVariation(Board board, int varPos, int variationFrom, int firstPly, NotationBoard previous)
     {
         generation++;
-        running?.RequestStop();
+        StopOwnedSearch();
         anchor?.RequestStop();
         anchor = null;
         if (!enabled || board == null || preAnalyzing)
         {
-            running = null;
             if (!preAnalyzing)
                 Updated?.Invoke(default);
             return;
         }
 
         int gen = generation;
-        Engine engine = BoardToEngine.CreateEngine(board);
-        if (engine.TryGetTerminalResult(out MoveResult terminal))
+        if (TryTerminal(board, out MoveResult terminal))
         {
-            running = null;
             Updated?.Invoke(terminal);
             NoteVariation(varPos, terminal, variationFrom, firstPly);
             StartVariationAnchor(previous, varPos, variationFrom, firstPly, gen);
             return;
         }
 
-        running = engine;
         StartVariationAnchor(previous, varPos, variationFrom, firstPly, gen);
-        engine.OnProgress += result =>
+        StartLiveSearch(board, gen, result =>
         {
-            if (gen != generation) return;
-            if (double.IsInfinity(result.Mark)) return;
-            MainTasks.AddTask(() =>
-            {
-                if (gen != generation) return;
-                Updated?.Invoke(result);
-                NoteVariation(varPos, result, variationFrom, firstPly);
-            });
-        };
-        Task.Run(() =>
-        {
-            try
-            {
-                engine.BestMoveByTime(SearchMs);
-            }
-            catch (Exception e)
-            {
-                LogWriter.Error(e);
-            }
+            Updated?.Invoke(result);
+            NoteVariation(varPos, result, variationFrom, firstPly);
         });
     }
 
@@ -362,7 +323,7 @@ public class ReplayAnalysis
         {
             preGeneration++;
             preRunning?.RequestStop();
-            preRunning = null;
+            preRunning = engine;
             gen = preGeneration;
             preAnalyzing = true;
             mainLineComplete = false;
@@ -374,7 +335,7 @@ public class ReplayAnalysis
 
         PreProgress?.Invoke(0, total);
         int searchDepth = Math.Max(1, depth);
-        Task.Run(() => RunPreAnalyze(moves, start, firstPly, searchDepth, gen, total));
+        ScheduleOnEngine(() => RunPreAnalyze(moves, start, firstPly, searchDepth, gen, total));
     }
 
     public void CancelPreAnalyze()
@@ -415,10 +376,97 @@ public class ReplayAnalysis
     public void StopLive()
     {
         generation++;
-        running?.RequestStop();
-        running = null;
+        StopOwnedSearch();
         anchor?.RequestStop();
         anchor = null;
+    }
+
+    private static bool TryTerminal(Board board, out MoveResult result)
+    {
+        Engine probe = BoardToEngine.CreateEngine(board);
+        return probe.TryGetTerminalResult(out result);
+    }
+
+    private void StopOwnedSearch()
+    {
+        if (!liveOwnsEngine)
+            return;
+        engine.RequestStop();
+        liveOwnsEngine = false;
+    }
+
+    // Следующий поиск ждёт, пока предыдущий отпустит таблицу позиций
+    private void ScheduleOnEngine(Action search)
+    {
+        lock (engineLock)
+        {
+            Task previous = engineTask;
+            engineTask = Task.Run(() =>
+            {
+                if (previous != null)
+                {
+                    try
+                    {
+                        previous.Wait();
+                    }
+                    catch (AggregateException)
+                    {
+                    }
+                }
+
+                search();
+            });
+        }
+    }
+
+    private void StartLiveSearch(Board board, int gen, Action<MoveResult> publish)
+    {
+        EngineFigure[] squares = BoardToEngine.CopySquares(board);
+        Side side = board.Turn;
+        liveOwnsEngine = true;
+        ScheduleOnEngine(() =>
+        {
+            if (gen != generation)
+                return;
+
+            try
+            {
+                engine.Load(squares, side);
+                if (engine.TryGetTerminalResult(out MoveResult terminal))
+                {
+                    MainTasks.AddTask(() =>
+                    {
+                        if (gen != generation) return;
+                        publish(terminal);
+                    });
+                    return;
+                }
+
+                Action<MoveResult> progress = result =>
+                {
+                    if (gen != generation) return;
+                    if (double.IsInfinity(result.Mark)) return;
+                    MainTasks.AddTask(() =>
+                    {
+                        if (gen != generation) return;
+                        publish(result);
+                    });
+                };
+                engine.OnProgress += progress;
+                try
+                {
+                    engine.BestMoveByTime(SearchMs, () => gen == generation);
+                }
+                finally
+                {
+                    engine.OnProgress -= progress;
+                }
+            }
+            catch (Exception e)
+            {
+                LogWriter.Error(e);
+            }
+        });
     }
 
     public void Stop()
@@ -443,22 +491,12 @@ public class ReplayAnalysis
                 if (!IsCurrentPre(gen)) return;
 
                 Side sideToMove = Sides.ToMove(firstPly + ply);
-                Engine engine = BoardToEngine.CreateEngine(board, sideToMove);
+                BoardToEngine.Load(engine, board, sideToMove);
+                if (!IsCurrentPre(gen)) return;
+
                 MoveResult result;
                 if (!engine.TryGetTerminalResult(out result))
-                {
-                    lock (preLock)
-                    {
-                        if (gen != preGeneration) return;
-                        preRunning = engine;
-                    }
-                    result = engine.BestMoveByDepth(depth);
-                    lock (preLock)
-                    {
-                        if (preRunning == engine)
-                            preRunning = null;
-                    }
-                }
+                    result = engine.BestMoveByDepth(depth, () => IsCurrentPre(gen));
 
                 if (!StoreMain(gen, ply, result)) return;
                 MainTasks.AddTask(() =>
@@ -474,6 +512,8 @@ public class ReplayAnalysis
             lock (preLock)
             {
                 if (gen != preGeneration) return;
+                if (preRunning == engine)
+                    preRunning = null;
                 preAnalyzing = false;
                 mainLineComplete = true;
                 ComputeMoveQualityLocked();
@@ -490,6 +530,8 @@ public class ReplayAnalysis
             lock (preLock)
             {
                 if (gen != preGeneration) return;
+                if (preRunning == engine)
+                    preRunning = null;
                 preAnalyzing = false;
                 mainLineComplete = false;
                 ClearMoveQualityLocked();

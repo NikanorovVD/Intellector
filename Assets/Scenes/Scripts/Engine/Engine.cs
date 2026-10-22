@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 using T = EngineTables;
 using U = EngineUtils;
@@ -28,7 +29,8 @@ public class Engine
     private double[] variabilityArray = new double[0];
     private int currentLine = 0;
     private long finishMs = 0;
-    private volatile bool abortRequested;
+    private int stopRequests;
+    private int stopBaseline;
     private int countLimit = 0;
     private int count = 0;
     private MoveResult bestMoveInfo;
@@ -68,6 +70,7 @@ public class Engine
         positionHistory = new Dictionary<int, int>();
         moveHistory = new List<MoveHistoryEntry>();
         fields = new EngineFigure[59];
+        hash = new Dictionary<int, List<HashRecord>>();
 
         if (position != null && TrySetPosition(position))
             return;
@@ -822,8 +825,16 @@ public class Engine
         return (false, 0, null, alpha, beta);
     }
 
+    private void ClearHash()
+    {
+        hash = new Dictionary<int, List<HashRecord>>();
+    }
+
     private void AddToHash(int pos, double alpha, double beta, EngineMove? move, double mark, int depth)
     {
+        if (double.IsNaN(mark) || double.IsInfinity(mark))
+            return;
+
         double trustA, trustB;
         if (mark <= alpha) { trustA = mark; trustB = double.PositiveInfinity; }
         else if (mark >= beta) { trustA = double.NegativeInfinity; trustB = mark; }
@@ -1010,14 +1021,24 @@ public class Engine
 
     public void RequestStop()
     {
-        abortRequested = true;
+        Interlocked.Increment(ref stopRequests);
         finishMs = 0;
+    }
+
+    private bool SearchStopped => Volatile.Read(ref stopRequests) != stopBaseline;
+
+    // Остановка, пришедшая после этого снимка, относится уже к начатому поиску
+    private void ArmSearch(Func<bool> stillCurrent)
+    {
+        stopBaseline = Volatile.Read(ref stopRequests);
+        if (stillCurrent != null && !stillCurrent())
+            Interlocked.Increment(ref stopRequests);
     }
 
     private AlphaBetaResult AlphaBeta(double alpha, double beta,
         int depth, double extension, int maxDepth, int? pos, SearchContext ctx, bool firstDepth = false)
     {
-        if (abortRequested)
+        if (SearchStopped)
         {
             double abort = (sideToMove == Side.White) ? double.PositiveInfinity : double.NegativeInfinity;
             return new AlphaBetaResult { Move = null, Mark = abort, Line = ctx.TrackLine ? new List<EngineMove>() : null };
@@ -1050,6 +1071,17 @@ public class Engine
             if (v > WinMarkThreshold * T.MarkOf(EngineFigure.WhiteIntellector)) return v - 1;
             if (v < WinMarkThreshold * T.MarkOf(EngineFigure.BlackIntellector)) return v + 1;
             return v;
+        }
+
+        // Бесконечность здесь означает обрыв поиска, а не оценку позиции
+        AlphaBetaResult AbortSearch(double mark)
+        {
+            return new AlphaBetaResult
+            {
+                Move = null,
+                Mark = mark,
+                Line = ctx.TrackLine ? new List<EngineMove>() : null
+            };
         }
 
         double result = 0;
@@ -1168,6 +1200,8 @@ public class Engine
                     }
                     res = CorrectWinMark(r.Mark);
                     UnmoveByRules(argP);
+                    if (double.IsInfinity(res))
+                        return AbortSearch(res);
 
                     if (value < Math.Max(value, res)) { value = Math.Max(value, res); bestLine = new List<EngineMove>(line); }
                 }
@@ -1184,6 +1218,8 @@ public class Engine
 
                     res = CorrectWinMark(res);
                     UnmoveByRules(argP);
+                    if (double.IsInfinity(res))
+                        return AbortSearch(res);
 
                     value = Math.Max(value, res);
                 }
@@ -1306,6 +1342,8 @@ public class Engine
                     }
                     res = CorrectWinMark(r.Mark);
                     UnmoveByRules(argP);
+                    if (double.IsInfinity(res))
+                        return AbortSearch(res);
 
                     if (value > Math.Min(value, res)) { value = Math.Min(value, res); bestLine = new List<EngineMove>(line); }
                 }
@@ -1322,6 +1360,8 @@ public class Engine
 
                     res = CorrectWinMark(res);
                     UnmoveByRules(argP);
+                    if (double.IsInfinity(res))
+                        return AbortSearch(res);
 
                     value = Math.Min(value, res);
                 }
@@ -1469,7 +1509,7 @@ public class Engine
 
         RunAspirationSearch(
             startDepth: 0,
-            shouldContinue: i => i <= depth,
+            shouldContinue: i => i <= depth && !SearchStopped,
             searchAtDepth: (i, a, b, _, firstDepth) =>
             {
                 var r = AB(a, b, i, 0, i, pos, firstDepth);
@@ -1477,6 +1517,7 @@ public class Engine
             },
             onComplete: (i, move, mark, _) =>
             {
+                if (SearchStopped) return;
                 res = (move, mark);
                 bestMoveInfo.Move = move;
                 bestMoveInfo.Mark = mark;
@@ -1488,7 +1529,7 @@ public class Engine
             fullSearchOnNullMove: false,
             initialFirstDepth: false);
 
-        if (!res.move.HasValue)
+        if (!res.move.HasValue && !SearchStopped)
         {
             res = AB(double.NegativeInfinity, double.PositiveInfinity, depth, 0, depth, pos);
             bestMoveInfo.Move = res.move;
@@ -1503,14 +1544,15 @@ public class Engine
     }
 
     // Поиск на заданную глубину.
-    public MoveResult BestMoveByDepth(int depth)
+    public MoveResult BestMoveByDepth(int depth, Func<bool> stillCurrent = null)
     {
-        abortRequested = false;
+        ArmSearch(stillCurrent);
         AdoptPlayedHistoryForSearch();
-        hash = new Dictionary<int, List<HashRecord>>();
+        if (variability != 0)
+            ClearHash();
+        variability = 0;
         InitializeHistory();
         InitializePruningHistory();
-        variability = 0;
         InitializeVariability(GetMoves().Count);
 
         IDS(depth);
@@ -1522,12 +1564,16 @@ public class Engine
     }
 
     // Поиск на заданное время (мс).
-    public MoveResult BestMoveByTime(double timeMs)
+    public MoveResult BestMoveByTime(double timeMs, Func<bool> stillCurrent = null)
     {
-        abortRequested = false;
+        ArmSearch(stillCurrent);
         AdoptPlayedHistoryForSearch();
+        if (variability != 0)
+        {
+            ClearHash();
+            variability = 0;
+        }
         InitializeVariability(GetMoves().Count);
-        hash = new Dictionary<int, List<HashRecord>>();
         InitializeHistory();
         InitializePruningHistory();
         int pos = Hash();
@@ -1536,11 +1582,11 @@ public class Engine
 
         RunAspirationSearch(
             startDepth: 1,
-            shouldContinue: _ => !abortRequested && Stopwatch.GetTimestamp() * 1000L / Stopwatch.Frequency < finishMs,
+            shouldContinue: _ => !SearchStopped && Stopwatch.GetTimestamp() * 1000L / Stopwatch.Frequency < finishMs,
             searchAtDepth: (i, a, b, _, firstDepth) => ABByTime(a, b, i, 0, i, pos, firstDepth),
             onComplete: (i, move, mark, line) =>
             {
-                if (abortRequested) return;
+                if (SearchStopped) return;
                 long nowMs = Stopwatch.GetTimestamp() * 1000L / Stopwatch.Frequency;
                 if (nowMs < finishMs || i == 1)
                 {
@@ -1565,10 +1611,10 @@ public class Engine
     // Поиск до лимита позиций.
     private MoveResult BestMoveByCount(int limit)
     {
-        abortRequested = false;
+        ArmSearch(null);
         AdoptPlayedHistoryForSearch();
         InitializeVariability(GetMoves().Count);
-        hash = new Dictionary<int, List<HashRecord>>();
+        ClearHash();
         InitializeHistory();
         InitializePruningHistory();
         int pos = Hash();
