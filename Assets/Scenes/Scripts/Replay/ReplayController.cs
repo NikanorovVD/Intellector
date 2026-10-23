@@ -514,7 +514,7 @@ public class ReplayController : MonoBehaviour
         if (!TryBuildAnalysisRecord(out GameRecord saved))
             return;
 
-        string path = GameRecorder.CreateAnalysisFilePath();
+        string path = GameRecorder.CreateAnalysisFilePath(Settings.ReplayFilePath);
         File.WriteAllText(path, IpgnFormatter.Format(saved));
         if (history != null)
             history.RefreshListed();

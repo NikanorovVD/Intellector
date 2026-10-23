@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 using UnityEngine;
 
@@ -59,7 +60,7 @@ public class GameRecorder : MonoBehaviour
         }
         IpgnFormatter.GetMovetextOrigin(record, out firstPly, out firstFullmove);
 
-        filePath = CreateFilePath(mode);
+        filePath = CreateGameFilePath(mode, white, black);
         WriteRecord(record);
     }
 
@@ -151,20 +152,54 @@ public class GameRecorder : MonoBehaviour
         return IpgnFormatter.FormatTimeControl(GameInfo.Load().TimeControl);
     }
 
-    private static string CreateFilePath(GameMode mode)
+    private static string CreateGameFilePath(GameMode mode, string white, string black)
     {
-        return CreateFilePath(mode.ToString());
+        DateTime now = DateTime.Now;
+        string name = mode == GameMode.Local
+            ? $"Локальная_{now:yy-MM-dd_HH-mm}"
+            : $"{SanitizeFileName(white)}-{SanitizeFileName(black)}_{now:yy-MM-dd_HH-mm-ss}";
+        return AllocatePath(name);
     }
 
-    public static string CreateAnalysisFilePath()
+    public static string CreateAnalysisFilePath(string sourcePath)
     {
-        return CreateFilePath(AnalysisEvent);
+        string sourceName = Path.GetFileNameWithoutExtension(sourcePath);
+        if (string.IsNullOrEmpty(sourceName))
+            sourceName = "Реплей";
+        return AllocatePath(sourceName + "_анализ");
     }
 
-    private static string CreateFilePath(string name)
+    private static string AllocatePath(string name)
     {
         Directory.CreateDirectory(GamesDirectory);
-        return Path.Combine(GamesDirectory, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{name}.ipgn");
+        string path = Path.Combine(GamesDirectory, name + ReplayFile.Extension);
+        if (!File.Exists(path))
+            return path;
+
+        for (int number = 2; ; number++)
+        {
+            path = Path.Combine(GamesDirectory, $"{name}({number}){ReplayFile.Extension}");
+            if (!File.Exists(path))
+                return path;
+        }
+    }
+
+    private static string SanitizeFileName(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Player";
+
+        string name = value.Trim().Replace('<', '(').Replace('>', ')');
+        char[] invalid = Path.GetInvalidFileNameChars();
+        var builder = new StringBuilder(name.Length);
+        foreach (char symbol in name)
+        {
+            if (Array.IndexOf(invalid, symbol) < 0)
+                builder.Append(symbol);
+        }
+
+        string sanitized = builder.ToString().Trim().TrimEnd('.');
+        return sanitized.Length == 0 ? "Player" : sanitized;
     }
 
     public static string GamesDirectory => Path.Combine(Application.persistentDataPath, "Games");

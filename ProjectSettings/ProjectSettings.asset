@@ -12,7 +12,7 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: EchpochmakCommunity
+  companyName: Kizil
   productName: Intellector
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
@@ -156,8 +156,8 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Android: com.EchpochmakCommunity.Intellector
-    Standalone: com.EchpochmakCommunity.Intellector
+    Android: com.Kizil.Intellector
+    Standalone: com.Kizil.Intellector
   buildNumber:
     Standalone: 0
     VisionOS: 0
