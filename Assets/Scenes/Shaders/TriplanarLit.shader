@@ -12,6 +12,7 @@ Shader "Intellector/TriplanarLit"
         _Smoothness("Smoothness", Range(0, 1)) = 1
         _Variation("Color Variation", Range(0, 1)) = 0.2
         _TileSize("Tile Size", Float) = 200
+        _TileOrigin("Tile Origin", Vector) = (0, 0, 0, 0)
         _Sharpness("Blend Sharpness", Range(1, 16)) = 6
         _EdgeMap("Edges", 2D) = "white" {}
         _EdgeColor("Edge Color", Color) = (0.9, 0.9, 0.92, 1)
@@ -78,6 +79,7 @@ Shader "Intellector/TriplanarLit"
                 half _Smoothness;
                 half _Variation;
                 half _TileSize;
+                float4 _TileOrigin;
                 half _Sharpness;
                 half _EdgeStrength;
                 half _EdgeLight;
@@ -114,9 +116,11 @@ Shader "Intellector/TriplanarLit"
             // Атласная развёртка фигур рвёт бесшовный мрамор, поэтому проекция идёт по форме.
             void TriplanarUVs(float3 positionOS, half3 normalOS, float tileSize, out float2 uvX, out float2 uvY, out float2 uvZ)
             {
-                uvX = positionOS.zy / tileSize;
-                uvY = positionOS.xz / tileSize;
-                uvZ = positionOS.xy / tileSize;
+                // Сдвиг, чтобы крупный стол не пересёк шов одного тайла.
+                float3 p = positionOS - _TileOrigin.xyz;
+                uvX = p.zy / tileSize;
+                uvY = p.xz / tileSize;
+                uvZ = p.xy / tileSize;
                 uvX.x *= normalOS.x < 0.0 ? -1.0 : 1.0;
                 uvY.x *= normalOS.y < 0.0 ? -1.0 : 1.0;
                 uvZ.x *= normalOS.z < 0.0 ? -1.0 : 1.0;
