@@ -4,9 +4,9 @@ using UnityEngine;
 
 public enum PieceMaterials
 {
-    Standard = 0,
-    Mramor = 1,
-    New = 2
+    Stone = 0,
+    Standard = 1,
+    Mramor = 2
 }
 
 public class MaterialSelector : MonoBehaviour
@@ -15,9 +15,9 @@ public class MaterialSelector : MonoBehaviour
     [SerializeField] private Material[] blackMaterials;
 
     private static readonly Dictionary<PieceMaterials, string> materialNames = new Dictionary<PieceMaterials, string> {
-        { PieceMaterials.Standard, "Стандарт" } ,
-        { PieceMaterials.Mramor, "Мрамор" },
-        { PieceMaterials.New, "Новый" }
+        { PieceMaterials.Stone, "Камень" },
+        { PieceMaterials.Standard, "Стандарт" },
+        { PieceMaterials.Mramor, "Мрамор" }
     };
 
     public static string MaterialName(PieceMaterials material) => materialNames[material];
