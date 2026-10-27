@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Cinemachine;
 
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class CameraChange : MonoBehaviour
 {
@@ -49,6 +51,9 @@ public class CameraChange : MonoBehaviour
 
     private void Update()
     {
+        if (IsTextInputFocused())
+            return;
+
         if (Input.GetKeyDown(KeyCode.E))
         {
             SwitchTopCamera();
@@ -58,6 +63,20 @@ public class CameraChange : MonoBehaviour
         {
             RotateCamera();
         }
+    }
+
+    private static bool IsTextInputFocused()
+    {
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+            return false;
+
+        GameObject selected = eventSystem.currentSelectedGameObject;
+        if (selected == null)
+            return false;
+
+        InputField input = selected.GetComponent<InputField>();
+        return input != null && input.isFocused;
     }
 
     public void SwitchTopCamera()
